@@ -40,7 +40,7 @@ export default function ResultadoPage() {
     : ''
 
   const waText = encodeURIComponent(p.waMsg)
-  const waUrl = `https://wa.me/5493764358152?text=${waText}`
+  const waUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=${waText}`
 
   return (
     <main className="min-h-screen bg-white px-4 py-10">

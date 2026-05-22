@@ -62,6 +62,7 @@ export default function DatosPage() {
   })
   const [errors, setErrors] = useState<Partial<Record<keyof DatosContacto, string>>>({})
   const [loading, setLoading] = useState(false)
+  const [consent, setConsent] = useState(false)
 
   function set(k: keyof DatosContacto, v: string) {
     setForm(f => ({ ...f, [k]: v }))
@@ -100,8 +101,14 @@ export default function DatosPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminPayload: { form, perfil, total, respuestas },
-          prospectoPayload: { form, perfil, total, respuestas }
+          nombre: form.nombre,
+          email: form.email,
+          whatsapp: `${form.codPais}${form.whatsapp}`,
+          perfil,
+          honeypot: '',
+          consent: true,
+          adminPayload: JSON.stringify({ form, perfil, total, respuestas }),
+          prospectoPayload: JSON.stringify({ form, perfil, total, respuestas }),
         })
       })
     } catch {
@@ -167,9 +174,28 @@ export default function DatosPage() {
             {errors.email && <p className="text-mc-rojo text-xs mt-1">{errors.email}</p>}
           </div>
 
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                required
+                checked={consent}
+                onChange={e => setConsent(e.target.checked)}
+                style={{ marginTop: '3px', accentColor: '#1C4D8C' }}
+              />
+              <span style={{ fontSize: '13px', color: '#656565', lineHeight: '1.5' }}>
+                Acepto el tratamiento de mis datos según la{' '}
+                <a href="/privacidad" style={{ color: '#1C4D8C', textDecoration: 'underline' }}>
+                  política de privacidad
+                </a>
+              </span>
+            </label>
+            <input type="text" name="honeypot" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !consent}
             className="
               w-full py-4 mt-2 bg-mc-azul hover:bg-mc-azul-marino
               text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
