@@ -102,13 +102,15 @@ export default function DatosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: form.nombre,
+          apellido: form.apellido,
+          empresa: form.empresa,
           email: form.email,
-          whatsapp: `${form.codPais}${form.whatsapp}`,
+          whatsapp: form.whatsapp,
+          codPais: form.codPais,
           perfil,
+          respuestas,
           honeypot: '',
           consent: true,
-          adminPayload: JSON.stringify({ form, perfil, total, respuestas }),
-          prospectoPayload: JSON.stringify({ form, perfil, total, respuestas }),
         })
       })
     } catch {
