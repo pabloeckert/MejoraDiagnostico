@@ -1,0 +1,28 @@
+
+Mejora Continua
+
+Amarillo #E5C34B #f4c318 #F2BC1B #F2BF27 #F2BB16
+
+Naranja #F29422
+
+Rojo #C64E4A #e03a3e #D93D4A #D91818 #D9072D
+
+Azul #495F93 #2d579f #3264A6 #465E8C #1C4D8C #2C5CA5
+
+Celeste #2BA8D9
+
+Gris #656565 #F2F2F2 
+ 
+Negro #000000 #00010D
+
+Paleta de Colores 2026  (Códigos HEX)
+Rojo vivo: #D9072D 
+Azul marino: #020659 
+Azul corporativo: #1C4D8C
+Amarillo dorado: #F2BB16
+Negro: #0D0D0D
+Blanco puro:  #FFFFFF
+En todo los fondos manteniendo Blanco Puro y detalles en Azul corporativo
+
+
+
