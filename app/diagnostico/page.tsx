@@ -40,7 +40,7 @@ export default function DiagnosticoPage() {
       guardarRespuestas(nuevas)
       const perfil = detectarPerfil(nuevas)
       guardarPerfil(perfil)
-      router.push('/datos')
+      router.push('/resultado')
     }
   }
 

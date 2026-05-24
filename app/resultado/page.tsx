@@ -30,6 +30,7 @@ export default function ResultadoPage() {
     )
   }
 
+  const tieneEmail = !!session.datos?.email
   const perfil = session.perfil as PerfilKey
   const p = PERFILES[perfil]
   const areas = calcularAreas(session.respuestas)
@@ -98,35 +99,93 @@ export default function ResultadoPage() {
           ))}
         </div>
 
-        {/* Cierre */}
-        <div className="bg-mc-gris-claro rounded-sm px-6 py-6 mb-8">
-          <h3 className="font-spartan font-700 text-mc-negro text-base uppercase tracking-wide mb-2">
-            {p.cierreTitulo}
-          </h3>
-          <p className="text-mc-gris font-spartan text-sm leading-relaxed">
-            {p.cierreTxt}
-          </p>
-        </div>
+        {/* Teaser (sin datos) o completo (con datos) */}
+        {!tieneEmail ? (
+          <div style={{ position: 'relative' }}>
+            {/* Contenido fantasma para que el blur tenga algo */}
+            <div className="bg-mc-gris-claro rounded-sm px-6 py-6 mb-8">
+              <h3 className="font-spartan font-700 text-mc-negro text-base uppercase tracking-wide mb-2">
+                {p.cierreTitulo}
+              </h3>
+              <p className="text-mc-gris font-spartan text-sm leading-relaxed">
+                {p.cierreTxt}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 items-center mb-2">
+              <div className="w-full sm:flex-1 h-12 bg-[#25D366] rounded-sm opacity-30" />
+              <div className="w-32 h-12 bg-mc-gris-claro rounded-sm opacity-30" />
+            </div>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              w-full sm:w-auto flex-1 text-center py-4 px-8
-              bg-[#25D366] hover:bg-[#1fba58]
-              text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
-              rounded-sm transition-colors duration-200
-            "
-          >
-            💬 {p.cta}
-          </a>
-          <div className="flex items-center justify-center">
-            <PDFButton perfil={perfil} nombre={nombre} areas={areas} />
+            {/* Overlay */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(255,255,255,0.92)',
+                backdropFilter: 'blur(4px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                padding: '32px',
+                textAlign: 'center',
+                zIndex: 10,
+                borderRadius: '4px',
+              }}
+            >
+              <p className="font-spartan font-700 text-mc-negro text-lg">
+                Tu plan de acción completo está listo
+              </p>
+              <p className="font-spartan font-400 text-mc-gris text-sm">
+                Ingresá tus datos para desbloquearlo y recibirlo por email
+              </p>
+              <button
+                onClick={() => router.push('/datos')}
+                className="
+                  bg-mc-azul hover:bg-mc-azul-marino
+                  text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
+                  rounded-sm transition-colors duration-200
+                "
+                style={{ padding: '14px 32px', marginTop: '8px' }}
+              >
+                DESBLOQUEAR MI DIAGNÓSTICO →
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Cierre */}
+            <div className="bg-mc-gris-claro rounded-sm px-6 py-6 mb-8">
+              <h3 className="font-spartan font-700 text-mc-negro text-base uppercase tracking-wide mb-2">
+                {p.cierreTitulo}
+              </h3>
+              <p className="text-mc-gris font-spartan text-sm leading-relaxed">
+                {p.cierreTxt}
+              </p>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="
+                  w-full sm:w-auto flex-1 text-center py-4 px-8
+                  bg-[#25D366] hover:bg-[#1fba58]
+                  text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
+                  rounded-sm transition-colors duration-200
+                "
+              >
+                💬 {p.cta}
+              </a>
+              <div className="flex items-center justify-center">
+                <PDFButton perfil={perfil} nombre={nombre} areas={areas} />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-300 font-spartan mt-12">

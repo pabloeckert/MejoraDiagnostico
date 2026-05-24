@@ -127,22 +127,17 @@ export default function DatosPage() {
           Casi listo
         </p>
         <h1 className="text-3xl font-spartan font-700 text-mc-negro mb-2 leading-tight">
-          ¿A quién le enviamos el resultado?
+          UN PASO MÁS
         </h1>
         <p className="text-mc-gris font-spartan text-base mb-8">
-          Completá tus datos para ver tu diagnóstico.
+          Tu plan de acción completo llega a tu email en segundos.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <InputField label="Nombre" value={form.nombre} onChange={v => set('nombre', v)} required />
-              {errors.nombre && <p className="text-mc-rojo text-xs mt-1">{errors.nombre}</p>}
-            </div>
-            <InputField label="Apellido" value={form.apellido} onChange={v => set('apellido', v)} />
+          <div>
+            <InputField label="Nombre" value={form.nombre} onChange={v => set('nombre', v)} required />
+            {errors.nombre && <p className="text-mc-rojo text-xs mt-1">{errors.nombre}</p>}
           </div>
-
-          <InputField label="Empresa / Negocio" value={form.empresa} onChange={v => set('empresa', v)} placeholder="Opcional" />
 
           <div>
             <label className="text-xs font-spartan font-600 text-gray-500 uppercase tracking-wider block mb-1">
