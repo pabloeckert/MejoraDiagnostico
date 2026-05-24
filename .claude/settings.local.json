@@ -13,7 +13,17 @@
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(Write-Host \"listo\")",
       "PowerShell(taskkill *)",
-      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd C:\\\\Github\\\\MejoraDiagnostico && npx next dev --port 3000\" -WindowStyle Normal)"
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c cd C:\\\\Github\\\\MejoraDiagnostico && npx next dev --port 3000\" -WindowStyle Normal)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npm list *)",
+      "Bash(gh pr *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Github\\\\MejoraDiagnostico\" -Force)",
+      "Bash(Select-Object Name)",
+      "Bash(git log *)",
+      "PowerShell(Get-ChildItem -Recurse \"C:\\\\Github\\\\MejoraDiagnostico\" -Name | Where-Object { $_ -match \"\\\\.\\(png|svg|jpg|jpeg|webp|ico\\)$\" } | Select-Object -First 50)",
+      "PowerShell(New-Item *)"
     ]
   }
 }

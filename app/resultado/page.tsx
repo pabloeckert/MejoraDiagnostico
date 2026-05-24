@@ -48,7 +48,10 @@ export default function ResultadoPage() {
 
         {/* Badge + perfil */}
         <div className="mb-8">
-          <span className="inline-block bg-mc-gris-claro text-mc-gris text-xs font-spartan font-600 tracking-widest uppercase px-3 py-1 rounded-full mb-4">
+          <span
+            className="inline-block text-mc-azul text-xs font-spartan font-700 tracking-widest uppercase px-3 py-1 rounded-full mb-4"
+            style={{ border: '1.5px solid #1C4D8C' }}
+          >
             Tu Perfil
           </span>
           <h1 className="text-3xl sm:text-4xl font-spartan font-700 text-mc-negro leading-tight mb-2">
@@ -71,7 +74,7 @@ export default function ResultadoPage() {
         </p>
 
         {/* Verdad central */}
-        <div className="bg-[#f5f7fb] border-l-4 border-mc-azul px-5 py-4 mb-10 rounded-r-sm">
+        <div className="bg-mc-gris-claro border-l-4 border-mc-azul px-5 py-4 mb-10 rounded-r-sm">
           <p className="text-xs font-spartan font-700 text-mc-azul uppercase tracking-widest mb-1">
             La verdad central
           </p>

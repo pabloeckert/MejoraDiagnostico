@@ -45,7 +45,7 @@ export default function DiagnosticoPage() {
   }
 
   return (
-    <main className="min-h-screen bg-mc-negro flex flex-col px-4 py-10">
+    <main className="min-h-screen bg-white flex flex-col px-4 py-10">
       <div className="w-full max-w-[640px] mx-auto flex flex-col flex-1">
         <ProgressBar current={step + 1} total={PREGUNTAS.length} />
 
