@@ -48,7 +48,6 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
               style={{
                 borderRadius: '2px',
                 border: sel ? '1.5px solid #1C4D8C' : '1.5px solid #e0e0e0',
-                ...(sel ? {} : { ':hover': { borderColor: '#1C4D8C' } }),
               }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLButtonElement).style.borderColor = '#1C4D8C' }}
               onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLButtonElement).style.borderColor = '#e0e0e0' }}

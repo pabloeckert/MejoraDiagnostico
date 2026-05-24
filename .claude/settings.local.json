@@ -23,7 +23,16 @@
       "Bash(Select-Object Name)",
       "Bash(git log *)",
       "PowerShell(Get-ChildItem -Recurse \"C:\\\\Github\\\\MejoraDiagnostico\" -Name | Where-Object { $_ -match \"\\\\.\\(png|svg|jpg|jpeg|webp|ico\\)$\" } | Select-Object -First 50)",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "PowerShell(cd \"C:\\\\Github\\\\MejoraDiagnostico\"; Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -RedirectStandardOutput \"$env:TEMP\\\\nextjs-out.txt\" -RedirectStandardError \"$env:TEMP\\\\nextjs-err.txt\"; Write-Host \"Servidor iniciado\")",
+      "Bash(echo \"PID: $!\")",
+      "Bash(chromium-cli screenshot *)",
+      "Bash(echo \"exit: $?\")",
+      "Read(//usr/**)",
+      "Bash(node -e \"const{execSync}=require\\('child_process'\\);console.log\\(execSync\\('ls /usr/bin | grep -i chrom'\\).toString\\(\\)\\)\")",
+      "Bash(npx --yes playwright@latest install chromium)",
+      "Bash(node *)",
+      "Bash(npx playwright *)"
     ]
   }
 }
