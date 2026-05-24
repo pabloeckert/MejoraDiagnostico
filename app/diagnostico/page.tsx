@@ -67,12 +67,15 @@ export default function DiagnosticoPage() {
           <button
             onClick={handleSiguiente}
             disabled={seleccionada === null}
-            className="
-              w-full py-4 bg-mc-azul hover:bg-mc-azul-marino
-              text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
-              rounded-sm transition-colors duration-200
-              disabled:opacity-30 disabled:cursor-not-allowed
-            "
+            className="w-full font-spartan font-700 text-sm uppercase text-white rounded-sm transition-colors duration-200"
+            style={{
+              padding: '16px',
+              letterSpacing: '0.1em',
+              background: '#1C4D8C',
+              opacity: seleccionada === null ? 0.35 : 1,
+              cursor: seleccionada === null ? 'not-allowed' : 'pointer',
+              pointerEvents: seleccionada === null ? 'none' : 'auto',
+            }}
           >
             {step < PREGUNTAS.length - 1 ? 'SIGUIENTE →' : 'VER MI DIAGNÓSTICO →'}
           </button>

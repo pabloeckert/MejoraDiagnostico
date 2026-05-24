@@ -102,7 +102,7 @@ export default function ResultadoPage() {
         {/* Teaser (sin datos) o completo (con datos) */}
         {!tieneEmail ? (
           <div style={{ position: 'relative' }}>
-            {/* Contenido fantasma para que el blur tenga algo */}
+            {/* Contenido fantasma visible bajo el overlay */}
             <div className="bg-mc-gris-claro rounded-sm px-6 py-6 mb-8">
               <h3 className="font-spartan font-700 text-mc-negro text-base uppercase tracking-wide mb-2">
                 {p.cierreTitulo}
@@ -121,33 +121,43 @@ export default function ResultadoPage() {
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(4px)',
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.97) 40%, rgba(255,255,255,1) 100%)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '12px',
+                gap: '16px',
                 padding: '32px',
                 textAlign: 'center',
                 zIndex: 10,
                 borderRadius: '4px',
               }}
             >
-              <p className="font-spartan font-700 text-mc-negro text-lg">
+              <span style={{ fontSize: '32px', lineHeight: 1 }}>🔒</span>
+              <p style={{ fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: 700, color: '#0D0D0D', margin: 0 }}>
                 Tu plan de acción completo está listo
               </p>
-              <p className="font-spartan font-400 text-mc-gris text-sm">
+              <p style={{ fontSize: '16px', color: '#656565', margin: 0, maxWidth: '400px' }}>
                 Ingresá tus datos para desbloquearlo y recibirlo por email
               </p>
               <button
                 onClick={() => router.push('/datos')}
-                className="
-                  bg-mc-azul hover:bg-mc-azul-marino
-                  text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
-                  rounded-sm transition-colors duration-200
-                "
-                style={{ padding: '14px 32px', marginTop: '8px' }}
+                style={{
+                  background: '#1C4D8C',
+                  color: 'white',
+                  padding: '16px 32px',
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  letterSpacing: '0.08em',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  width: '100%',
+                  maxWidth: '360px',
+                  textTransform: 'uppercase',
+                  fontFamily: 'inherit',
+                  marginTop: '8px',
+                }}
               >
                 DESBLOQUEAR MI DIAGNÓSTICO →
               </button>

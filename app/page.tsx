@@ -18,15 +18,37 @@ export default function Home() {
           visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
       >
-        {/* Logo real */}
-        <div className="flex justify-center mb-10">
+        {/* Logo + marca */}
+        <div className="flex flex-col items-center mb-12">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Mejora Continua"
-            style={{ width: '200px', height: 'auto' }}
+            style={{ width: '120px', height: 'auto', marginBottom: '10px' }}
           />
+          <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.15em', color: '#656565', textTransform: 'uppercase' }}>
+            Mejora Continua
+          </span>
         </div>
+
+        {/* Título */}
+        <h1
+          className="font-spartan font-700 text-mc-negro uppercase"
+          style={{
+            fontSize: 'clamp(40px, 8vw, 72px)',
+            lineHeight: 0.95,
+            letterSpacing: '-0.02em',
+            marginBottom: '20px',
+          }}
+        >
+          DIAGNÓSTICO<br />EMPRESARIAL
+        </h1>
+
+        {/* Subtítulo */}
+        <p className="text-mc-gris font-spartan font-300 leading-relaxed" style={{ fontSize: '18px', marginBottom: '24px' }}>
+          8 preguntas. Tu perfil real.<br />
+          Lo que nadie te dice de tu negocio.
+        </p>
 
         {/* Badge */}
         <div
@@ -35,23 +57,6 @@ export default function Home() {
         >
           Menos de 1 minuto
         </div>
-
-        {/* Título */}
-        <h1
-          className="font-spartan font-700 text-mc-negro uppercase leading-tight mb-4"
-          style={{
-            fontSize: 'clamp(36px, 6vw, 56px)',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          DIAGNÓSTICO<br />EMPRESARIAL
-        </h1>
-
-        {/* Subtítulo */}
-        <p className="text-mc-gris font-spartan font-300 mb-12 leading-relaxed" style={{ fontSize: '18px' }}>
-          8 preguntas. Tu perfil real.<br />
-          Lo que nadie te dice de tu negocio.
-        </p>
 
         {/* Botón */}
         <button
