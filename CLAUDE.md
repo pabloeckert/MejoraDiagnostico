@@ -12,25 +12,33 @@ npm run lint     # ESLint
 
 No hay suite de tests configurada.
 
+## Stack
+
+Next.js 14 (App Router) · React 18 · TypeScript · Tailwind CSS v3 · Resend (email) · Zod (validación server-side) · jsPDF (PDF cliente).
+
 ## Arquitectura general
 
-App de diagnóstico empresarial de una sola pasada: el usuario responde 8 preguntas → ingresa sus datos → ve su perfil y resultados. Tres rutas de usuario: `/diagnostico` → `/datos` → `/resultado`. Existe también `/privacidad` (página estática de política de datos).
+App de diagnóstico empresarial de una sola pasada: el usuario responde 8 preguntas → ve un teaser de su resultado → ingresa sus datos → ve el resultado completo desbloqueado. Rutas: `/` → `/diagnostico` → `/resultado` (teaser) → `/datos` → `/resultado` (completo). Existe también `/privacidad` (página estática).
+
+Todas las páginas de usuario son `'use client'` — no hay Server Components en las rutas. El único código server-side es `app/api/send-email/route.ts`.
 
 ### Flujo de estado entre rutas
 
-El estado no pasa por URL ni por un store global. Se usa `hooks/useDiagnostico.ts` que persiste en dos capas:
+El estado no pasa por URL ni por un store global. Se usan funciones exportadas desde `hooks/useDiagnostico.ts` que persisten en dos capas:
 - **`sessionStorage`** (clave `mc_diagnostico`): respuestas, perfil detectado y datos del formulario. Se pierde al cerrar la pestaña — diseño intencional para que cada sesión sea fresca.
 - **`localStorage`** (clave `mc_leads`): colección de leads acumulada. Persiste entre sesiones; se puede exportar desde la consola con `JSON.parse(localStorage.getItem('mc_leads'))`.
 
-Cada página llama a helpers de `useDiagnostico` al montarse para leer el estado previo. Si no hay datos válidos, redirige hacia atrás.
+Cada página lee el estado previo al montarse. Si no hay datos válidos, redirige hacia atrás. `hooks/useDiagnostico.ts` exporta principalmente funciones standalone (`guardarRespuestas`, `guardarPerfil`, `guardarDatos`, `cargarSession`, `guardarLead`) — importalas directamente, no a través del hook `useDiagnostico`.
 
-Todas las páginas son `'use client'` — no hay Server Components en las rutas de usuario.
+### Teaser y desbloqueo en `/resultado`
+
+`/resultado` se visita dos veces. La primera vez (`session.datos?.email` ausente) muestra perfil + áreas + un overlay que bloquea el cierre/CTA y empuja al usuario a `/datos`. Tras completar el formulario, `/datos` guarda los datos en session y redirige de vuelta a `/resultado`, donde el overlay desaparece y aparece el contenido completo con WhatsApp y PDF.
 
 ### Lógica de negocio central
 
 - **`lib/preguntas.ts`**: 8 preguntas, cada una con 4 opciones. Cada opción tiene un mapa de puntajes por área. Las respuestas se guardan como índices (0-3), el puntaje máximo total es 32.
-- **`lib/detectar.ts`**: toma el array de respuestas (índices 0-3), acumula puntajes, calcula el porcentaje por área y determina el perfil con reglas de prioridad.
-- **`lib/areas.ts`**: 5 áreas — Liderazgo, Comercial, Procesos, Asesoramiento, Visión. Umbrales: `crítica` (<40%) / `media` (40-65%) / `sólida` (>65%).
+- **`lib/detectar.ts`**: toma el array de respuestas `r[0..7]` y determina el perfil con reglas de prioridad sobre índices concretos. **Importante:** los índices en `detectarPerfil` refieren a posiciones fijas en `PREGUNTAS` — el orden de las preguntas en `preguntas.ts` no puede cambiar sin actualizar `detectarPerfil` y `AREAS`.
+- **`lib/areas.ts`**: 5 áreas — Liderazgo, Comercial, Procesos, Asesoramiento, Visión. Exporta `calcularAreas` (usado en el cliente) y `zonaColor` (usado en `AreaBar` y `PDFButton`). Los umbrales son: `Crítico` (<40%) / `En desarrollo` (40-65%) / `Sólido` (≥65%).
 - **`lib/perfiles.ts`**: 8 perfiles. Cada perfil tiene: `tag`, `ref`, `desc`, `verdad`, `cierreTitulo`, `cierreTxt`, `cta`, `waMsg`. Todos los textos de resultados salen de acá. El tipo exportado es `PerfilKey`.
 
 ### API de email (`app/api/send-email/route.ts`)
@@ -41,12 +49,14 @@ Todas las páginas son `'use client'` — no hay Server Components en las rutas 
 
 La key de Resend vive en `RESEND_API_KEY` (sin prefijo `NEXT_PUBLIC_`) — es server-only por diseño. El endpoint tiene honeypot y checkbox de consentimiento validados en Zod.
 
+**Captura de leads:** `guardarLead` se llama en el cliente *antes* de la llamada a la API. Si el email falla, el lead queda en `localStorage` de todas formas. El error de la API se silencia y el usuario avanza igual a `/resultado`.
+
 ### Componentes
 
 - **`QuestionCard`**: baraja las opciones con `useMemo` para que el orden sea aleatorio pero estable durante el render.
 - **`ProgressBar`**: barra de progreso que indica en qué pregunta va el usuario.
-- **`AreaBar`**: barra animada que cambia de color según la zona (crítica/media/sólida).
-- **`PDFButton`**: genera el PDF con jsPDF en el cliente, incluyendo header, áreas y footer de marca.
+- **`AreaBar`**: barra animada que cambia de color según la zona usando `zonaColor` de `lib/areas.ts`.
+- **`PDFButton`**: importa jsPDF dinámicamente (`import('jspdf')`) para no inflar el bundle inicial. Genera el PDF en el cliente.
 
 ## Colores y tipografía
 
@@ -59,7 +69,11 @@ Paleta en `tailwind.config.js`:
 - `mc-gris`: #656565 — texto secundario
 - `mc-gris-claro`: #F2F2F2 — fondos de cards
 
+**Importante:** `zonaColor` en `lib/areas.ts` usa colores propios (#C0392B, #E67E22, #27AE60) distintos a la paleta mc-*. Son colores semáforo para las barras de área y el PDF — no los reemplaces con variables Tailwind.
+
 Fuente global: League Spartan (cargada en `globals.css`), disponible como `font-spartan`. Los pesos son clases numéricas Tailwind (`font-300`, `font-400`, `font-600`, `font-700`) — nunca usar `fontWeight` inline.
+
+**Convención de estilos:** el código mezcla clases Tailwind con `style={}` inline deliberadamente. Tailwind para colores, espaciado y tipografía estándar; `style={}` para `clamp()`, valores exactos en píxeles, y propiedades que Tailwind no puede expresar directamente. Esto es intencional, no una inconsistencia a corregir.
 
 ## Variables de entorno
 
