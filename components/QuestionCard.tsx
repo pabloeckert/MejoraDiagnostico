@@ -24,10 +24,10 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
 
   return (
     <div>
-      <p className="text-xs font-spartan font-700 tracking-widest text-mc-azul uppercase mb-3">
+      <p className="text-xs font-bold text-mc-azul tracking-widest uppercase mb-3">
         {String(numero).padStart(2, '0')}
       </p>
-      <h2 className="text-2xl sm:text-3xl font-spartan font-700 text-mc-negro leading-tight mb-8">
+      <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-8">
         {texto}
       </h2>
       <div className="flex flex-col gap-3">
@@ -37,20 +37,11 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
             <button
               key={op.valor}
               onClick={() => onSelect(op.valor)}
-              className={`
-                w-full text-left px-5 py-4 font-spartan font-400 text-base
-                transition-all duration-150
-                ${sel
-                  ? 'bg-mc-azul text-white font-600'
-                  : 'bg-white text-mc-negro hover:bg-[#f0f4ff]'
-                }
-              `}
-              style={{
-                borderRadius: '2px',
-                border: sel ? '1.5px solid #1C4D8C' : '1.5px solid #e0e0e0',
-              }}
-              onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLButtonElement).style.borderColor = '#1C4D8C' }}
-              onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLButtonElement).style.borderColor = '#e0e0e0' }}
+              className={`w-full text-left px-5 py-4 text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 ${
+                sel
+                  ? 'bg-mc-azul border-mc-azul text-white font-semibold'
+                  : 'bg-white border-gray-200 text-mc-negro hover:border-mc-azul hover:bg-blue-50 cursor-pointer'
+              }`}
             >
               {op.texto}
             </button>

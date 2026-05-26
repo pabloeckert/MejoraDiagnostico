@@ -12,13 +12,19 @@ export default function DiagnosticoPage() {
   const [step, setStep] = useState(0)
   const [respuestas, setRespuestas] = useState<number[]>(Array(8).fill(0))
   const [seleccionada, setSeleccionada] = useState<number | null>(null)
-  const [saliendo, setSaliendo] = useState(false)
+  const [fade, setFade] = useState(true)
 
-  const pregunta = PREGUNTAS[step]
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('mc_diagnostico')
+    }
+  }, [])
 
   useEffect(() => {
     setSeleccionada(null)
   }, [step])
+
+  const pregunta = PREGUNTAS[step]
 
   function handleSelect(valor: number) {
     setSeleccionada(valor)
@@ -31,29 +37,32 @@ export default function DiagnosticoPage() {
     setRespuestas(nuevas)
 
     if (step < PREGUNTAS.length - 1) {
-      setSaliendo(true)
+      setFade(false)
       setTimeout(() => {
         setStep(step + 1)
-        setSaliendo(false)
-      }, 150)
+        setFade(true)
+      }, 200)
     } else {
       guardarRespuestas(nuevas)
       const perfil = detectarPerfil(nuevas)
       guardarPerfil(perfil)
-      router.push('/resultado')
+      router.replace('/resultado')
     }
   }
 
   return (
-    <main className="min-h-screen bg-white flex flex-col px-4 py-10">
-      <div className="w-full max-w-[640px] mx-auto flex flex-col flex-1">
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-center py-6 border-b border-gray-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Mejora Continua" className="h-7" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 flex flex-col">
         <ProgressBar current={step + 1} total={PREGUNTAS.length} />
 
-        <div
-          className={`flex-1 transition-all duration-150 ${
-            saliendo ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
-          }`}
-        >
+        <div className={`flex-1 transition-opacity duration-200 ${fade ? 'opacity-100' : 'opacity-0'}`}>
           <QuestionCard
             texto={pregunta.texto}
             numero={step + 1}
@@ -63,24 +72,20 @@ export default function DiagnosticoPage() {
           />
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8 pb-4">
           <button
             onClick={handleSiguiente}
             disabled={seleccionada === null}
-            className="w-full font-spartan font-700 text-sm uppercase text-white rounded-sm transition-colors duration-200"
-            style={{
-              padding: '16px',
-              letterSpacing: '0.1em',
-              background: '#1C4D8C',
-              opacity: seleccionada === null ? 0.35 : 1,
-              cursor: seleccionada === null ? 'not-allowed' : 'pointer',
-              pointerEvents: seleccionada === null ? 'none' : 'auto',
-            }}
+            className={`w-full py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              seleccionada === null
+                ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
+                : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
+            }`}
           >
             {step < PREGUNTAS.length - 1 ? 'SIGUIENTE →' : 'VER MI DIAGNÓSTICO →'}
           </button>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

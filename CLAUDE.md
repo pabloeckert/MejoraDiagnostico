@@ -10,7 +10,7 @@ npm run build    # Build de producción
 npm run lint     # ESLint
 ```
 
-No hay suite de tests configurada.
+No hay suite de tests configurada. El README.md está desactualizado (referencia Web3Forms que ya no existe) — no lo uses como fuente de verdad.
 
 ## Stack
 
@@ -36,9 +36,9 @@ Cada página lee el estado previo al montarse. Si no hay datos válidos, redirig
 
 ### Lógica de negocio central
 
-- **`lib/preguntas.ts`**: 8 preguntas, cada una con 4 opciones. Cada opción tiene un mapa de puntajes por área. Las respuestas se guardan como índices (0-3), el puntaje máximo total es 32.
-- **`lib/detectar.ts`**: toma el array de respuestas `r[0..7]` y determina el perfil con reglas de prioridad sobre índices concretos. **Importante:** los índices en `detectarPerfil` refieren a posiciones fijas en `PREGUNTAS` — el orden de las preguntas en `preguntas.ts` no puede cambiar sin actualizar `detectarPerfil` y `AREAS`.
-- **`lib/areas.ts`**: 5 áreas — Liderazgo, Comercial, Procesos, Asesoramiento, Visión. Exporta `calcularAreas` (usado en el cliente) y `zonaColor` (usado en `AreaBar` y `PDFButton`). Los umbrales son: `Crítico` (<40%) / `En desarrollo` (40-65%) / `Sólido` (≥65%).
+- **`lib/preguntas.ts`**: 8 preguntas, cada una con 4 opciones. Cada opción tiene un `valor` (1–4). Las respuestas se guardan como ese `valor` — no como índices. Puntaje máximo total: 32 (8 × 4).
+- **`lib/detectar.ts`**: toma el array de respuestas `r[0..7]` y determina el perfil con reglas de prioridad sobre los valores 1-4 de cada posición. **Importante:** los índices en `detectarPerfil` refieren a posiciones fijas en `PREGUNTAS` — el orden de las preguntas no puede cambiar sin actualizar `detectarPerfil` y `AREAS`.
+- **`lib/areas.ts`**: 5 áreas — Liderazgo y Autonomía, Desarrollo Comercial, Procesos Internos, Asesoramiento Externo, Visión Estratégica. Exporta `calcularAreas` (usado en el cliente) y `zonaColor` (usado en `AreaBar` y `PDFButton`). Los umbrales son: `Crítico` (<40%) / `En desarrollo` (40-65%) / `Sólido` (≥65%).
 - **`lib/perfiles.ts`**: 8 perfiles. Cada perfil tiene: `tag`, `ref`, `desc`, `verdad`, `cierreTitulo`, `cierreTxt`, `cta`, `waMsg`. Todos los textos de resultados salen de acá. El tipo exportado es `PerfilKey`.
 
 ### API de email (`app/api/send-email/route.ts`)
@@ -49,14 +49,17 @@ Cada página lee el estado previo al montarse. Si no hay datos válidos, redirig
 
 La key de Resend vive en `RESEND_API_KEY` (sin prefijo `NEXT_PUBLIC_`) — es server-only por diseño. El endpoint tiene honeypot y checkbox de consentimiento validados en Zod.
 
+**Duplicación de lógica:** el route define `buildAreas()` localmente en lugar de importar `calcularAreas` de `lib/areas.ts`. Si se modifica `AREAS` (agregar área, cambiar preguntas asignadas), hay que actualizar tanto `lib/areas.ts` como la función `buildAreas` en el route.
+
 **Captura de leads:** `guardarLead` se llama en el cliente *antes* de la llamada a la API. Si el email falla, el lead queda en `localStorage` de todas formas. El error de la API se silencia y el usuario avanza igual a `/resultado`.
 
 ### Componentes
 
-- **`QuestionCard`**: baraja las opciones con `useMemo` para que el orden sea aleatorio pero estable durante el render.
+- **`QuestionCard`**: baraja las opciones con `useMemo` para que el orden visual sea aleatorio pero estable durante el render. El scoring no se ve afectado porque se guarda el `valor` intrínseco de la opción (1-4), no su posición en pantalla.
 - **`ProgressBar`**: barra de progreso que indica en qué pregunta va el usuario.
 - **`AreaBar`**: barra animada que cambia de color según la zona usando `zonaColor` de `lib/areas.ts`.
 - **`PDFButton`**: importa jsPDF dinámicamente (`import('jspdf')`) para no inflar el bundle inicial. Genera el PDF en el cliente.
+- **`InputField`**: componente local definido inline en `app/datos/page.tsx` — no está en `/components`.
 
 ## Colores y tipografía
 
@@ -79,8 +82,8 @@ Fuente global: League Spartan (cargada en `globals.css`), disponible como `font-
 
 ```
 RESEND_API_KEY=          # API key de Resend (server-only)
-WA_NUMBER=               # Número WhatsApp sin + para links de backend
-NEXT_PUBLIC_WA_NUMBER=   # Mismo número, expuesto al cliente para links directos
+NEXT_PUBLIC_WA_NUMBER=   # Número WhatsApp sin + para el link de WhatsApp en /resultado
+WA_NUMBER=               # Está en .env.example pero actualmente no se usa en el código
 ```
 
 Copiar `.env.example` a `.env.local` y completar antes de levantar el proyecto.

@@ -24,9 +24,9 @@ export default function ResultadoPage() {
 
   if (!session?.perfil || !session?.respuestas) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-mc-azul border-t-transparent rounded-full animate-spin" />
-      </main>
+      </div>
     )
   }
 
@@ -34,8 +34,6 @@ export default function ResultadoPage() {
   const perfil = session.perfil as PerfilKey
   const p = PERFILES[perfil]
   const areas = calcularAreas(session.respuestas)
-  const total = session.respuestas.reduce((a, b) => a + b, 0)
-  const pctTotal = Math.round((total / 32) * 100)
   const nombre = session.datos
     ? `${session.datos.nombre}${session.datos.apellido ? ' ' + session.datos.apellido : ''}`
     : ''
@@ -44,51 +42,50 @@ export default function ResultadoPage() {
   const waUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=${waText}`
 
   return (
-    <main className="min-h-screen bg-white px-4 py-10">
-      <div className="w-full max-w-[680px] mx-auto">
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-center py-6 border-b border-gray-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Mejora Continua" className="h-7" />
+      </div>
 
-        {/* Badge + perfil */}
-        <div className="mb-8">
-          <span
-            className="inline-block text-mc-azul text-xs font-spartan font-700 tracking-widest uppercase px-3 py-1 rounded-full mb-4"
-            style={{ border: '1.5px solid #1C4D8C' }}
-          >
-            Tu Perfil
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+        {/* Badge */}
+        <div className="mb-4">
+          <span className="inline-block border border-mc-azul text-mc-azul text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+            TU PERFIL
           </span>
-          <h1 className="text-3xl sm:text-4xl font-spartan font-700 text-mc-negro leading-tight mb-2">
-            {p.tag}
-          </h1>
-          <p className="text-mc-azul font-spartan font-700 text-sm tracking-widest uppercase">
-            {p.ref}
-          </p>
         </div>
 
-        {/* Puntaje total */}
-        <div className="flex items-center gap-3 mb-6">
-          <span className="text-4xl font-spartan font-700 text-mc-negro">{pctTotal}%</span>
-          <span className="text-mc-gris font-spartan text-sm">puntaje global ({total}/32)</span>
-        </div>
+        {/* Perfil */}
+        <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">
+          {p.tag}
+        </h1>
+        <p className="text-mc-azul font-bold text-xs tracking-widest uppercase mb-6">
+          {p.ref}
+        </p>
 
         {/* Descripción */}
-        <p className="text-gray-700 font-spartan font-400 text-base leading-relaxed mb-6">
+        <p className="text-base leading-relaxed text-gray-700 mb-6">
           {p.desc}
         </p>
 
         {/* Verdad central */}
-        <div className="bg-mc-gris-claro border-l-4 border-mc-azul px-5 py-4 mb-10 rounded-r-sm">
-          <p className="text-xs font-spartan font-700 text-mc-azul uppercase tracking-widest mb-1">
+        <div className="bg-mc-gris-claro border-l-4 border-mc-azul px-5 py-4 mb-8 rounded-r-sm">
+          <p className="text-xs font-bold text-mc-azul uppercase tracking-widest mb-2">
             La verdad central
           </p>
-          <p className="text-gray-800 font-spartan font-600 text-base">
+          <p className="text-mc-negro font-semibold leading-snug">
             {p.verdad}
           </p>
         </div>
 
         {/* Áreas */}
-        <div className="mb-10">
-          <h2 className="text-sm font-spartan font-700 text-mc-negro uppercase tracking-widest mb-6">
+        <div className="mb-8">
+          <p className="text-xs font-bold text-mc-gris uppercase tracking-widest mb-4">
             Tu diagnóstico por área
-          </h2>
+          </p>
           {areas.map((area, i) => (
             <AreaBar
               key={area.nombre}
@@ -99,109 +96,63 @@ export default function ResultadoPage() {
           ))}
         </div>
 
-        {/* Teaser (sin datos) o completo (con datos) */}
+        {/* Teaser / Completo */}
         {!tieneEmail ? (
-          <div style={{ position: 'relative' }}>
-            {/* Contenido fantasma visible bajo el overlay */}
-            <div className="bg-mc-gris-claro rounded-sm px-6 py-6 mb-8">
-              <h3 className="font-spartan font-700 text-mc-negro text-base uppercase tracking-wide mb-2">
-                {p.cierreTitulo}
-              </h3>
-              <p className="text-mc-gris font-spartan text-sm leading-relaxed">
-                {p.cierreTxt}
-              </p>
+          <div className="mt-12 relative min-h-[320px]">
+            {/* Contenido fantasma — borroso */}
+            <div className="filter blur-sm pointer-events-none select-none opacity-40">
+              <div className="h-6 bg-mc-gris-claro rounded mb-3 w-3/4" />
+              <div className="h-4 bg-mc-gris-claro rounded mb-2 w-full" />
+              <div className="h-4 bg-mc-gris-claro rounded mb-2 w-5/6" />
+              <div className="h-12 bg-mc-azul rounded mt-6 opacity-30" />
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 items-center mb-2">
-              <div className="w-full sm:flex-1 h-12 bg-[#25D366] rounded-sm opacity-30" />
-              <div className="w-32 h-12 bg-mc-gris-claro rounded-sm opacity-30" />
-            </div>
-
             {/* Overlay */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.97) 40%, rgba(255,255,255,1) 100%)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-                padding: '32px',
-                textAlign: 'center',
-                zIndex: 10,
-                borderRadius: '4px',
-              }}
-            >
-              <span style={{ fontSize: '32px', lineHeight: 1 }}>🔒</span>
-              <p style={{ fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: 700, color: '#0D0D0D', margin: 0 }}>
-                Tu plan de acción completo está listo
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg p-8 text-center">
+              <div className="text-4xl mb-4">🔒</div>
+              <p className="text-xl sm:text-2xl font-bold text-mc-negro mb-2">
+                Tu plan de acción está listo
               </p>
-              <p style={{ fontSize: '16px', color: '#656565', margin: 0, maxWidth: '400px' }}>
+              <p className="text-mc-gris mb-6 max-w-sm">
                 Ingresá tus datos para desbloquearlo y recibirlo por email
               </p>
               <button
-                onClick={() => router.push('/datos')}
-                style={{
-                  background: '#1C4D8C',
-                  color: 'white',
-                  padding: '16px 32px',
-                  fontWeight: 700,
-                  fontSize: '15px',
-                  letterSpacing: '0.08em',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: '360px',
-                  textTransform: 'uppercase',
-                  fontFamily: 'inherit',
-                  marginTop: '8px',
-                }}
+                onClick={() => router.replace('/datos')}
+                className="w-full max-w-xs bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-4 px-8 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200"
               >
-                DESBLOQUEAR MI DIAGNÓSTICO →
+                DESBLOQUEAR →
               </button>
             </div>
           </div>
         ) : (
-          <>
-            {/* Cierre */}
-            <div className="bg-mc-gris-claro rounded-sm px-6 py-6 mb-8">
-              <h3 className="font-spartan font-700 text-mc-negro text-base uppercase tracking-wide mb-2">
-                {p.cierreTitulo}
-              </h3>
-              <p className="text-mc-gris font-spartan text-sm leading-relaxed">
-                {p.cierreTxt}
-              </p>
+          <div className="border-t border-gray-100 pt-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-mc-negro mb-3">
+              {p.cierreTitulo}
+            </h3>
+            <p className="text-base leading-relaxed text-gray-600 mb-6">
+              {p.cierreTxt}
+            </p>
+
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fba58] text-white font-bold py-4 px-8 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200 mb-3"
+            >
+              💬 {p.cta}
+            </a>
+
+            <div className="text-center mb-8">
+              <PDFButton perfil={perfil} nombre={nombre} areas={areas} />
             </div>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                  w-full sm:w-auto flex-1 text-center py-4 px-8
-                  bg-[#25D366] hover:bg-[#1fba58]
-                  text-white font-spartan font-700 text-sm tracking-[0.1em] uppercase
-                  rounded-sm transition-colors duration-200
-                "
-              >
-                💬 {p.cta}
-              </a>
-              <div className="flex items-center justify-center">
-                <PDFButton perfil={perfil} nombre={nombre} areas={areas} />
-              </div>
+            <div className="flex items-center justify-center gap-2 text-xs text-mc-gris pt-4 border-t border-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="" className="h-4" />
+              <span className="font-bold tracking-widest uppercase">Mejora Continua</span>
             </div>
-          </>
+          </div>
         )}
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-300 font-spartan mt-12">
-          Mejora Continua · diagnostico.mejoraok.com
-        </p>
       </div>
-    </main>
+    </div>
   )
 }

@@ -20,7 +20,6 @@ export default function PDFButton({ perfil, nombre, areas }: Props) {
       const { default: jsPDF } = await import('jspdf')
       const doc = new jsPDF({ unit: 'mm', format: 'a4' })
       const W = 210
-      const azul = '#1C4D8C'
       const gris = '#656565'
 
       // Header
@@ -136,7 +135,21 @@ export default function PDFButton({ perfil, nombre, areas }: Props) {
     <button
       onClick={handleDownload}
       disabled={loading}
-      className="text-mc-azul underline font-spartan font-600 text-sm hover:text-mc-azul-marino transition-colors disabled:opacity-50"
+      style={{
+        fontSize: '14px',
+        fontWeight: 700,
+        color: '#1C4D8C',
+        textDecoration: 'underline',
+        cursor: loading ? 'not-allowed' : 'pointer',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        fontFamily: 'inherit',
+        opacity: loading ? 0.5 : 1,
+        transition: 'color 200ms',
+      }}
+      onMouseEnter={e => { if (!loading) e.currentTarget.style.color = '#020659' }}
+      onMouseLeave={e => { e.currentTarget.style.color = '#1C4D8C' }}
     >
       {loading ? 'Generando...' : 'Descargar PDF'}
     </button>
