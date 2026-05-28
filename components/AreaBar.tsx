@@ -25,8 +25,13 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
       </div>
       <div className="h-1.5 bg-mc-gris-claro rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${width}%`, backgroundColor: color }}
+          className="h-full rounded-full"
+          style={{
+            width: `${width}%`,
+            backgroundColor: color,
+            transition: 'width 800ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transitionDelay: `${delay}ms`,
+          }}
         />
       </div>
     </div>
