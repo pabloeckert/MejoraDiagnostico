@@ -80,7 +80,7 @@ export default function DiagnosticoPage() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20 flex flex-col overflow-hidden">
+        <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20 pb-24 lg:pb-0 flex flex-col overflow-hidden">
           <ProgressBar current={step + 1} total={PREGUNTAS.length} />
 
           <div className={`flex-1 ${
@@ -96,11 +96,15 @@ export default function DiagnosticoPage() {
             />
           </div>
 
-          <div className="mt-8 pb-4">
+          {/* Mobile: fijo al fondo. Desktop: flujo normal */}
+          <div
+            className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3 lg:static lg:bg-transparent lg:border-t-0 lg:px-0 lg:pt-0 lg:mt-8"
+            style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
+          >
             <button
               onClick={handleSiguiente}
               disabled={seleccionada === null}
-              className={`w-full lg:w-auto lg:px-12 py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              className={`w-full lg:w-auto lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
                 btnPulse ? 'animate-btn-activate' : ''
               } ${
                 seleccionada === null

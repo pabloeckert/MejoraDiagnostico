@@ -28,7 +28,11 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
   }, [opciones])
 
   function handleClick(valor: number) {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    if (
+      typeof window !== 'undefined' &&
+      'vibrate' in navigator &&
+      /android/i.test(navigator.userAgent)
+    ) {
       navigator.vibrate(8)
     }
     setJustSelected(valor)
@@ -51,7 +55,7 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
             <button
               key={op.valor}
               onClick={() => handleClick(op.valor)}
-              className={`w-full text-left px-5 py-4 text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 ${
+              className={`w-full text-left px-5 py-4 min-h-[48px] text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 ${
                 sel
                   ? 'bg-mc-azul border-mc-azul text-white font-semibold'
                   : 'bg-white border-gray-200 text-mc-negro hover:border-mc-azul hover:bg-blue-50 cursor-pointer'

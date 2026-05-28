@@ -135,18 +135,24 @@ export default function DatosPage() {
                 WhatsApp <span className="text-mc-rojo">*</span>
               </label>
               <div className="flex gap-2">
-                <select
-                  value={form.codPais}
-                  onChange={e => set('codPais', e.target.value)}
-                  className="px-3 py-3 border border-gray-200 rounded-md text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan"
-                  style={{ width: '110px', flexShrink: 0 }}
-                >
-                  {PAISES.map(p => (
-                    <option key={p.code + p.nombre} value={p.code}>
-                      {p.emoji} {p.code}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative" style={{ width: '110px', flexShrink: 0 }}>
+                  <select
+                    value={form.codPais}
+                    onChange={e => set('codPais', e.target.value)}
+                    className="w-full min-h-[48px] pl-3 pr-7 py-3 border border-gray-200 rounded-md text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan appearance-none"
+                  >
+                    {PAISES.map(p => (
+                      <option key={p.code + p.nombre} value={p.code}>
+                        {p.emoji} {p.code}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <path d="M1 1L6 7L11 1" stroke="#656565" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
                 <input
                   type="tel"
                   value={form.whatsapp}
@@ -195,7 +201,7 @@ export default function DatosPage() {
             <button
               type="submit"
               disabled={loading || !consent}
-              className={`w-full lg:w-auto lg:px-12 py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              className={`w-full lg:w-auto lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
                 loading || !consent
                   ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
                   : 'bg-mc-azul hover:bg-mc-azul-marino text-white'

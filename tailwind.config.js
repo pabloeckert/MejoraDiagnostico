@@ -25,6 +25,9 @@ module.exports = {
         '600': '600',
         '700': '700',
       },
+      padding: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
       transitionDuration: {
         '400': '400ms',
       },
