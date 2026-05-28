@@ -46,7 +46,7 @@ export default function DiagnosticoPage() {
       guardarRespuestas(nuevas)
       const perfil = detectarPerfil(nuevas)
       guardarPerfil(perfil)
-      router.replace('/resultado')
+      router.replace('/datos')
     }
   }
 
