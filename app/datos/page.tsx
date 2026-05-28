@@ -100,7 +100,7 @@ export default function DatosPage() {
 
   return (
     <DesktopLayout leftContent={<LeftPanel step="datos" />}>
-      <div className="min-h-screen">
+      <div className="min-h-[100dvh]">
         {/* Header — oculto en desktop, el logo está en el panel izquierdo */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}

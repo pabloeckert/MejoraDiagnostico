@@ -48,17 +48,19 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
       <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-8">
         {texto}
       </h2>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3" role="radiogroup">
         {shuffled.map((op) => {
           const sel = seleccionada === op.valor
           return (
             <button
               key={op.valor}
+              role="radio"
+              aria-checked={sel}
               onClick={() => handleClick(op.valor)}
-              className={`w-full text-left px-5 py-4 min-h-[48px] text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 ${
+              className={`w-full text-left px-5 py-4 min-h-[56px] text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 active:scale-[0.98] active:bg-blue-50 ${
                 sel
                   ? 'bg-mc-azul border-mc-azul text-white font-semibold'
-                  : 'bg-white border-gray-200 text-mc-negro hover:border-mc-azul hover:bg-blue-50 cursor-pointer'
+                  : 'bg-white border-gray-200 text-mc-negro cursor-pointer'
               } ${justSelected === op.valor ? 'animate-option-select' : ''}`}
             >
               {op.texto}

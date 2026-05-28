@@ -50,6 +50,9 @@ export default function DiagnosticoPage() {
     setRespuestas(nuevas)
 
     if (step < PREGUNTAS.length - 1) {
+      if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
+        navigator.vibrate([5, 30, 5])
+      }
       setTransition('out')
       setTimeout(() => {
         setStep(step + 1)
@@ -57,6 +60,9 @@ export default function DiagnosticoPage() {
         setTimeout(() => setTransition('idle'), 220)
       }, 180)
     } else {
+      if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
+        navigator.vibrate([10, 50, 10, 50, 20])
+      }
       guardarRespuestas(nuevas)
       const perfil = detectarPerfil(nuevas)
       guardarPerfil(perfil)
@@ -72,7 +78,7 @@ export default function DiagnosticoPage() {
         areaNombre={areaNombre}
       />
     }>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-[100dvh] flex flex-col">
         {/* Header — oculto en desktop, el logo está en el panel izquierdo */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -81,7 +87,7 @@ export default function DiagnosticoPage() {
 
         {/* Content */}
         <div className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20 pb-24 lg:pb-0 flex flex-col overflow-hidden">
-          <ProgressBar current={step + 1} total={PREGUNTAS.length} />
+          <ProgressBar current={step + 1} total={PREGUNTAS.length} areaNombre={areaNombre} />
 
           <div className={`flex-1 ${
             transition === 'out' ? 'animate-slide-out-left' :

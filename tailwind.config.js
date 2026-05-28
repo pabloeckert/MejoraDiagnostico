@@ -17,7 +17,7 @@ module.exports = {
         'mc-gris-claro': '#F2F2F2',
       },
       fontFamily: {
-        spartan: ['"League Spartan"', 'sans-serif'],
+        spartan: ['var(--font-league-spartan)', '"League Spartan"', 'sans-serif'],
       },
       fontWeight: {
         '300': '300',
