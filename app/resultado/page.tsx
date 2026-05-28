@@ -6,6 +6,8 @@ import { PERFILES } from '@/lib/perfiles'
 import { calcularAreas } from '@/lib/areas'
 import AreaBar from '@/components/AreaBar'
 import PDFButton from '@/components/PDFButton'
+import DesktopLayout from '@/components/DesktopLayout'
+import LeftPanel from '@/components/LeftPanel'
 import type { PerfilKey } from '@/lib/perfiles'
 import type { DiagnosticoSession } from '@/hooks/useDiagnostico'
 
@@ -44,89 +46,97 @@ export default function ResultadoPage() {
   const waUrl = `https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER}?text=${waText}`
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-center py-6 border-b border-gray-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Mejora Continua" className="h-7" />
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-
-        {/* Badge */}
-        <div className="mb-4">
-          <span className="inline-block border border-mc-azul text-mc-azul text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full">
-            TU PERFIL
-          </span>
+    <DesktopLayout leftContent={
+      <LeftPanel
+        step="resultado"
+        perfilTag={p.tag}
+        perfilRef={p.ref}
+      />
+    }>
+      <div className="min-h-screen">
+        {/* Header — oculto en desktop, el logo está en el panel izquierdo */}
+        <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Mejora Continua" className="h-7" />
         </div>
 
-        {/* Perfil */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">
-          {p.tag}
-        </h1>
-        <p className="text-mc-azul font-bold text-xs tracking-widest uppercase mb-6">
-          {p.ref}
-        </p>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
 
-        {/* Descripción */}
-        <p className="text-base leading-relaxed text-gray-700 mb-6">
-          {p.desc}
-        </p>
-
-        {/* Verdad central */}
-        <div className="bg-mc-gris-claro border-l-4 border-mc-azul px-5 py-4 mb-8 rounded-r-sm">
-          <p className="text-xs font-bold text-mc-azul uppercase tracking-widest mb-2">
-            La verdad central
-          </p>
-          <p className="text-mc-negro font-semibold leading-snug">
-            {p.verdad}
-          </p>
-        </div>
-
-        {/* Áreas */}
-        <div className="mb-8">
-          <p className="text-xs font-bold text-mc-gris uppercase tracking-widest mb-4">
-            Tu diagnóstico por área
-          </p>
-          {areas.map((area, i) => (
-            <AreaBar
-              key={area.nombre}
-              nombre={area.nombre}
-              porcentaje={area.porcentaje}
-              delay={i * 150}
-            />
-          ))}
-        </div>
-
-        {/* Cierre */}
-        <div className="border-t border-gray-100 pt-8">
-          <h3 className="text-xl sm:text-2xl font-bold text-mc-negro mb-3">
-            {p.cierreTitulo}
-          </h3>
-          <p className="text-base leading-relaxed text-gray-600 mb-6">
-            {p.cierreTxt}
-          </p>
-
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fba58] text-white font-bold py-4 px-8 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200 mb-3"
-          >
-            💬 {p.cta}
-          </a>
-
-          <div className="text-center mb-8">
-            <PDFButton perfil={perfil} nombre={nombre} areas={areas} />
+          {/* Badge */}
+          <div className="mb-4">
+            <span className="inline-block border border-mc-azul text-mc-azul text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+              TU PERFIL
+            </span>
           </div>
 
-          <div className="flex items-center justify-center gap-2 text-xs text-mc-gris pt-4 border-t border-gray-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="h-4" />
-            <span className="font-bold tracking-widest uppercase">Mejora Continua</span>
+          {/* Perfil */}
+          <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">
+            {p.tag}
+          </h1>
+          <p className="text-mc-azul font-bold text-xs tracking-widest uppercase mb-6">
+            {p.ref}
+          </p>
+
+          {/* Descripción */}
+          <p className="text-base leading-relaxed text-gray-700 mb-6">
+            {p.desc}
+          </p>
+
+          {/* Verdad central */}
+          <div className="bg-mc-gris-claro border-l-4 border-mc-azul px-5 py-4 mb-8 rounded-r-sm">
+            <p className="text-xs font-bold text-mc-azul uppercase tracking-widest mb-2">
+              La verdad central
+            </p>
+            <p className="text-mc-negro font-semibold leading-snug">
+              {p.verdad}
+            </p>
+          </div>
+
+          {/* Áreas */}
+          <div className="mb-8">
+            <p className="text-xs font-bold text-mc-gris uppercase tracking-widest mb-4">
+              Tu diagnóstico por área
+            </p>
+            {areas.map((area, i) => (
+              <AreaBar
+                key={area.nombre}
+                nombre={area.nombre}
+                porcentaje={area.porcentaje}
+                delay={i * 150}
+              />
+            ))}
+          </div>
+
+          {/* Cierre */}
+          <div className="border-t border-gray-100 pt-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-mc-negro mb-3">
+              {p.cierreTitulo}
+            </h3>
+            <p className="text-base leading-relaxed text-gray-600 mb-6">
+              {p.cierreTxt}
+            </p>
+
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#1fba58] text-white font-bold py-4 px-8 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200 mb-3"
+            >
+              💬 {p.cta}
+            </a>
+
+            <div className="text-center mb-8">
+              <PDFButton perfil={perfil} nombre={nombre} areas={areas} />
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-mc-gris pt-4 border-t border-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="" className="h-4" />
+              <span className="font-bold tracking-widest uppercase">Mejora Continua</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DesktopLayout>
   )
 }
