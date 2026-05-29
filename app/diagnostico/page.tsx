@@ -21,6 +21,9 @@ export default function DiagnosticoPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('mc_diagnostico')
+      const lid = new URLSearchParams(window.location.search).get('lid')
+      if (lid) sessionStorage.setItem('mc_lid', lid)
+      else sessionStorage.removeItem('mc_lid')
     }
   }, [])
 
@@ -66,6 +69,14 @@ export default function DiagnosticoPage() {
       guardarRespuestas(nuevas)
       const perfil = detectarPerfil(nuevas)
       guardarPerfil(perfil)
+
+      const lid = typeof window !== 'undefined' ? sessionStorage.getItem('mc_lid') ?? undefined : undefined
+      fetch('/api/save-completion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ respuestas: nuevas, ...(lid && { lid }) }),
+      }).catch(() => {})
+
       router.replace('/datos')
     }
   }

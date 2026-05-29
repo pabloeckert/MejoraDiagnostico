@@ -4,8 +4,8 @@ import type { PerfilKey } from '@/lib/perfiles'
 
 export type DatosContacto = {
   nombre: string
-  apellido: string
-  empresa: string
+  apellido?: string
+  empresa?: string
   codPais: string
   whatsapp: string
   email: string
@@ -49,7 +49,7 @@ export function cargarSession(): Partial<DiagnosticoSession> {
 }
 
 export function guardarLead(lead: {
-  nombre: string; apellido: string; empresa: string
+  nombre: string; apellido?: string; empresa?: string
   whatsapp: string; email: string; perfil: string
   total: number; respuestas: number[]
 }) {

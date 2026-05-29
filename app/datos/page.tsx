@@ -36,7 +36,7 @@ const labelCls = 'block text-xs font-bold text-mc-gris uppercase tracking-widest
 export default function DatosPage() {
   const router = useRouter()
   const [form, setForm] = useState<DatosContacto>({
-    nombre: '', apellido: '', empresa: '', codPais: '+54', whatsapp: '', email: ''
+    nombre: '', codPais: '+54', whatsapp: '', email: ''
   })
   const [errors, setErrors] = useState<Partial<Record<keyof DatosContacto, string>>>({})
   const [loading, setLoading] = useState(false)
@@ -69,8 +69,7 @@ export default function DatosPage() {
     const total = respuestas.reduce((a, b) => a + b, 0)
 
     guardarLead({
-      nombre: form.nombre, apellido: form.apellido, empresa: form.empresa,
-      whatsapp: `${form.codPais}${form.whatsapp}`, email: form.email,
+      nombre: form.nombre, whatsapp: `${form.codPais}${form.whatsapp}`, email: form.email,
       perfil, total, respuestas
     })
 
@@ -80,8 +79,8 @@ export default function DatosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: form.nombre,
-          apellido: form.apellido,
-          empresa: form.empresa,
+          apellido: '',
+          empresa: '',
           email: form.email,
           whatsapp: form.whatsapp,
           codPais: form.codPais,
@@ -101,17 +100,17 @@ export default function DatosPage() {
   return (
     <DesktopLayout leftContent={<LeftPanel step="datos" />}>
       <div className="min-h-[100dvh]">
-        {/* Header — oculto en desktop, el logo está en el panel izquierdo */}
+        {/* Header — oculto en desktop */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Mejora Continua" className="h-7" />
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
-          <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-2">CASI LISTO</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">UN PASO MÁS</h1>
+          <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-2">PASO FINAL</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">¿A dónde te enviamos el análisis?</h1>
           <p className="text-mc-gris text-base mb-8">
-            Tu plan de acción completo llega a tu email en segundos.
+            Eso es todo. Tu resultado completo llega en segundos.
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -124,6 +123,7 @@ export default function DatosPage() {
                 type="text"
                 value={form.nombre}
                 onChange={e => set('nombre', e.target.value)}
+                placeholder="Tu nombre"
                 className={inputCls}
               />
               {errors.nombre && <p className="text-mc-rojo text-xs mt-1">{errors.nombre}</p>}
