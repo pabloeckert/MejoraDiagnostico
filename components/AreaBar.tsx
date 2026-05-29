@@ -10,7 +10,7 @@ interface Props {
 
 export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   const [width, setWidth] = useState(0)
-  const { color } = zonaColor(porcentaje)
+  const { color, zona } = zonaColor(porcentaje)
 
   useEffect(() => {
     const t = setTimeout(() => setWidth(porcentaje), delay)
@@ -18,12 +18,17 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   }, [porcentaje, delay])
 
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-baseline mb-1.5">
-        <span className="text-sm font-semibold text-mc-negro">{nombre}</span>
-        <span className="text-xs font-bold" style={{ color }}>{porcentaje}%</span>
+    <div className="mb-4 rounded-xl p-4" style={{ backgroundColor: color + '14' }}>
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-sm font-bold text-mc-negro">{nombre}</span>
+        <span
+          className="text-xs font-bold px-3 py-1 rounded-full text-white"
+          style={{ backgroundColor: color }}
+        >
+          {zona}
+        </span>
       </div>
-      <div className="h-1.5 bg-mc-gris-claro rounded-full overflow-hidden">
+      <div className="rounded-full overflow-hidden" style={{ height: '7px', backgroundColor: 'rgba(255,255,255,0.65)' }}>
         <div
           className="h-full rounded-full"
           style={{

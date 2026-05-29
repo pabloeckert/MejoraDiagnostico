@@ -3,7 +3,7 @@ export default function DesktopLayout({ leftContent, children }: {
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-[100dvh] flex">
       {/* Panel izquierdo — solo desktop */}
       <div className="hidden lg:flex lg:w-[42%] lg:fixed lg:inset-y-0 lg:left-0
                       bg-mc-azul-marino flex-col items-center justify-center
@@ -12,7 +12,7 @@ export default function DesktopLayout({ leftContent, children }: {
       </div>
 
       {/* Contenido derecho */}
-      <div className="w-full lg:ml-[42%] lg:w-[58%] min-h-screen bg-white">
+      <div className="w-full lg:ml-[42%] lg:w-[58%] min-h-[100dvh] bg-white">
         {children}
       </div>
     </div>

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { guardarDatos, guardarLead, cargarSession } from '@/hooks/useDiagnostico'
 import type { DatosContacto } from '@/hooks/useDiagnostico'
@@ -38,6 +38,11 @@ export default function DatosPage() {
   const [form, setForm] = useState<DatosContacto>({
     nombre: '', codPais: '+54', whatsapp: '', email: ''
   })
+
+  useEffect(() => {
+    const nombreGuardado = typeof window !== 'undefined' ? sessionStorage.getItem('mc_nombre') ?? '' : ''
+    if (nombreGuardado) setForm(f => ({ ...f, nombre: nombreGuardado }))
+  }, [])
   const [errors, setErrors] = useState<Partial<Record<keyof DatosContacto, string>>>({})
   const [loading, setLoading] = useState(false)
   const [consent, setConsent] = useState(false)
@@ -103,7 +108,7 @@ export default function DatosPage() {
         {/* Header — oculto en desktop */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Mejora Continua" className="h-7" />
+          <img src="/logo.png" alt="Mejora Continua" className="h-10" />
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">

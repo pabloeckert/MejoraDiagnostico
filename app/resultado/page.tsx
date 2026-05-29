@@ -35,9 +35,7 @@ export default function ResultadoPage() {
   const perfil = session.perfil as PerfilKey
   const p = PERFILES[perfil]
   const areas = calcularAreas(session.respuestas)
-  const nombre = session.datos
-    ? `${session.datos.nombre}${session.datos.apellido ? ' ' + session.datos.apellido : ''}`
-    : ''
+  const nombre = session.datos?.nombre ?? ''
 
   const waMsgCorto = p.waMsg.split('. ').pop() ?? ''
   const waText = encodeURIComponent(
@@ -57,10 +55,17 @@ export default function ResultadoPage() {
         {/* Header — oculto en desktop, el logo está en el panel izquierdo */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Mejora Continua" className="h-7" />
+          <img src="/logo.png" alt="Mejora Continua" className="h-10" />
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
+
+          {/* Saludo personal */}
+          {nombre && (
+            <p className="text-mc-gris text-base mb-6 leading-relaxed">
+              {nombre}, esto es lo que encontramos en tu negocio.
+            </p>
+          )}
 
           {/* Badge */}
           <div className="mb-4">
@@ -135,7 +140,7 @@ export default function ResultadoPage() {
 
             <div className="flex items-center justify-center gap-2 text-xs text-mc-gris pt-4 border-t border-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="" className="h-4" />
+              <img src="/logo.png" alt="" className="h-5" />
               <span className="font-bold tracking-widest uppercase">Mejora Continua</span>
             </div>
           </div>
