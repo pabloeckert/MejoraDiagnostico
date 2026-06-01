@@ -24,15 +24,21 @@ Todas las páginas de usuario son `'use client'` — no hay Server Components en
 
 ### Flujo de estado entre rutas
 
-El estado no pasa por URL ni por un store global. Se usan funciones exportadas desde `hooks/useDiagnostico.ts` que persisten en dos capas:
+El estado no pasa por URL ni por un store global. Se usan funciones exportadas desde `hooks/useDiagnostico.ts` que persisten en estas capas:
 - **`sessionStorage`** (clave `mc_diagnostico`): respuestas, perfil detectado y datos del formulario. Se pierde al cerrar la pestaña — diseño intencional para que cada sesión sea fresca.
+- **`sessionStorage`** (clave `mc_nombre`): nombre ingresado en la bienvenida; pre-rellena el campo nombre en `/datos`.
+- **`sessionStorage`** (clave `mc_lid`): identificador de contacto leído del query param `?lid=` en `/diagnostico`. Se envía a `/api/save-completion` para rastrear el origen del lead. Si no hay `?lid=`, no se envía.
 - **`localStorage`** (clave `mc_leads`): colección de leads acumulada. Persiste entre sesiones; se puede exportar desde la consola con `JSON.parse(localStorage.getItem('mc_leads'))`.
 
 Cada página lee el estado previo al montarse. Si no hay datos válidos, redirige hacia atrás. `hooks/useDiagnostico.ts` exporta principalmente funciones standalone (`guardarRespuestas`, `guardarPerfil`, `guardarDatos`, `cargarSession`, `guardarLead`) — importalas directamente, no a través del hook `useDiagnostico`.
 
-### Teaser y desbloqueo en `/resultado`
+### Flujo de notificaciones
 
-`/resultado` se visita dos veces. La primera vez (`session.datos?.email` ausente) muestra perfil + áreas + un overlay que bloquea el cierre/CTA y empuja al usuario a `/datos`. Tras completar el formulario, `/datos` guarda los datos en session y redirige de vuelta a `/resultado`, donde el overlay desaparece y aparece el contenido completo con WhatsApp y PDF.
+Al terminar las 8 preguntas, `/diagnostico` llama a **`/api/save-completion`** (fire-and-forget) que envía solo un email al admin con perfil y áreas. Luego redirige a `/datos`. Cuando el usuario completa el formulario, `/datos` llama a **`/api/send-email`** que envía dos emails en paralelo (admin + prospecto). Ambos endpoints tienen la función `buildAreas()` definida localmente — no importan `calcularAreas` de `lib/areas.ts`.
+
+### `/resultado`
+
+Requiere `session.datos?.email`. Si no está, redirige a `/` sin mostrar nada. No hay teaser ni overlay — el resultado completo se muestra de una sola vez con WhatsApp y PDF.
 
 ### Lógica de negocio central
 
@@ -41,17 +47,19 @@ Cada página lee el estado previo al montarse. Si no hay datos válidos, redirig
 - **`lib/areas.ts`**: 5 áreas — Liderazgo y Autonomía, Desarrollo Comercial, Procesos Internos, Asesoramiento Externo, Visión Estratégica. Exporta `calcularAreas` (usado en el cliente) y `zonaColor` (usado en `AreaBar` y `PDFButton`). Los umbrales son: `Crítico` (<40%) / `En desarrollo` (40-65%) / `Sólido` (≥65%).
 - **`lib/perfiles.ts`**: 8 perfiles. Cada perfil tiene: `tag`, `ref`, `desc`, `verdad`, `cierreTitulo`, `cierreTxt`, `cta`, `waMsg`. Todos los textos de resultados salen de acá. El tipo exportado es `PerfilKey`.
 
-### API de email (`app/api/send-email/route.ts`)
+### APIs server-side
 
-Único endpoint server-side. Recibe el formulario + las 8 respuestas, valida con Zod, recalcula áreas y perfil server-side (no confía en datos del cliente), y envía dos emails en paralelo con Resend:
-1. Al admin (`diagnostico@mejoraok.com`) con tabla de lead completa.
-2. Al prospecto con su perfil personalizado.
+**`app/api/save-completion/route.ts`** — Se llama al terminar las preguntas, antes del formulario. Recibe `{ respuestas, lid? }`. No valida datos de contacto (no los tiene aún). Envía un email solo al admin con perfil, áreas y el `lid` si está presente.
 
-La key de Resend vive en `RESEND_API_KEY` (sin prefijo `NEXT_PUBLIC_`) — es server-only por diseño. El endpoint tiene honeypot y checkbox de consentimiento validados en Zod.
+**`app/api/send-email/route.ts`** — Se llama al enviar el formulario de datos. Recibe formulario + respuestas, valida con Zod, recalcula perfil y áreas server-side, y envía dos emails en paralelo: al admin con tabla completa del lead, y al prospecto con su perfil personalizado. Tiene honeypot y checkbox de consentimiento validados en Zod.
 
-**Duplicación de lógica:** el route define `buildAreas()` localmente en lugar de importar `calcularAreas` de `lib/areas.ts`. Si se modifica `AREAS` (agregar área, cambiar preguntas asignadas), hay que actualizar tanto `lib/areas.ts` como la función `buildAreas` en el route.
+Ambos usan `RESEND_API_KEY` (sin prefijo `NEXT_PUBLIC_`) y definen `buildAreas()` localmente. **Si se modifica `AREAS`, hay que actualizar `lib/areas.ts` y ambos routes.**
 
-**Captura de leads:** `guardarLead` se llama en el cliente *antes* de la llamada a la API. Si el email falla, el lead queda en `localStorage` de todas formas. El error de la API se silencia y el usuario avanza igual a `/resultado`.
+**Captura de leads:** `guardarLead` se llama en el cliente *antes* de la llamada a `send-email`. Si el email falla, el lead queda en `localStorage` de todas formas. El error se silencia y el usuario avanza a `/resultado`.
+
+### Layout desktop
+
+Todas las páginas usan **`DesktopLayout`**: panel izquierdo fijo `bg-mc-azul-marino` (42% ancho) + contenido derecho (58%). El panel izquierdo solo se muestra en `lg+`; en mobile se usa un header con logo. **`LeftPanel`** va adentro del panel izquierdo y cambia su contenido según el `step` (`inicio` / `preguntas` / `datos` / `resultado`).
 
 ### Componentes
 
@@ -59,7 +67,6 @@ La key de Resend vive en `RESEND_API_KEY` (sin prefijo `NEXT_PUBLIC_`) — es se
 - **`ProgressBar`**: barra de progreso que indica en qué pregunta va el usuario.
 - **`AreaBar`**: barra animada que cambia de color según la zona usando `zonaColor` de `lib/areas.ts`.
 - **`PDFButton`**: importa jsPDF dinámicamente (`import('jspdf')`) para no inflar el bundle inicial. Genera el PDF en el cliente.
-- **`InputField`**: componente local definido inline en `app/datos/page.tsx` — no está en `/components`.
 
 ## Colores y tipografía
 
