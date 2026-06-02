@@ -26,7 +26,8 @@ export function detectarPerfil(r: number[]): PerfilKey {
   // 6. ORDEN PARA CRECER: momento caótico/sin estructura + puntaje medio-alto
   if (r[7] === 2 && total >= 18) return 'ORDEN_PARA_CRECER'
 
-  // 7. LIDER SOLA: liderazgo fuerte + puntaje alto
+  // 7. LIDER SOLA: liderazgo presente + delega poco + estructura mínima
+  if (r[0] >= 2 && r[4] <= 2 && total >= 16) return 'LIDER_SOLA'
   if (r[0] >= 3 && total >= 20) return 'LIDER_SOLA'
 
   // 8. EMPRENDEDOR SATURADO: alta dependencia del dueño + puntaje bajo-medio
