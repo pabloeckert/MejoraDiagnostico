@@ -8,6 +8,7 @@ export const PERFILES = {
     cierreTxt: "¿Te describe? Juntémonos y hacemos un mapa completo para que salgas andando. Sin teoría, sin vueltas, al hueso. ¿Estás listo?",
     cta: "DALE →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y soy El Emprendedor Saturado. Me gustaría ordenarme.",
+    saludo: "[nombre], lo que encontramos tiene sentido.",
   },
   LIDER_SOLA: {
     tag: "La Líder que Lidera Solo/a",
@@ -18,6 +19,7 @@ export const PERFILES = {
     cierreTxt: "¿Te suena? Acá estamos. Tengamos una conversación directa. Para que puedas tener otra óptica que te dé claridad.",
     cta: "NECESITO HABLAR CON OTRO →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y soy La Líder que Lidera Solo/a. Me gustaría conversar.",
+    saludo: "[nombre], lo que cargás es real. Y también lo que lograste.",
   },
   PROFESIONAL_INVISIBLE: {
     tag: "El Profesional Invisible",
@@ -28,6 +30,7 @@ export const PERFILES = {
     cierreTxt: "¿Te hicimos pensar? Entonces hay algo concreto para hacer. Juntémonos para ver tu posicionamiento real.",
     cta: "SÍ, POR FAVOR →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y soy El Profesional Invisible. Quiero trabajar mi posicionamiento.",
+    saludo: "[nombre], tu valor existe. Solo falta que el mundo lo vea.",
   },
   EQUIPO_DESALINEADO: {
     tag: "El Equipo Desalineado",
@@ -38,6 +41,7 @@ export const PERFILES = {
     cierreTxt: "Si tu equipo está así, hay algo que tenés que hacer esta semana. Una conversación para encontrar el sentido.",
     cta: "QUIERO QUE TIREMOS PARA EL MISMO LADO →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y tengo un Equipo Desalineado. Quiero alinearlo.",
+    saludo: "[nombre], el problema no es tu equipo. Es la dirección.",
   },
   ESCEPTICO: {
     tag: "El Empresario Escéptico",
@@ -48,6 +52,7 @@ export const PERFILES = {
     cierreTxt: "Si te incomoda, pasa algo. Hablemos francamente. De lo que está pasando, de lo que no te cierra.",
     cta: "QUIERO LA VERDAD →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y soy El Empresario Escéptico. Quiero una conversación honesta.",
+    saludo: "[nombre], tu sospecha tiene fundamento.",
   },
   NUEVA_GENERACION: {
     tag: "La Nueva Generación",
@@ -58,6 +63,7 @@ export const PERFILES = {
     cierreTxt: "¿Te suena? Conversemos y vemos cómo te damos una mano.",
     cta: "SÍ, DALE →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y soy La Nueva Generación. Quiero encontrar mi lugar.",
+    saludo: "[nombre], lo que sentís tiene nombre.",
   },
   VENDEDOR_SIN_RESULTADOS: {
     tag: "El Vendedor sin Resultados",
@@ -68,6 +74,7 @@ export const PERFILES = {
     cierreTxt: "Hay algo concreto para ordenar. No es magia, es claridad comercial. ¿Arrancamos?",
     cta: "SÍ, ARRANCAMOS →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y soy El Vendedor sin Resultados. Necesito claridad comercial.",
+    saludo: "[nombre], el esfuerzo está. La estrategia, no.",
   },
   ORDEN_PARA_CRECER: {
     tag: "El que Necesita Orden para Crecer",
@@ -78,6 +85,7 @@ export const PERFILES = {
     cierreTxt: "No viene a complicarte la vida. Viene a ordenar lo que ya lograste para que no se rompa cuando más lo necesitás.",
     cta: "QUIERO ORDENARME →",
     waMsg: "Hola, hice el diagnóstico en diagnostico.mejoraok.com y necesito Orden para Crecer. Quiero estructurar mi negocio.",
+    saludo: "[nombre], creciste. Ahora hay que sostenerlo.",
   },
 } as const
 

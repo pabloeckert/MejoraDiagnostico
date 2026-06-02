@@ -20,7 +20,8 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function QuestionCard({ texto, numero, opciones, seleccionada, onSelect }: Props) {
-  const shuffled = useMemo(() => shuffle(opciones), [opciones])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const shuffled = useMemo(() => shuffle(opciones), [numero])
   const [justSelected, setJustSelected] = useState<number | null>(null)
 
   useEffect(() => {

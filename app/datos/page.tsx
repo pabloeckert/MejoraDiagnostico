@@ -39,10 +39,6 @@ export default function DatosPage() {
     nombre: '', codPais: '+54', whatsapp: '', email: ''
   })
 
-  useEffect(() => {
-    const nombreGuardado = typeof window !== 'undefined' ? sessionStorage.getItem('mc_nombre') ?? '' : ''
-    if (nombreGuardado) setForm(f => ({ ...f, nombre: nombreGuardado }))
-  }, [])
   const [errors, setErrors] = useState<Partial<Record<keyof DatosContacto, string>>>({})
   const [loading, setLoading] = useState(false)
   const [consent, setConsent] = useState(false)
@@ -112,10 +108,10 @@ export default function DatosPage() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
-          <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-2">PASO FINAL</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">¿A dónde te enviamos el análisis?</h1>
+          <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-2">ÚLTIMO PASO</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">Ya tenemos tu perfil.</h1>
           <p className="text-mc-gris text-base mb-8">
-            Eso es todo. Tu resultado completo llega en segundos.
+            Ingresá tus datos y lo recibís ahora.
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">

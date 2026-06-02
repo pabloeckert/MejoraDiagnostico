@@ -31,11 +31,6 @@ export default function Home() {
           DESCUBRIR MI PERFIL →
         </button>
 
-        <div className="flex gap-6 mt-8 text-xs text-mc-gris">
-          <span>✓ Gratis</span>
-          <span>✓ Sin spam</span>
-          <span>✓ Resultado inmediato</span>
-        </div>
       </div>
     </DesktopLayout>
   )

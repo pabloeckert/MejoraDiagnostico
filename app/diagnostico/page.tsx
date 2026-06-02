@@ -12,9 +12,6 @@ import LeftPanel from '@/components/LeftPanel'
 
 export default function DiagnosticoPage() {
   const router = useRouter()
-  const [nombreInput, setNombreInput] = useState('')
-  const [nombre, setNombre] = useState('')
-  const [nombreConfirmado, setNombreConfirmado] = useState(false)
   const [step, setStep] = useState(0)
   const [respuestas, setRespuestas] = useState<number[]>(Array(8).fill(0))
   const [seleccionada, setSeleccionada] = useState<number | null>(null)
@@ -42,15 +39,6 @@ export default function DiagnosticoPage() {
       return () => clearTimeout(t)
     }
   }, [seleccionada])
-
-  function handleConfirmarNombre(e: React.FormEvent) {
-    e.preventDefault()
-    const n = nombreInput.trim()
-    if (!n) return
-    setNombre(n)
-    if (typeof window !== 'undefined') sessionStorage.setItem('mc_nombre', n)
-    setNombreConfirmado(true)
-  }
 
   const pregunta = PREGUNTAS[step]
   const areaNombre = AREAS[pregunta.area].nombre
@@ -93,55 +81,6 @@ export default function DiagnosticoPage() {
     }
   }
 
-  /* ── Pantalla de bienvenida ── */
-  if (!nombreConfirmado) {
-    return (
-      <DesktopLayout leftContent={<LeftPanel step="inicio" />}>
-        <div className="min-h-[100dvh] flex flex-col">
-          <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Mejora Continua" className="h-10" />
-          </div>
-
-          <div className="flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6 py-12 lg:px-16 lg:py-20">
-            <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-4">
-              DIAGNÓSTICO EMPRESARIAL
-            </p>
-            <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-3">
-              Hola, ¿cómo te llamás?
-            </h1>
-            <p className="text-mc-gris text-base mb-8 leading-relaxed">
-              Así el diagnóstico habla directamente con vos.
-            </p>
-
-            <form onSubmit={handleConfirmarNombre} className="flex flex-col gap-4">
-              <input
-                type="text"
-                value={nombreInput}
-                onChange={e => setNombreInput(e.target.value)}
-                placeholder="Tu nombre o apodo"
-                autoFocus
-                className="w-full px-4 py-3 border border-gray-200 rounded-md text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan"
-              />
-              <button
-                type="submit"
-                disabled={!nombreInput.trim()}
-                className={`w-full min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
-                  !nombreInput.trim()
-                    ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
-                    : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
-                }`}
-              >
-                EMPEZAR →
-              </button>
-            </form>
-          </div>
-        </div>
-      </DesktopLayout>
-    )
-  }
-
-  /* ── Flujo de preguntas ── */
   return (
     <DesktopLayout leftContent={
       <LeftPanel
@@ -159,7 +98,7 @@ export default function DiagnosticoPage() {
 
         {/* Content — sin overflow-hidden para que el scroll funcione en mobile */}
         <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
-          <ProgressBar current={step + 1} total={PREGUNTAS.length} areaNombre={areaNombre} nombre={nombre} />
+          <ProgressBar current={step + 1} total={PREGUNTAS.length} areaNombre={areaNombre} />
 
           {/* overflow-x-hidden solo en el wrapper de la animación — no clipea verticalmente */}
           <div className="overflow-x-hidden">
