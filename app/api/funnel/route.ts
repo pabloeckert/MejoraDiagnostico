@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import type { sheets_v4 } from 'googleapis'
+import { PREGUNTAS } from '@/lib/preguntas'
 
 const SHEET_NAME = 'Funnel'
+
+function textoRespuesta(preguntaIdx: number, valor: number): string {
+  const opcion = PREGUNTAS[preguntaIdx]?.opciones.find(o => o.valor === valor)
+  return opcion ? `${valor} — ${opcion.texto}` : String(valor)
+}
 
 async function getSheets() {
   const auth = new google.auth.GoogleAuth({
@@ -81,7 +87,7 @@ export async function POST(req: NextRequest) {
         if (Array.isArray(respuestas)) {
           const cols = ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']
           for (let i = 0; i < 8; i++) {
-            await updateCell(sheets, row, cols[i], String(respuestas[i] ?? ''))
+            await updateCell(sheets, row, cols[i], textoRespuesta(i, respuestas[i]))
           }
         }
         await updateCell(sheets, row, 'F', 'formulario')
