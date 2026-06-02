@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
+import type { sheets_v4 } from 'googleapis'
 
 const SHEET_NAME = 'Funnel'
 
@@ -14,8 +15,7 @@ async function getSheets() {
   return google.sheets({ version: 'v4', auth })
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function findRow(sheets: any, sessionId: string): Promise<number | null> {
+async function findRow(sheets: sheets_v4.Sheets, sessionId: string): Promise<number | null> {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEETS_ID,
     range: `${SHEET_NAME}!A:A`,
@@ -27,8 +27,7 @@ async function findRow(sheets: any, sessionId: string): Promise<number | null> {
   return null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function updateCell(sheets: any, row: number, col: string, value: string) {
+async function updateCell(sheets: sheets_v4.Sheets, row: number, col: string, value: string) {
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.GOOGLE_SHEETS_ID,
     range: `${SHEET_NAME}!${col}${row}`,
@@ -37,8 +36,7 @@ async function updateCell(sheets: any, row: number, col: string, value: string) 
   })
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function createRow(sheets: any, sessionId: string, fecha: string) {
+async function createRow(sheets: sheets_v4.Sheets, sessionId: string, fecha: string) {
   await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEETS_ID,
     range: `${SHEET_NAME}!A1`,
