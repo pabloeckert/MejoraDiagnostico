@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { guardarDatos, guardarLead, cargarSession } from '@/hooks/useDiagnostico'
-import type { DatosContacto } from '@/hooks/useDiagnostico'
+import { trackFunnel } from '@/lib/funnel'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
 
@@ -35,61 +35,68 @@ const labelCls = 'block text-xs font-bold text-mc-gris uppercase tracking-widest
 
 export default function DatosPage() {
   const router = useRouter()
-  const [form, setForm] = useState<DatosContacto>({
-    nombre: '', codPais: '+54', whatsapp: '', email: ''
-  })
-
-  const [errors, setErrors] = useState<Partial<Record<keyof DatosContacto, string>>>({})
+  const [nombre, setNombre] = useState('')
+  const [codPais, setCodPais] = useState('+54')
+  const [wa, setWa] = useState('')
+  const [errorWa, setErrorWa] = useState('')
   const [loading, setLoading] = useState(false)
   const [consent, setConsent] = useState(false)
 
-  function set(k: keyof DatosContacto, v: string) {
-    setForm(f => ({ ...f, [k]: v }))
-    setErrors(e => ({ ...e, [k]: '' }))
-  }
+  useEffect(() => {
+    const raw = sessionStorage.getItem('mc_diagnostico')
+    if (raw) {
+      try {
+        const s = JSON.parse(raw)
+        if (s.nombre) setNombre(s.nombre)
+      } catch {}
+    }
+  }, [])
+
+  useEffect(() => {
+    const handler = () => trackFunnel('abandono', { paso: 'formulario' })
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [])
 
   function validate() {
-    const e: typeof errors = {}
-    if (!form.nombre.trim()) e.nombre = 'Requerido'
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Email inválido'
-    if (!form.whatsapp.trim() || !/^\d{6,15}$/.test(form.whatsapp.replace(/\s/g, ''))) e.whatsapp = 'Número inválido'
-    return e
+    if (!wa.trim() || !/^\d{6,15}$/.test(wa.replace(/\s/g, ''))) {
+      return 'Número inválido'
+    }
+    return ''
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length) { setErrors(errs); return }
+    const err = validate()
+    if (err) { setErrorWa(err); return }
 
     setLoading(true)
-    guardarDatos(form)
+    guardarDatos({ nombre, codPais, whatsapp: wa })
 
     const session = cargarSession()
     const respuestas = session.respuestas ?? []
     const perfil = session.perfil ?? 'EMPRENDEDOR_SATURADO'
     const total = respuestas.reduce((a, b) => a + b, 0)
 
-    guardarLead({
-      nombre: form.nombre, whatsapp: `${form.codPais}${form.whatsapp}`, email: form.email,
-      perfil, total, respuestas
-    })
+    guardarLead({ nombre, whatsapp: `${codPais}${wa}`, perfil, total, respuestas })
+
+    trackFunnel('formulario_completado', { whatsapp: codPais + wa, perfil })
 
     try {
       await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: form.nombre,
+          nombre,
           apellido: '',
           empresa: '',
-          email: form.email,
-          whatsapp: form.whatsapp,
-          codPais: form.codPais,
+          whatsapp: wa,
+          codPais,
           perfil,
           respuestas,
           honeypot: '',
           consent: true,
-        })
+        }),
       })
     } catch {
       // continuar aunque falle el email
@@ -110,26 +117,12 @@ export default function DatosPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
           <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-2">ÚLTIMO PASO</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">Ya tenemos tu perfil.</h1>
-          <p className="text-mc-gris text-base mb-8">
-            Ingresá tus datos y lo recibís ahora.
-          </p>
+          {nombre && (
+            <p className="text-mc-gris text-sm mb-6">Hola, {nombre} 👋</p>
+          )}
+          <p className="text-mc-gris text-base mb-8">¿A qué WhatsApp te lo enviamos?</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Nombre */}
-            <div>
-              <label className={labelCls}>
-                Nombre <span className="text-mc-rojo">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={e => set('nombre', e.target.value)}
-                placeholder="Tu nombre"
-                className={inputCls}
-              />
-              {errors.nombre && <p className="text-mc-rojo text-xs mt-1">{errors.nombre}</p>}
-            </div>
-
             {/* WhatsApp */}
             <div>
               <label className={labelCls}>
@@ -138,8 +131,8 @@ export default function DatosPage() {
               <div className="flex gap-2">
                 <div className="relative" style={{ width: '110px', flexShrink: 0 }}>
                   <select
-                    value={form.codPais}
-                    onChange={e => set('codPais', e.target.value)}
+                    value={codPais}
+                    onChange={e => setCodPais(e.target.value)}
                     className="w-full min-h-[48px] pl-3 pr-7 py-3 border border-gray-200 rounded-md text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan appearance-none"
                   >
                     {PAISES.map(p => (
@@ -156,28 +149,13 @@ export default function DatosPage() {
                 </div>
                 <input
                   type="tel"
-                  value={form.whatsapp}
-                  onChange={e => set('whatsapp', e.target.value)}
+                  value={wa}
+                  onChange={e => { setWa(e.target.value); setErrorWa('') }}
                   placeholder="Sin 0 ni 15"
                   className={`${inputCls} flex-1`}
                 />
               </div>
-              {errors.whatsapp && <p className="text-mc-rojo text-xs mt-1">{errors.whatsapp}</p>}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className={labelCls}>
-                Email <span className="text-mc-rojo">*</span>
-              </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={e => set('email', e.target.value)}
-                placeholder="tu@email.com"
-                className={inputCls}
-              />
-              {errors.email && <p className="text-mc-rojo text-xs mt-1">{errors.email}</p>}
+              {errorWa && <p className="text-mc-rojo text-xs mt-1">{errorWa}</p>}
             </div>
 
             {/* Consentimiento */}

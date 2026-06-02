@@ -10,7 +10,6 @@ const Schema = z.object({
   nombre: z.string().min(1),
   apellido: z.string().default(''),
   empresa: z.string().default(''),
-  email: z.string().email(),
   codPais: z.string().min(1),
   whatsapp: z.string().min(6),
   perfil: z.string().min(1),
@@ -46,7 +45,6 @@ export async function POST(req: NextRequest) {
     const adminHtml = `
 <h2>Nuevo lead: ${d.nombre} ${d.apellido} — ${perfil.tag}</h2>
 <table>
-  <tr><td><b>Email</b></td><td>${d.email}</td></tr>
   <tr><td><b>WhatsApp</b></td><td>${d.codPais}${d.whatsapp}</td></tr>
   <tr><td><b>Empresa</b></td><td>${d.empresa || '—'}</td></tr>
   <tr><td><b>Perfil</b></td><td>${perfil.tag}</td></tr>
@@ -62,34 +60,12 @@ export async function POST(req: NextRequest) {
 <p><b>${perfil.verdad}</b></p>
 `
 
-    const prospectoHtml = `
-<p>Hola ${d.nombre},</p>
-<h2>${perfil.tag}</h2>
-<p><b>${perfil.ref}</b></p>
-<p>${perfil.desc}</p>
-<blockquote><b>${perfil.verdad}</b></blockquote>
-<h3>Tu diagnóstico por área</h3>
-<pre>${areasTxt}</pre>
-<h2>${perfil.cierreTitulo}</h2>
-<p>${perfil.cierreTxt}</p>
-<hr>
-<p>Mejora Continua · diagnostico.mejoraok.com · IG: mejoraok · WhatsApp: +54 9 376 435-8152</p>
-`
-
-    await Promise.all([
-      resend.emails.send({
-        from: 'Mejora Continua <diagnostico@mejoraok.com>',
-        to: 'diagnostico@mejoraok.com',
-        subject: `Nuevo lead: ${d.nombre} — ${perfil.tag}`,
-        html: adminHtml,
-      }),
-      resend.emails.send({
-        from: 'Mejora Continua <diagnostico@mejoraok.com>',
-        to: d.email,
-        subject: `${d.nombre}, así estás hoy...`,
-        html: prospectoHtml,
-      }),
-    ])
+    await resend.emails.send({
+      from: 'Mejora Continua <diagnostico@mejoraok.com>',
+      to: 'diagnostico@mejoraok.com',
+      subject: `Nuevo lead: ${d.nombre} — ${perfil.tag}`,
+      html: adminHtml,
+    })
 
     return NextResponse.json({ ok: true })
   } catch (e) {

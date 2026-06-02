@@ -5,6 +5,7 @@ import { PREGUNTAS } from '@/lib/preguntas'
 import { AREAS } from '@/lib/areas'
 import { detectarPerfil } from '@/lib/detectar'
 import { guardarRespuestas, guardarPerfil } from '@/hooks/useDiagnostico'
+import { trackFunnel } from '@/lib/funnel'
 import ProgressBar from '@/components/ProgressBar'
 import QuestionCard from '@/components/QuestionCard'
 import DesktopLayout from '@/components/DesktopLayout'
@@ -12,6 +13,10 @@ import LeftPanel from '@/components/LeftPanel'
 
 export default function DiagnosticoPage() {
   const router = useRouter()
+  const [paso, setPaso] = useState<'nombre' | 'preguntas'>('nombre')
+  const [nombre, setNombre] = useState('')
+  const [errorNombre, setErrorNombre] = useState(false)
+  const [shakeNombre, setShakeNombre] = useState(false)
   const [step, setStep] = useState(0)
   const [respuestas, setRespuestas] = useState<number[]>(Array(8).fill(0))
   const [seleccionada, setSeleccionada] = useState<number | null>(null)
@@ -25,7 +30,14 @@ export default function DiagnosticoPage() {
       const lid = new URLSearchParams(window.location.search).get('lid')
       if (lid) sessionStorage.setItem('mc_lid', lid)
       else sessionStorage.removeItem('mc_lid')
+      trackFunnel('diagnostico_iniciado')
     }
+  }, [])
+
+  useEffect(() => {
+    const handler = () => trackFunnel('abandono', { paso: 'preguntas' })
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
   useEffect(() => {
@@ -40,8 +52,25 @@ export default function DiagnosticoPage() {
     }
   }, [seleccionada])
 
-  const pregunta = PREGUNTAS[step]
-  const areaNombre = AREAS[pregunta.area].nombre
+  function handleConfirmarNombre() {
+    if (!nombre.trim()) {
+      setErrorNombre(true)
+      setShakeNombre(true)
+      setTimeout(() => setShakeNombre(false), 400)
+      if (typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)) {
+        navigator.vibrate([10, 50, 10])
+      }
+      return
+    }
+    const session = JSON.parse(sessionStorage.getItem('mc_diagnostico') || '{}')
+    session.nombre = nombre.trim()
+    sessionStorage.setItem('mc_diagnostico', JSON.stringify(session))
+    trackFunnel('nombre_ingresado', { nombre: nombre.trim() })
+    setPaso('preguntas')
+  }
+
+  const pregunta = paso === 'preguntas' ? PREGUNTAS[step] : null
+  const areaNombre = pregunta ? AREAS[pregunta.area].nombre : ''
 
   function handleSelect(valor: number) {
     setSeleccionada(valor)
@@ -69,6 +98,7 @@ export default function DiagnosticoPage() {
       guardarRespuestas(nuevas)
       const perfil = detectarPerfil(nuevas)
       guardarPerfil(perfil)
+      trackFunnel('preguntas_completadas', { respuestas: nuevas })
 
       const lid = typeof window !== 'undefined' ? sessionStorage.getItem('mc_lid') ?? undefined : undefined
       fetch('/api/save-completion', {
@@ -79,6 +109,65 @@ export default function DiagnosticoPage() {
 
       router.replace('/datos')
     }
+  }
+
+  if (paso === 'nombre') {
+    return (
+      <DesktopLayout leftContent={<LeftPanel step="inicio" />}>
+        <div className="min-h-[100dvh] flex flex-col">
+          {/* Header mobile */}
+          <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Mejora Continua" className="h-10" />
+          </div>
+
+          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
+            <p className="text-xs font-bold tracking-widest text-mc-azul uppercase">
+              DIAGNÓSTICO EMPRESARIAL
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro">
+              Hola, ¿cómo te llamás?
+            </h1>
+            <p className="text-mc-gris text-base">
+              Es para personalizar tu diagnóstico.
+            </p>
+
+            <div>
+              <input
+                type="text"
+                autoFocus
+                autoCapitalize="words"
+                autoComplete="given-name"
+                inputMode="text"
+                enterKeyHint="go"
+                value={nombre}
+                onChange={e => { setNombre(e.target.value); setErrorNombre(false) }}
+                onKeyDown={e => e.key === 'Enter' && handleConfirmarNombre()}
+                placeholder="Tu nombre"
+                className={`w-full bg-transparent text-2xl font-bold text-mc-negro py-3 border-b-2 focus:outline-none transition-colors ${
+                  errorNombre ? 'border-red-400' : 'border-mc-gris-claro focus:border-mc-azul'
+                } ${shakeNombre ? 'animate-shake' : ''}`}
+              />
+              {errorNombre && (
+                <p className="text-red-500 text-sm mt-2">Ingresá tu nombre para continuar</p>
+              )}
+            </div>
+
+            <button
+              onClick={handleConfirmarNombre}
+              disabled={!nombre.trim()}
+              className={`w-full lg:w-auto lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+                !nombre.trim()
+                  ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
+                  : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
+              }`}
+            >
+              EMPEZAR →
+            </button>
+          </div>
+        </div>
+      </DesktopLayout>
+    )
   }
 
   return (
@@ -96,20 +185,19 @@ export default function DiagnosticoPage() {
           <img src="/logo.png" alt="Mejora Continua" className="h-10" />
         </div>
 
-        {/* Content — sin overflow-hidden para que el scroll funcione en mobile */}
+        {/* Content */}
         <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
           <ProgressBar current={step + 1} total={PREGUNTAS.length} areaNombre={areaNombre} />
 
-          {/* overflow-x-hidden solo en el wrapper de la animación — no clipea verticalmente */}
           <div className="overflow-x-hidden">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
             }>
               <QuestionCard
-                texto={pregunta.texto}
+                texto={pregunta!.texto}
                 numero={step + 1}
-                opciones={pregunta.opciones}
+                opciones={pregunta!.opciones}
                 seleccionada={seleccionada}
                 onSelect={handleSelect}
               />
@@ -117,7 +205,7 @@ export default function DiagnosticoPage() {
           </div>
         </div>
 
-        {/* Botón fijo al fondo */}
+        {/* Botón fijo al fondo — mobile */}
         <div
           className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3 lg:hidden"
           style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}

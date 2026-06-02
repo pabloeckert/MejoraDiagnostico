@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cargarSession } from '@/hooks/useDiagnostico'
+import { trackFunnel } from '@/lib/funnel'
 import { PERFILES } from '@/lib/perfiles'
 import { calcularAreas } from '@/lib/areas'
 import AreaBar from '@/components/AreaBar'
@@ -17,11 +18,12 @@ export default function ResultadoPage() {
 
   useEffect(() => {
     const s = cargarSession()
-    if (!s.perfil || !s.respuestas || !s.datos?.email) {
+    if (!s.perfil || !s.respuestas || !s.datos?.whatsapp) {
       router.replace('/')
       return
     }
     setSession(s)
+    trackFunnel('resultado_visto', { perfil: s.perfil, whatsapp: s.datos.whatsapp })
   }, [router])
 
   if (!session?.perfil || !session?.respuestas) {

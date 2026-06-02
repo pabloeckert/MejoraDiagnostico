@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "googleapis": "^173.0.0",
     "jspdf": "^2.5.1",
     "next": "14.2.29",
     "react": "^18",

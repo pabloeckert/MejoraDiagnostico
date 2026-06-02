@@ -14,6 +14,10 @@ node_modules/
 # Misc
 .DS_Store
 *.pem
+*.json.key
+*-credentials.json
+mejoraproyecto-*.json
+*.docx
 npm-debug.log*
 .vercel
 *.tsbuildinfo
