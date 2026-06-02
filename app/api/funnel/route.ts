@@ -55,11 +55,14 @@ async function createRow(sheets: sheets_v4.Sheets, sessionId: string, fecha: str
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    console.log('Funnel recibido:', body)
     const { session_id, evento, timestamp, nombre, whatsapp, perfil, respuestas, paso } = body
     if (!session_id) return NextResponse.json({ ok: false })
 
     const sheets = await getSheets()
+    console.log('Sheets conectado')
     let row = await findRow(sheets, session_id)
+    console.log('Row encontrada:', row)
 
     if (!row) {
       await createRow(sheets, session_id, timestamp)
@@ -102,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true })
   } catch (e) {
-    console.error('Funnel error:', e)
+    console.error('Error funnel:', e)
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
