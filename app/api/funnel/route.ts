@@ -59,10 +59,23 @@ async function createRow(sheets: sheets_v4.Sheets, sessionId: string, fecha: str
 }
 
 export async function POST(req: NextRequest) {
+  let evento = 'desconocido'
+  let session_id = 'desconocido'
   try {
+    if (
+      !process.env.GOOGLE_SHEETS_ID ||
+      !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+      !process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+    ) {
+      console.error('Funnel: variables de entorno faltantes')
+      return NextResponse.json({ ok: false, error: 'config' }, { status: 500 })
+    }
+
     const body = await req.json()
-    const { session_id, evento, timestamp, nombre, whatsapp, perfil, respuestas, paso } = body
-    if (!session_id) return NextResponse.json({ ok: false })
+    const { session_id: sid, evento: ev, timestamp, nombre, whatsapp, perfil, respuestas, paso } = body
+    session_id = sid ?? 'desconocido'
+    evento = ev ?? 'desconocido'
+    if (!sid) return NextResponse.json({ ok: false })
 
     const sheets = await getSheets()
     let row = await findRow(sheets, session_id)
@@ -106,9 +119,10 @@ export async function POST(req: NextRequest) {
         break
     }
 
+    console.log('Funnel OK:', evento, session_id)
     return NextResponse.json({ ok: true })
   } catch (e) {
-    console.error('Error funnel:', e)
+    console.error('Funnel error en evento:', evento, 'session:', session_id, e)
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
