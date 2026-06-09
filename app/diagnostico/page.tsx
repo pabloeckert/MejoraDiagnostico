@@ -82,6 +82,7 @@ export default function DiagnosticoPage() {
       if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
         navigator.vibrate([5, 30, 5])
       }
+      setRespuestas(nuevas)
       setTransition('out')
       setTimeout(() => {
         setStep(step + 1)
