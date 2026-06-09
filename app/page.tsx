@@ -20,7 +20,7 @@ export default function Home() {
           8 preguntas. Tu perfil real.<br />Lo que nadie te dice de tu negocio.
         </p>
 
-        <span className="border border-mc-negro text-mc-negro text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full mb-10">
+        <span className="text-xs font-semibold tracking-widest uppercase text-mc-gris bg-mc-gris-claro px-4 py-1.5 rounded-full mb-10">
           Menos de 1 minuto
         </span>
 

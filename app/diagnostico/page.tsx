@@ -2,11 +2,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PREGUNTAS } from '@/lib/preguntas'
-import { AREAS } from '@/lib/areas'
 import { detectarPerfil } from '@/lib/detectar'
 import { guardarRespuestas, guardarPerfil } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
-import ProgressBar from '@/components/ProgressBar'
 import QuestionCard from '@/components/QuestionCard'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
@@ -70,7 +68,6 @@ export default function DiagnosticoPage() {
   }
 
   const pregunta = paso === 'preguntas' ? PREGUNTAS[step] : null
-  const areaNombre = pregunta ? AREAS[pregunta.area].nombre : ''
 
   function handleSelect(valor: number) {
     setSeleccionada(valor)
@@ -113,24 +110,17 @@ export default function DiagnosticoPage() {
 
   if (paso === 'nombre') {
     return (
-      <DesktopLayout leftContent={<LeftPanel step="inicio" />}>
+      <DesktopLayout leftContent={<LeftPanel step="nombre" />}>
         <div className="min-h-[100dvh] flex flex-col">
-          {/* Header mobile */}
           <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Mejora Continua" className="h-10" />
           </div>
 
           <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
-            <p className="text-xs font-bold tracking-widest text-mc-azul uppercase">
-              DIAGNÓSTICO EMPRESARIAL
-            </p>
             <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro">
-              Hola, ¿cómo te llamás?
+              ¿Cómo te llamás?
             </h1>
-            <p className="text-mc-gris text-base">
-              Es para personalizar tu diagnóstico.
-            </p>
 
             <div>
               <input
@@ -143,7 +133,7 @@ export default function DiagnosticoPage() {
                 value={nombre}
                 onChange={e => { setNombre(e.target.value); setErrorNombre(false) }}
                 onKeyDown={e => e.key === 'Enter' && handleConfirmarNombre()}
-                placeholder="Tu nombre"
+                placeholder=""
                 className={`w-full bg-transparent text-2xl font-bold text-mc-negro py-3 border-b-2 focus:outline-none transition-colors ${
                   errorNombre ? 'border-red-400' : 'border-mc-gris-claro focus:border-mc-azul'
                 } ${shakeNombre ? 'animate-shake' : ''}`}
@@ -175,20 +165,15 @@ export default function DiagnosticoPage() {
       <LeftPanel
         step="preguntas"
         preguntaNum={step + 1}
-        areaNombre={areaNombre}
       />
     }>
       <div className="min-h-[100dvh] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Mejora Continua" className="h-10" />
         </div>
 
-        {/* Content */}
         <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
-          <ProgressBar current={step + 1} total={PREGUNTAS.length} areaNombre={areaNombre} />
-
           <div className="overflow-x-hidden">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :

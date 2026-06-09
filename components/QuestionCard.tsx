@@ -43,9 +43,6 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
 
   return (
     <div>
-      <p className="text-xs font-bold text-mc-azul tracking-widest uppercase mb-3">
-        {String(numero).padStart(2, '0')}
-      </p>
       <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-8">
         {texto}
       </h2>

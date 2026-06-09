@@ -31,7 +31,6 @@ const PAISES = [
 ]
 
 const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-md text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan'
-const labelCls = 'block text-xs font-bold text-mc-gris uppercase tracking-widest mb-2'
 
 export default function DatosPage() {
   const router = useRouter()
@@ -40,7 +39,6 @@ export default function DatosPage() {
   const [wa, setWa] = useState('')
   const [errorWa, setErrorWa] = useState('')
   const [loading, setLoading] = useState(false)
-  const [consent, setConsent] = useState(false)
 
   useEffect(() => {
     const raw = sessionStorage.getItem('mc_diagnostico')
@@ -59,7 +57,7 @@ export default function DatosPage() {
   }, [])
 
   function validate() {
-    if (!wa.trim() || !/^\d{6,15}$/.test(wa.replace(/\s/g, ''))) {
+    if (!wa.trim() || !/^\d{8,15}$/.test(wa.replace(/\s/g, ''))) {
       return 'Número inválido'
     }
     return ''
@@ -108,26 +106,21 @@ export default function DatosPage() {
   return (
     <DesktopLayout leftContent={<LeftPanel step="datos" />}>
       <div className="min-h-[100dvh]">
-        {/* Header — oculto en desktop */}
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Mejora Continua" className="h-10" />
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
-          <p className="text-xs font-bold tracking-widest text-mc-azul uppercase mb-2">ÚLTIMO PASO</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-2">Ya tenemos tu perfil.</h1>
-          {nombre && (
-            <p className="text-mc-gris text-sm mb-6">Hola, {nombre} 👋</p>
-          )}
-          <p className="text-mc-gris text-base mb-8">¿A qué WhatsApp te lo enviamos?</p>
+          <h1 className="text-4xl sm:text-5xl font-bold text-mc-negro mb-2">
+            {nombre}.
+          </h1>
+          <p className="text-mc-gris text-lg mb-8">
+            Tu diagnóstico está listo. ¿A dónde te avisamos?
+          </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* WhatsApp */}
             <div>
-              <label className={labelCls}>
-                WhatsApp <span className="text-mc-rojo">*</span>
-              </label>
               <div className="flex gap-2">
                 <div className="relative" style={{ width: '110px', flexShrink: 0 }}>
                   <select
@@ -158,36 +151,25 @@ export default function DatosPage() {
               {errorWa && <p className="text-mc-rojo text-xs mt-1">{errorWa}</p>}
             </div>
 
-            {/* Consentimiento */}
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                required
-                checked={consent}
-                onChange={e => setConsent(e.target.checked)}
-                className="mt-1 cursor-pointer"
-                style={{ accentColor: '#1C4D8C' }}
-              />
-              <span className="text-sm text-mc-gris leading-relaxed">
-                Acepto el tratamiento de mis datos según la{' '}
-                <a href="/privacidad" className="text-mc-azul underline">
-                  política de privacidad
-                </a>
-              </span>
-              <input type="text" name="honeypot" className="hidden" tabIndex={-1} autoComplete="off" />
-            </div>
+            <input type="text" name="honeypot" className="hidden" tabIndex={-1} autoComplete="off" />
 
             <button
               type="submit"
-              disabled={loading || !consent}
+              disabled={loading}
               className={`w-full lg:w-auto lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
-                loading || !consent
+                loading
                   ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
                   : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
               }`}
             >
               {loading ? 'PROCESANDO...' : 'VER MI DIAGNÓSTICO →'}
             </button>
+
+            <p className="text-xs text-gray-300 text-center mt-6">
+              <a href="/privacidad" className="hover:text-gray-400">
+                política de privacidad
+              </a>
+            </p>
           </form>
         </div>
       </div>

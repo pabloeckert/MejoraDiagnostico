@@ -1,18 +1,16 @@
 type LeftPanelProps = {
-  step: 'inicio' | 'preguntas' | 'datos' | 'resultado'
+  step: 'inicio' | 'nombre' | 'preguntas' | 'datos' | 'resultado'
   preguntaNum?: number
-  areaNombre?: string
   perfilTag?: string
   perfilRef?: string
 }
 
-export default function LeftPanel({ step, preguntaNum, areaNombre, perfilTag, perfilRef }: LeftPanelProps) {
+export default function LeftPanel({ step, preguntaNum, perfilTag, perfilRef }: LeftPanelProps) {
   return (
     <div className="flex flex-col items-start w-full max-w-sm">
 
-      {/* Logo siempre visible */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="Mejora Continua" className="h-10 mb-12 brightness-0 invert" />
+      <img src="/logo.png" alt="Mejora Continua" className="h-14 sm:h-16 mb-12 brightness-0 invert" />
 
       {step === 'inicio' && (
         <>
@@ -22,9 +20,6 @@ export default function LeftPanel({ step, preguntaNum, areaNombre, perfilTag, pe
           <h2 className="text-white text-3xl font-bold leading-tight mb-6">
             Descubrí dónde está tu negocio hoy.
           </h2>
-          <p className="text-white/60 text-base leading-relaxed">
-            8 preguntas. Tu perfil real. Lo que nadie te dice de tu negocio.
-          </p>
           <div className="mt-12 flex flex-col gap-3">
             <span className="text-white/40 text-sm">✓ Gratis</span>
             <span className="text-white/40 text-sm">✓ Menos de 1 minuto</span>
@@ -33,43 +28,31 @@ export default function LeftPanel({ step, preguntaNum, areaNombre, perfilTag, pe
         </>
       )}
 
+      {step === 'nombre' && (
+        <p className="text-white text-3xl font-bold leading-tight">
+          Contanos quién sos.
+        </p>
+      )}
+
       {step === 'preguntas' && (
         <>
           <p className="text-mc-amarillo text-xs font-bold tracking-widest uppercase mb-4">
-            Pregunta {preguntaNum} de 8
+            Pregunta {preguntaNum}
           </p>
-          <h2 className="text-white text-2xl font-bold leading-tight mb-4">
-            Evaluando
-          </h2>
-          <p className="text-white text-3xl font-bold leading-tight">
-            {areaNombre}
+          <p className="text-white text-lg leading-relaxed">
+            Respondé con lo primero que sentís.
           </p>
-          <div className="mt-12 w-full bg-white/10 rounded-full h-1">
-            <div
-              className="bg-mc-amarillo h-1 rounded-full transition-all duration-500"
-              style={{ width: `${((preguntaNum || 1) / 8) * 100}%` }}
-            />
-          </div>
         </>
       )}
 
       {step === 'datos' && (
         <>
-          <p className="text-mc-amarillo text-xs font-bold tracking-widest uppercase mb-4">
-            Casi listo
-          </p>
           <h2 className="text-white text-3xl font-bold leading-tight mb-6">
-            Tu diagnóstico está listo.
+            Ya casi.
           </h2>
           <p className="text-white/60 text-base leading-relaxed">
-            Ingresá tus datos y recibís el análisis completo en tu email en segundos.
+            Lo que encontramos en tu negocio te va a hacer pensar.
           </p>
-          <div className="mt-12 p-6 bg-white/5 rounded-lg border border-white/10">
-            <p className="text-white/40 text-xs uppercase tracking-widest mb-2">Lo que recibís</p>
-            <p className="text-white text-sm leading-relaxed">
-              Tu perfil detectado, diagnóstico por área, plan de acción y contacto directo con el equipo.
-            </p>
-          </div>
         </>
       )}
 
