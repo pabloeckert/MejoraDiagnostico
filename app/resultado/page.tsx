@@ -7,14 +7,10 @@ import { PERFILES } from '@/lib/perfiles'
 import { calcularAreas } from '@/lib/areas'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
+import GaugeGlobal from '@/components/GaugeGlobal'
+import GaugeArea from '@/components/GaugeArea'
 import type { PerfilKey } from '@/lib/perfiles'
 import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
-
-function getAreaStyle(pct: number): { bg: string; borderColor: string; textColor: string } {
-  if (pct < 40) return { bg: '#FEF2F2', borderColor: '#C0392B', textColor: '#991B1B' }
-  if (pct < 65) return { bg: '#FFF7ED', borderColor: '#E67E22', textColor: '#92400E' }
-  return { bg: '#F0FDF4', borderColor: '#27AE60', textColor: '#166534' }
-}
 
 export default function ResultadoPage() {
   const router = useRouter()
@@ -42,6 +38,9 @@ export default function ResultadoPage() {
   const p = PERFILES[perfilKey]
   const areas = calcularAreas(session.respuestas)
   const datos = session.datos as DatosContacto
+
+  const totalRespuestas = session.respuestas.reduce((a, b) => a + b, 0)
+  const globalPct = Math.round((totalRespuestas / 32) * 100)
 
   const handleCTA = async () => {
     try {
@@ -75,67 +74,53 @@ export default function ResultadoPage() {
           <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
         </div>
 
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
+        <div className="max-w-2xl mx-auto px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
 
-          {/* Verdad central */}
-          <div className="mb-10">
-            <p className="text-2xl sm:text-3xl font-bold text-mc-negro leading-snug">
+          {/* 1. Verdad central — full width azul marino */}
+          <div className="bg-mc-azul-marino text-white px-8 py-12 -mx-6 sm:-mx-16 mb-10">
+            <p className="text-2xl sm:text-3xl font-bold leading-snug max-w-xl">
               {p.verdad}
             </p>
           </div>
 
-          {/* Descripción */}
-          <p className="text-mc-gris text-lg leading-relaxed mb-10">
+          {/* 2. Descripción */}
+          <p className="text-mc-gris text-lg leading-relaxed mb-10 max-w-lg">
             {p.desc}
           </p>
 
-          {/* Áreas — cards con color */}
-          <div className="mb-10">
-            {areas.map((area) => {
-              const style = getAreaStyle(area.porcentaje)
-              return (
-                <div
-                  key={area.nombre}
-                  className="flex items-center justify-between p-4 rounded-lg mb-3"
-                  style={{
-                    backgroundColor: style.bg,
-                    borderLeft: `4px solid ${style.borderColor}`,
-                  }}
-                >
-                  <span className="font-semibold text-sm" style={{ color: style.textColor }}>
-                    {area.nombre}
-                  </span>
-                  <span className="font-bold text-lg" style={{ color: style.borderColor }}>
-                    {area.porcentaje}%
-                  </span>
-                </div>
-              )
-            })}
+          {/* 3. Gauge global */}
+          <GaugeGlobal value={globalPct} />
+
+          {/* 4. Gauges de área */}
+          <div className="flex flex-wrap justify-center gap-6 my-10">
+            {areas.map((area, i) => (
+              <GaugeArea
+                key={area.nombre}
+                value={area.porcentaje}
+                nombre={area.nombre}
+                delay={i * 150}
+              />
+            ))}
           </div>
 
-          {/* Cierre */}
-          <div className="mt-10 mb-6">
-            <h2 className="text-2xl font-bold text-mc-negro mb-3">
+          {/* 5. Cierre */}
+          <div className="mt-12 mb-6 max-w-lg">
+            <h2 className="text-2xl font-bold text-mc-negro mb-3 uppercase">
               {p.cierreTitulo}
             </h2>
-            <p className="text-mc-gris leading-relaxed">
+            <p className="text-mc-gris leading-relaxed mb-8">
               {p.cierreTxt}
             </p>
           </div>
 
-          {/* CTA */}
+          {/* 6. CTA */}
           <button
             onClick={handleCTA}
-            className="w-full bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-5 px-8 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200"
+            className="w-full bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-5 text-sm tracking-widest uppercase transition-colors duration-200 rounded-sm"
           >
             {p.cta}
           </button>
 
-          <div className="flex items-center justify-center gap-2 text-xs text-mc-gris pt-8 mt-8 border-t border-gray-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-color.png" alt="" className="h-5 object-contain" />
-            <span className="font-bold tracking-widest uppercase">Mejora Continua</span>
-          </div>
         </div>
       </div>
     </DesktopLayout>

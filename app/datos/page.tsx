@@ -112,12 +112,11 @@ export default function DatosPage() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
-          <h1 className="text-4xl sm:text-5xl font-bold text-mc-negro mb-2">
+          <h1 className="text-4xl sm:text-5xl font-bold text-mc-negro mb-3">
             {nombre}.
           </h1>
-          <p className="text-mc-gris text-lg mb-8">
-            Tu diagnóstico está listo. ¿A dónde te avisamos?
-          </p>
+          <p className="text-mc-gris text-xl mb-1">Tu diagnóstico está listo.</p>
+          <p className="text-mc-gris text-base mb-8">¿A dónde te avisamos?</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
@@ -165,8 +164,8 @@ export default function DatosPage() {
               {loading ? 'PROCESANDO...' : 'VER MI DIAGNÓSTICO →'}
             </button>
 
-            <p className="text-xs text-gray-300 text-center mt-6">
-              <a href="/privacidad" className="hover:text-gray-400">
+            <p className="text-xs text-gray-200 text-center mt-8">
+              <a href="/privacidad" className="hover:text-gray-400 transition-colors">
                 política de privacidad
               </a>
             </p>

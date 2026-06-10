@@ -12,16 +12,12 @@ export default function Home() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-color.png" alt="Mejora Continua" className="h-12 sm:h-14 mb-8 lg:hidden object-contain" loading="eager" decoding="async" />
 
-        <h1 className="text-4xl sm:text-5xl font-bold text-mc-negro text-center uppercase tracking-tight leading-none mb-4">
-          Diagnóstico<br />Empresarial
-        </h1>
-
         <p className="text-mc-gris text-center text-lg mb-6 max-w-sm">
-          8 preguntas. Tu perfil real.<br />Lo que nadie te dice de tu negocio.
+          Lo que tu negocio no te está diciendo.
         </p>
 
-        <span className="text-xs font-semibold tracking-widest uppercase text-mc-gris bg-mc-gris-claro px-4 py-1.5 rounded-full mb-10">
-          Menos de 1 minuto
+        <span className="text-xs font-semibold tracking-widest uppercase text-gray-400 bg-gray-100 px-4 py-1.5 rounded-full mb-10">
+          MENOS DE 1 MINUTO
         </span>
 
         <button

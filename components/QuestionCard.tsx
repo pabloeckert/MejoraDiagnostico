@@ -5,6 +5,7 @@ import type { Opcion } from '@/lib/preguntas'
 interface Props {
   texto: string
   numero: number
+  contexto?: string
   opciones: Opcion[]
   seleccionada: number | null
   onSelect: (valor: number) => void
@@ -19,7 +20,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-export default function QuestionCard({ texto, numero, opciones, seleccionada, onSelect }: Props) {
+export default function QuestionCard({ texto, numero, contexto, opciones, seleccionada, onSelect }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const shuffled = useMemo(() => shuffle(opciones), [numero])
   const [justSelected, setJustSelected] = useState<number | null>(null)
@@ -43,9 +44,12 @@ export default function QuestionCard({ texto, numero, opciones, seleccionada, on
 
   return (
     <div>
-      <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-8">
+      <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-2">
         {texto}
       </h2>
+      {contexto && (
+        <p className="text-xs text-gray-300 mt-1 mb-6">{contexto}</p>
+      )}
       <div className="flex flex-col gap-3" role="radiogroup">
         {shuffled.map((op) => {
           const sel = seleccionada === op.valor

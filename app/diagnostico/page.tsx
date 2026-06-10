@@ -119,6 +119,9 @@ export default function DiagnosticoPage() {
           </div>
 
           <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
+            <p className="text-xs font-bold tracking-widest uppercase text-mc-azul mb-3">
+              Antes de empezar
+            </p>
             <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro">
               ¿Cómo te llamás?
             </h1>
@@ -142,6 +145,7 @@ export default function DiagnosticoPage() {
               {errorNombre && (
                 <p className="text-red-500 text-sm mt-2">Ingresá tu nombre para continuar</p>
               )}
+              <p className="text-xs text-gray-400 mt-2">Solo tu nombre. Nada más.</p>
             </div>
 
             <button
@@ -165,7 +169,7 @@ export default function DiagnosticoPage() {
     <DesktopLayout leftContent={
       <LeftPanel
         step="preguntas"
-        preguntaNum={step + 1}
+        preguntaIndex={step}
       />
     }>
       <div className="min-h-[100dvh] flex flex-col">
@@ -183,6 +187,7 @@ export default function DiagnosticoPage() {
               <QuestionCard
                 texto={pregunta!.texto}
                 numero={step + 1}
+                contexto={pregunta!.contexto}
                 opciones={pregunta!.opciones}
                 seleccionada={seleccionada}
                 onSelect={handleSelect}
