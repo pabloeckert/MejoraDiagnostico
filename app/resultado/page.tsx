@@ -15,6 +15,7 @@ import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
 export default function ResultadoPage() {
   const router = useRouter()
   const [session, setSession] = useState<Partial<DiagnosticoSession> | null>(null)
+  const [gaugeReady, setGaugeReady] = useState(false)
 
   useEffect(() => {
     const s = cargarSession()
@@ -62,11 +63,7 @@ export default function ResultadoPage() {
 
   return (
     <DesktopLayout leftContent={
-      <LeftPanel
-        step="resultado"
-        perfilTag={p.tag}
-        perfilRef={p.ref}
-      />
+      <LeftPanel step="resultado" perfilTag={p.tag} perfilRef={p.ref} />
     }>
       <div className="min-h-[100dvh]">
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
@@ -76,7 +73,7 @@ export default function ResultadoPage() {
 
         <div className="max-w-2xl mx-auto px-6 py-8 sm:py-12 lg:px-16 lg:py-20">
 
-          {/* 1. Verdad central — full width azul marino */}
+          {/* 1. Verdad central */}
           <div className="bg-mc-azul-marino text-white px-8 py-12 -mx-6 sm:-mx-16 mb-10">
             <p className="text-2xl sm:text-3xl font-bold leading-snug max-w-xl">
               {p.verdad}
@@ -89,17 +86,22 @@ export default function ResultadoPage() {
           </p>
 
           {/* 3. Gauge global */}
-          <GaugeGlobal value={globalPct} />
+          {!gaugeReady && (
+            <p className="text-sm text-gray-400 text-center mb-2">
+              Analizando tu diagnóstico...
+            </p>
+          )}
+          <GaugeGlobal value={globalPct} onComplete={() => setGaugeReady(true)} />
 
-          {/* 4. Gauges de área */}
-          <div className="flex flex-wrap justify-center gap-6 my-10">
+          {/* 4. Gauges de área — fila horizontal con scroll en mobile */}
+          <div className="flex flex-row gap-3 overflow-x-auto pb-2 mb-8 justify-start sm:justify-center">
             {areas.map((area, i) => (
-              <GaugeArea
-                key={area.nombre}
-                value={area.porcentaje}
-                nombre={area.nombre}
-                delay={i * 150}
-              />
+              <div key={area.nombre} className="flex flex-col items-center min-w-[90px]">
+                <GaugeArea value={area.porcentaje} delayMs={i * 400} />
+                <p className="text-[10px] text-center text-gray-500 leading-tight mt-1 px-1 max-w-[80px]">
+                  {area.nombre}
+                </p>
+              </div>
             ))}
           </div>
 
