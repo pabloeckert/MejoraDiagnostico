@@ -10,7 +10,7 @@ export default function Home() {
     <DesktopLayout leftContent={<LeftPanel step="inicio" />}>
       <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 py-12 lg:px-16">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Mejora Continua" className="h-14 sm:h-16 mb-8 lg:hidden" loading="eager" decoding="async" style={{ imageRendering: 'crisp-edges' }} />
+        <img src="/logo-color.png" alt="Mejora Continua" className="h-12 sm:h-14 mb-8 lg:hidden object-contain" loading="eager" decoding="async" />
 
         <h1 className="text-4xl sm:text-5xl font-bold text-mc-negro text-center uppercase tracking-tight leading-none mb-4">
           Diagnóstico<br />Empresarial

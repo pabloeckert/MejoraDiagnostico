@@ -10,7 +10,7 @@ export default function LeftPanel({ step, preguntaNum, perfilTag, perfilRef }: L
     <div className="flex flex-col items-start w-full max-w-sm">
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="Mejora Continua" className="h-14 sm:h-16 mb-12 brightness-0 invert" />
+      <img src="/logo-blanco.png" alt="Mejora Continua" className="h-14 sm:h-16 mb-10 object-contain" />
 
       {step === 'inicio' && (
         <>

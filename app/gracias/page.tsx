@@ -18,7 +18,7 @@ export default function GraciasPage() {
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center px-6 text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="Mejora Continua" className="h-12 mb-10" />
+      <img src="/logo-color.png" alt="Mejora Continua" className="h-12 sm:h-14 mb-8 object-contain" />
 
       <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro mb-4">
         Listo{nombre ? `, ${nombre}` : ''}.
