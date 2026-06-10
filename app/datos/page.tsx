@@ -108,7 +108,7 @@ export default function DatosPage() {
       <div className="min-h-[100dvh]">
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Mejora Continua" className="h-10" />
+          <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
         </div>
 
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:px-16 lg:py-20">

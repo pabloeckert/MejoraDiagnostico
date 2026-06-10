@@ -115,7 +115,7 @@ export default function DiagnosticoPage() {
         <div className="min-h-[100dvh] flex flex-col">
           <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Mejora Continua" className="h-10" />
+            <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
           </div>
 
           <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
@@ -171,7 +171,7 @@ export default function DiagnosticoPage() {
       <div className="min-h-[100dvh] flex flex-col">
         <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Mejora Continua" className="h-10" />
+          <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
         </div>
 
         <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
