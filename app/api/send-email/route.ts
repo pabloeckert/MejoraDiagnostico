@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
 import { PERFILES } from '@/lib/perfiles'
-import { AREAS } from '@/lib/areas'
+import { calcularAreas, zonaColor } from '@/lib/areas'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
 const Schema = z.object({
   nombre: z.string().min(1),
@@ -18,17 +18,11 @@ const Schema = z.object({
   respuestas: z.array(z.number()).length(8),
 })
 
-function zona(pct: number) {
-  if (pct < 40) return 'Zona Crítica'
-  if (pct < 65) return 'Zona Media'
-  return 'Sólido'
-}
-
 function buildAreas(respuestas: number[]) {
-  return AREAS.map(a => {
-    const pts = a.preguntas.reduce((s, i) => s + respuestas[i], 0)
-    const pct = Math.round((pts / (a.preguntas.length * 4)) * 100)
-    return { nombre: a.nombre, pct, zona: zona(pct) }
+  const calculated = calcularAreas(respuestas)
+  return calculated.map(a => {
+    const z = zonaColor(a.porcentaje)
+    return { nombre: a.nombre, pct: a.porcentaje, zona: z.zona }
   })
 }
 

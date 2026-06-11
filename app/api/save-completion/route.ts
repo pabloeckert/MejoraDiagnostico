@@ -3,26 +3,20 @@ import { Resend } from 'resend'
 import { z } from 'zod'
 import { detectarPerfil } from '@/lib/detectar'
 import { PERFILES } from '@/lib/perfiles'
-import { AREAS } from '@/lib/areas'
+import { calcularAreas, zonaColor } from '@/lib/areas'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
 const Schema = z.object({
   respuestas: z.array(z.number().min(1).max(4)).length(8),
   lid: z.string().max(200).optional(),
 })
 
-function zona(pct: number) {
-  if (pct < 40) return 'Crítico'
-  if (pct < 65) return 'En desarrollo'
-  return 'Sólido'
-}
-
 function buildAreas(respuestas: number[]) {
-  return AREAS.map(a => {
-    const pts = a.preguntas.reduce((s, i) => s + respuestas[i], 0)
-    const pct = Math.round((pts / (a.preguntas.length * 4)) * 100)
-    return { nombre: a.nombre, pct, zona: zona(pct) }
+  const calculated = calcularAreas(respuestas)
+  return calculated.map(a => {
+    const z = zonaColor(a.porcentaje)
+    return { nombre: a.nombre, pct: a.porcentaje, zona: z.zona }
   })
 }
 

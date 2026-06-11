@@ -42,7 +42,17 @@
       "Bash(vercel *)",
       "Bash(curl -s https://diagnostico.mejoraok.com)",
       "Bash(curl -s -I https://diagnostico.mejoraok.com)",
-      "Bash(xargs grep -l \"api\\\\|route\\\\|endpoint\")"
+      "Bash(xargs grep -l \"api\\\\|route\\\\|endpoint\")",
+      "Bash(git reset *)",
+      "Bash(git restore *)",
+      "Bash(npx ts-node *)",
+      "Bash(npx tsx *)",
+      "Bash(NODE_OPTIONS=\"--env-file=.env.local\" npx tsx scripts/crear-sheet-funnel.ts)",
+      "Bash(curl *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(del C:/Github/MejoraDiagnostico/lib/__detectar_test.mjs)",
+      "Bash(where npx *)",
+      "Bash(dir C:GithubMejoraDiagnosticoBranding *)"
     ]
   }
 }

@@ -100,6 +100,21 @@ export default function DatosPage() {
       // continuar aunque falle el email
     }
 
+    try {
+      await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre,
+          whatsapp: wa,
+          codPais,
+          perfil,
+        }),
+      })
+    } catch (e) {
+      console.error('Telegram notify error:', e)
+    }
+
     router.replace('/resultado')
   }
 

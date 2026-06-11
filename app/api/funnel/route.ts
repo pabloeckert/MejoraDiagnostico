@@ -52,7 +52,7 @@ async function createRow(sheets: sheets_v4.Sheets, sessionId: string, fecha: str
       values: [[
         sessionId, fecha, '', '', '',
         'inicio', '', '', '', '', '', '', '',
-        '', 'NO', '', fecha,
+        '', 'NO', '', fecha, 'NO',
       ]],
     },
   })
@@ -113,6 +113,10 @@ export async function POST(req: NextRequest) {
       case 'resultado_visto':
         await updateCell(sheets, row, 'O', 'SÍ')
         await updateCell(sheets, row, 'F', 'resultado_completo')
+        break
+      case 'cta_click':
+        await updateCell(sheets, row, 'R', 'SÍ')
+        await updateCell(sheets, row, 'F', 'whatsapp_contactado')
         break
       case 'abandono':
         await updateCell(sheets, row, 'P', paso || 'desconocido')
