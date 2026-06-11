@@ -44,15 +44,17 @@ export default function ResultadoPage() {
   const globalPct = Math.round((totalRespuestas / 32) * 100)
 
   const handleCTA = async () => {
+    trackFunnel('cta_click', { perfil: perfilKey })
     try {
       await fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: datos.nombre,
-          whatsapp: datos.whatsapp,
-          codPais: datos.codPais,
+          nombre: session.datos?.nombre ?? '',
+          whatsapp: (session.datos?.codPais ?? '') + (session.datos?.whatsapp ?? ''),
+          codPais: session.datos?.codPais ?? '',
           perfil: perfilKey,
+          parcial: false,
         }),
       })
     } catch (e) {
@@ -93,10 +95,10 @@ export default function ResultadoPage() {
           )}
           <GaugeGlobal value={globalPct} onComplete={() => setGaugeReady(true)} />
 
-          {/* 4. Gauges de área — fila horizontal con scroll en mobile */}
-          <div className="flex flex-row gap-3 overflow-x-auto pb-2 mb-8 justify-start sm:justify-center">
+          {/* 4. Gauges de área — grid en mobile, flex en desktop */}
+          <div className="grid grid-cols-3 gap-3 mb-8 justify-items-center sm:flex sm:flex-row sm:justify-center sm:gap-4">
             {areas.map((area, i) => (
-              <div key={area.nombre} className="flex flex-col items-center min-w-[90px]">
+              <div key={area.nombre} className="flex flex-col items-center min-w-[90px] text-center">
                 <GaugeArea value={area.porcentaje} delayMs={i * 400} />
                 <p className="text-[10px] text-center text-gray-500 leading-tight mt-1 px-1 max-w-[80px]">
                   {area.nombre}
