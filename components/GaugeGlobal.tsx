@@ -80,14 +80,14 @@ export default function GaugeGlobal({ value, onComplete, size = 'lg' }: Props) {
 
   const needleEnd = pt(CX, CY, NR, needleDeg)
 
-  const w = size === 'sm' ? 180 : 240
-  const h = size === 'sm' ? 108 : 144
-  const numFs = size === 'sm' ? '16' : '22'
-  const lblFs = size === 'sm' ? '7' : '9'
+  const w = size === 'sm' ? 220 : 240
+  const h = size === 'sm' ? 143 : 144
+  const numFs = size === 'sm' ? '24' : '22'
+  const lblFs = size === 'sm' ? '9' : '9'
 
   return (
     <div ref={containerRef} className="flex flex-col items-center my-8">
-      <svg viewBox="0 0 200 120" width={w} height={h} overflow="visible">
+      <svg viewBox="0 0 200 130" width={w} height={h} overflow="visible">
         {/* Tres zonas de fondo: rojo → naranja → verde */}
         <path d={arcSeg(CX, CY, R, 180, 120)} fill="none" stroke="#C0392B" strokeWidth={14} strokeLinecap="butt" />
         <path d={arcSeg(CX, CY, R, 120,  60)} fill="none" stroke="#E67E22" strokeWidth={14} strokeLinecap="butt" />

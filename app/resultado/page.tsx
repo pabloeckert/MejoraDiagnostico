@@ -160,31 +160,21 @@ export default function ResultadoPage() {
         </div>
 
         {/* Columna derecha — col-span-2 */}
-        <div className="lg:col-span-2 flex flex-col items-center justify-between h-full">
+        <div className="lg:col-span-2 flex flex-col items-center justify-center h-full gap-2">
 
-          {/* Gauge global compacto */}
+          {/* Gauge global */}
           <GaugeGlobal value={globalPct} size="sm" />
 
-          {/* 5 Gauges de área: grid 2×2 + 1 centrado */}
-          <div className="w-full pb-2">
-            <div className="grid grid-cols-2 gap-2 w-full">
-              {areas.slice(0, 4).map((area, i) => (
-                <div key={area.nombre} className="flex flex-col items-center text-center">
-                  <GaugeArea value={area.porcentaje} delayMs={i * 400} compact />
-                  <p className="text-[9px] text-center text-gray-500 leading-tight mt-1 px-1">
-                    {area.nombre}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center mt-2">
-              <div className="flex flex-col items-center text-center">
-                <GaugeArea value={areas[4].porcentaje} delayMs={4 * 400} compact />
-                <p className="text-[9px] text-center text-gray-500 leading-tight mt-1 px-1">
-                  {areas[4].nombre}
+          {/* 5 Gauges de área: una fila de 5 */}
+          <div className="grid grid-cols-5 gap-3 w-full mt-8">
+            {areas.map((area, i) => (
+              <div key={area.nombre} className="flex flex-col items-center text-center">
+                <GaugeArea value={area.porcentaje} delayMs={i * 400} compact />
+                <p className="text-[10px] text-center text-gray-500 leading-tight mt-1 px-1">
+                  {area.nombre}
                 </p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
 
