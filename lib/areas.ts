@@ -1,18 +1,17 @@
-export const AREAS = [
-  { nombre: "Liderazgo y Autonomía",  preguntas: [0, 3] },
-  { nombre: "Desarrollo Comercial",   preguntas: [1, 2] },
-  { nombre: "Procesos Internos",      preguntas: [4, 7] },
-  { nombre: "Asesoramiento Externo",  preguntas: [5]    },
-  { nombre: "Visión Estratégica",     preguntas: [6]    },
-]
+import type { Scores, Area } from './scoring'
 
-export function calcularAreas(respuestas: number[]): { nombre: string; porcentaje: number }[] {
-  return AREAS.map((area) => {
-    const vals = area.preguntas.map((i) => respuestas[i] ?? 0)
-    const max = area.preguntas.length * 4
-    const suma = vals.reduce((a, b) => a + b, 0)
-    return { nombre: area.nombre, porcentaje: Math.round((suma / max) * 100) }
-  })
+export const NOMBRES_AREA: Record<Area, string> = {
+  personal: "Desarrollo Personal",
+  organizacional: "Desarrollo Organizacional",
+  comercial: "Desarrollo Comercial",
+  empresarial: "Desarrollo Empresarial",
+}
+
+export function areasParaMostrar(scores: Scores): { nombre: string; porcentaje: number }[] {
+  return (Object.keys(scores) as Area[]).map((area) => ({
+    nombre: NOMBRES_AREA[area],
+    porcentaje: scores[area],
+  }))
 }
 
 export function zonaColor(p: number): { zona: string; color: string } {

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { cargarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
 import { PERFILES } from '@/lib/perfiles'
-import { zonaColor } from '@/lib/areas'
+import { zonaColor, areasParaMostrar } from '@/lib/areas'
 import type { Scores } from '@/lib/scoring'
 import AreaBar from '@/components/AreaBar'
 import DesktopLayout from '@/components/DesktopLayout'
@@ -39,12 +39,7 @@ export default function ResultadoPage() {
   const datos = session.datos as DatosContacto
   const scoresData = session.scores as Scores
 
-  const areas = [
-    { nombre: 'Personal', porcentaje: scoresData.personal },
-    { nombre: 'Organizacional', porcentaje: scoresData.organizacional },
-    { nombre: 'Comercial', porcentaje: scoresData.comercial },
-    { nombre: 'Empresarial', porcentaje: scoresData.empresarial },
-  ]
+  const areas = areasParaMostrar(scoresData)
 
   const globalPct = Math.round(
     (scoresData.personal + scoresData.organizacional + scoresData.comercial + scoresData.empresarial) / 4

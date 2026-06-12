@@ -12,7 +12,7 @@ export default function DesktopLayout({ leftContent, children }: {
       </div>
 
       {/* Contenido derecho */}
-      <div className="w-full lg:ml-[42%] lg:w-[58%] min-h-[100dvh] bg-white">
+      <div className="w-full lg:ml-[42%] lg:w-[58%] min-h-[100dvh] bg-white overflow-y-auto">
         {children}
       </div>
     </div>

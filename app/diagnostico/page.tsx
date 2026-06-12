@@ -104,8 +104,8 @@ export default function DiagnosticoPage() {
       setTimeout(() => {
         setStep(step + 1)
         setTransition('in')
-        setTimeout(() => setTransition('idle'), 220)
-      }, 180)
+        setTimeout(() => setTransition('idle'), 400)
+      }, 380)
     } else {
       if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
         navigator.vibrate([10, 50, 10, 50, 20])
@@ -120,8 +120,8 @@ export default function DiagnosticoPage() {
         setTimeout(() => {
           setPaso('posicion')
           setTransition('in')
-          setTimeout(() => setTransition('idle'), 220)
-        }, 180)
+          setTimeout(() => setTransition('idle'), 400)
+        }, 380)
       } else {
         finalizarConPerfil(nuevas, s)
       }
