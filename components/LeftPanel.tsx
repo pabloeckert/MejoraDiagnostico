@@ -64,6 +64,9 @@ export default function LeftPanel({ step, preguntaIndex, perfilTag, perfilRef }:
 
       {step === 'resultado' && (
         <>
+          <p className="text-mc-amarillo text-xs font-bold uppercase tracking-widest mb-3">
+            TU PERFIL
+          </p>
           <p className="text-white text-3xl font-bold leading-tight mb-3">
             {perfilTag}
           </p>

@@ -5,17 +5,22 @@ import { zonaColor } from '@/lib/areas'
 interface Props {
   value: number
   delayMs?: number
+  compact?: boolean
 }
 
-const CX = 50, CY = 50, R = 36, SW = 8
-const TOTAL_LEN = Math.PI * R
 const ANIM_MS = 1200
 
-export default function GaugeArea({ value, delayMs = 0 }: Props) {
+export default function GaugeArea({ value, delayMs = 0, compact = false }: Props) {
   const { color, zona } = zonaColor(value)
   const [triggered, setTriggered] = useState(false)
   const [labelVisible, setLabelVisible] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
+
+  const CX = compact ? 40 : 50
+  const CY = compact ? 42 : 50
+  const R  = compact ? 28 : 36
+  const SW = compact ? 6  : 8
+  const TOTAL_LEN = Math.PI * R
 
   useEffect(() => {
     const el = svgRef.current
@@ -46,9 +51,9 @@ export default function GaugeArea({ value, delayMs = 0 }: Props) {
   return (
     <svg
       ref={svgRef}
-      viewBox="0 0 100 65"
-      width={90}
-      height={58}
+      viewBox={compact ? '0 0 80 55' : '0 0 100 65'}
+      width={compact ? 80 : 90}
+      height={compact ? 55 : 58}
     >
       {/* Track gris */}
       <path
@@ -75,10 +80,10 @@ export default function GaugeArea({ value, delayMs = 0 }: Props) {
       />
       {/* Zona label */}
       <text
-        x={CX} y={CY - 16}
+        x={CX} y={CY - (compact ? 14 : 16)}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="7"
+        fontSize={compact ? '6' : '7'}
         fontWeight="700"
         fill={color}
         style={{ opacity: labelVisible ? 1 : 0, transition: 'opacity 300ms ease' }}
@@ -87,10 +92,10 @@ export default function GaugeArea({ value, delayMs = 0 }: Props) {
       </text>
       {/* Porcentaje */}
       <text
-        x={CX} y={CY - 5}
+        x={CX} y={CY - (compact ? 3 : 5)}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="14"
+        fontSize={compact ? '11' : '14'}
         fontWeight="700"
         fill={color}
       >
