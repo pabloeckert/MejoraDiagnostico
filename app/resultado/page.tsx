@@ -4,11 +4,10 @@ import { useRouter } from 'next/navigation'
 import { cargarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
 import { PERFILES } from '@/lib/perfiles'
-import { calcularAreas } from '@/lib/areas'
+import { calcularAreas, zonaColor } from '@/lib/areas'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
-import GaugeGlobal from '@/components/GaugeGlobal'
-import GaugeArea from '@/components/GaugeArea'
+import AreaBar from '@/components/AreaBar'
 import type { PerfilKey } from '@/lib/perfiles'
 import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
 
@@ -41,6 +40,7 @@ export default function ResultadoPage() {
 
   const totalRespuestas = session.respuestas.reduce((a, b) => a + b, 0)
   const globalPct = Math.round((totalRespuestas / 32) * 100)
+  const { color: globalColor, zona: globalZona } = zonaColor(globalPct)
 
   const handleCTA = async () => {
     trackFunnel('cta_click', { perfil: perfilKey })
@@ -87,18 +87,16 @@ export default function ResultadoPage() {
           {p.desc}
         </p>
 
-        {/* 3. Gauge global */}
-        <GaugeGlobal value={globalPct} />
+        {/* 3. Puntaje global */}
+        <div className="flex items-baseline gap-3 mb-6">
+          <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
+          <span className="text-xs text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
+        </div>
 
-        {/* 4. Gauges de área */}
-        <div className="grid grid-cols-3 gap-3 mb-8 justify-items-center sm:flex sm:flex-row sm:justify-center sm:gap-4">
+        {/* 4. Barras de área */}
+        <div className="mb-8">
           {areas.map((area, i) => (
-            <div key={area.nombre} className="flex flex-col items-center min-w-[90px] text-center">
-              <GaugeArea value={area.porcentaje} delayMs={i * 400} />
-              <p className="text-[10px] text-center text-gray-500 leading-tight mt-1 px-1 max-w-[80px]">
-                {area.nombre}
-              </p>
-            </div>
+            <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
           ))}
         </div>
 
@@ -127,12 +125,12 @@ export default function ResultadoPage() {
                       lg:h-[calc(100vh-80px)] lg:overflow-hidden
                       lg:px-10 lg:mt-10">
 
-        {/* Columna izquierda — col-span-3 */}
-        <div className="lg:col-span-3 flex flex-col h-full">
+        {/* Columna izquierda — col-span-2 */}
+        <div className="lg:col-span-2 flex flex-col h-full">
 
           {/* Verdad central */}
           <div className="bg-mc-azul-marino text-white px-6 py-6 rounded-lg mb-4">
-            <p className="text-xl font-bold leading-snug">
+            <p className="text-lg font-bold leading-snug">
               {p.verdad}
             </p>
           </div>
@@ -159,32 +157,20 @@ export default function ResultadoPage() {
           </div>
         </div>
 
-        {/* Columna derecha — col-span-2 */}
-        <div className="lg:col-span-2 flex flex-col items-center justify-between h-full">
+        {/* Columna derecha — col-span-3 */}
+        <div className="lg:col-span-3 flex flex-col justify-center h-full gap-4 pl-4">
 
-          {/* Gauge global compacto */}
-          <GaugeGlobal value={globalPct} size="sm" />
+          {/* Puntaje global */}
+          <div className="flex items-baseline gap-3 mb-2">
+            <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
+            <span className="text-xs text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
+          </div>
 
-          {/* 5 Gauges de área: grid 2×2 + 1 centrado */}
-          <div className="w-full pb-2">
-            <div className="grid grid-cols-2 gap-2 w-full">
-              {areas.slice(0, 4).map((area, i) => (
-                <div key={area.nombre} className="flex flex-col items-center text-center">
-                  <GaugeArea value={area.porcentaje} delayMs={i * 400} compact />
-                  <p className="text-[9px] text-center text-gray-500 leading-tight mt-1 px-1">
-                    {area.nombre}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center mt-2">
-              <div className="flex flex-col items-center text-center">
-                <GaugeArea value={areas[4].porcentaje} delayMs={4 * 400} compact />
-                <p className="text-[9px] text-center text-gray-500 leading-tight mt-1 px-1">
-                  {areas[4].nombre}
-                </p>
-              </div>
-            </div>
+          {/* 5 barras de área */}
+          <div className="w-full">
+            {areas.map((area, i) => (
+              <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
+            ))}
           </div>
         </div>
 

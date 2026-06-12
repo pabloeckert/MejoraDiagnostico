@@ -16,10 +16,10 @@ export default function GaugeArea({ value, delayMs = 0, compact = false }: Props
   const [labelVisible, setLabelVisible] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
 
-  const CX = compact ? 40 : 50
-  const CY = compact ? 42 : 50
-  const R  = compact ? 28 : 36
-  const SW = compact ? 6  : 8
+  const CX = compact ? 50 : 50
+  const CY = compact ? 50 : 50
+  const R  = compact ? 35 : 36
+  const SW = compact ? 7  : 8
   const TOTAL_LEN = Math.PI * R
 
   useEffect(() => {
@@ -51,9 +51,10 @@ export default function GaugeArea({ value, delayMs = 0, compact = false }: Props
   return (
     <svg
       ref={svgRef}
-      viewBox={compact ? '0 0 80 55' : '0 0 100 65'}
-      width={compact ? 80 : 90}
-      height={compact ? 55 : 58}
+      viewBox={compact ? '0 0 100 68' : '0 0 100 65'}
+      width={compact ? undefined : 90}
+      height={compact ? undefined : 58}
+      style={compact ? { width: '100%', height: 'auto' } : undefined}
     >
       {/* Track gris */}
       <path
@@ -83,7 +84,7 @@ export default function GaugeArea({ value, delayMs = 0, compact = false }: Props
         x={CX} y={CY - (compact ? 14 : 16)}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={compact ? '6' : '7'}
+        fontSize={compact ? '7' : '7'}
         fontWeight="700"
         fill={color}
         style={{ opacity: labelVisible ? 1 : 0, transition: 'opacity 300ms ease' }}
@@ -95,7 +96,7 @@ export default function GaugeArea({ value, delayMs = 0, compact = false }: Props
         x={CX} y={CY - (compact ? 3 : 5)}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={compact ? '11' : '14'}
+        fontSize={compact ? '14' : '14'}
         fontWeight="700"
         fill={color}
       >
