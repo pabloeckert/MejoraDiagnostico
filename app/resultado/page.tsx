@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation'
 import { cargarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
 import { PERFILES } from '@/lib/perfiles'
-import { calcularAreas, zonaColor } from '@/lib/areas'
+import { zonaColor } from '@/lib/areas'
+import type { Scores } from '@/lib/scoring'
+import AreaBar from '@/components/AreaBar'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
-import AreaBar from '@/components/AreaBar'
 import type { PerfilKey } from '@/lib/perfiles'
 import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
 
@@ -17,7 +18,7 @@ export default function ResultadoPage() {
 
   useEffect(() => {
     const s = cargarSession()
-    if (!s.perfil || !s.respuestas || !s.datos?.whatsapp) {
+    if (!s.perfil || !s.respuestas || !s.datos?.whatsapp || !s.scores) {
       router.replace('/')
       return
     }
@@ -25,7 +26,7 @@ export default function ResultadoPage() {
     trackFunnel('resultado_visto', { perfil: s.perfil, whatsapp: s.datos.whatsapp })
   }, [router])
 
-  if (!session?.perfil || !session?.respuestas) {
+  if (!session?.perfil || !session?.respuestas || !session?.scores) {
     return (
       <div className="min-h-[100dvh] bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-mc-azul border-t-transparent rounded-full animate-spin" />
@@ -35,11 +36,19 @@ export default function ResultadoPage() {
 
   const perfilKey = session.perfil as PerfilKey
   const p = PERFILES[perfilKey]
-  const areas = calcularAreas(session.respuestas)
   const datos = session.datos as DatosContacto
+  const scoresData = session.scores as Scores
 
-  const totalRespuestas = session.respuestas.reduce((a, b) => a + b, 0)
-  const globalPct = Math.round((totalRespuestas / 32) * 100)
+  const areas = [
+    { nombre: 'Personal', porcentaje: scoresData.personal },
+    { nombre: 'Organizacional', porcentaje: scoresData.organizacional },
+    { nombre: 'Comercial', porcentaje: scoresData.comercial },
+    { nombre: 'Empresarial', porcentaje: scoresData.empresarial },
+  ]
+
+  const globalPct = Math.round(
+    (scoresData.personal + scoresData.organizacional + scoresData.comercial + scoresData.empresarial) / 4
+  )
   const { color: globalColor, zona: globalZona } = zonaColor(globalPct)
 
   const handleCTA = async () => {
@@ -166,7 +175,7 @@ export default function ResultadoPage() {
             <span className="text-xs text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
           </div>
 
-          {/* 5 barras de área */}
+          {/* 4 barras de área */}
           <div className="w-full">
             {areas.map((area, i) => (
               <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />

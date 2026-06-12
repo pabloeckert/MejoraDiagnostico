@@ -73,7 +73,7 @@ export default function DatosPage() {
 
     const session = cargarSession()
     const respuestas = session.respuestas ?? []
-    const perfil = session.perfil ?? 'EMPRENDEDOR_SATURADO'
+    const perfil = session.perfil ?? 'SATURADO'
     const total = respuestas.reduce((a, b) => a + b, 0)
 
     guardarLead({ nombre, whatsapp: `${codPais}${wa}`, perfil, total, respuestas })

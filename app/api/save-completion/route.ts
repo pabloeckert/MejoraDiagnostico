@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
-import { detectarPerfil } from '@/lib/detectar'
 import { PERFILES } from '@/lib/perfiles'
-import { calcularAreas, zonaColor } from '@/lib/areas'
+import { calcularScores, detectarPerfil } from '@/lib/scoring'
+import { zonaColor } from '@/lib/areas'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
@@ -12,24 +12,19 @@ const Schema = z.object({
   lid: z.string().max(200).optional(),
 })
 
-function buildAreas(respuestas: number[]) {
-  const calculated = calcularAreas(respuestas)
-  return calculated.map(a => {
-    const z = zonaColor(a.porcentaje)
-    return { nombre: a.nombre, pct: a.porcentaje, zona: z.zona }
-  })
-}
-
 export async function POST(req: NextRequest) {
   try {
     const d = Schema.parse(await req.json())
-    const perfil = detectarPerfil(d.respuestas)
+    const scores = calcularScores(d.respuestas)
+    const perfil = detectarPerfil(scores)
     const p = PERFILES[perfil]
-    const areas = buildAreas(d.respuestas)
     const total = d.respuestas.reduce((a, b) => a + b, 0)
 
-    const areaRows = areas
-      .map(a => `<tr><td style="padding:4px 12px 4px 0">${a.nombre}</td><td style="padding:4px 0"><b>${a.pct}%</b> — ${a.zona}</td></tr>`)
+    const areaRows = (Object.entries(scores) as [string, number][])
+      .map(([nombre, pct]) => {
+        const { zona } = zonaColor(pct)
+        return `<tr><td style="padding:4px 12px 4px 0;text-transform:capitalize">${nombre}</td><td style="padding:4px 0"><b>${pct}%</b> — ${zona}</td></tr>`
+      })
       .join('')
 
     const lidHtml = d.lid
