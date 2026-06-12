@@ -127,12 +127,12 @@ export default function ResultadoPage() {
                       lg:h-[calc(100vh-80px)] lg:overflow-hidden
                       lg:px-10 lg:mt-10">
 
-        {/* Columna izquierda — col-span-3 */}
-        <div className="lg:col-span-3 flex flex-col h-full">
+        {/* Columna izquierda — col-span-2 */}
+        <div className="lg:col-span-2 flex flex-col h-full">
 
           {/* Verdad central */}
           <div className="bg-mc-azul-marino text-white px-6 py-6 rounded-lg mb-4">
-            <p className="text-xl font-bold leading-snug">
+            <p className="text-lg font-bold leading-snug">
               {p.verdad}
             </p>
           </div>
@@ -159,14 +159,14 @@ export default function ResultadoPage() {
           </div>
         </div>
 
-        {/* Columna derecha — col-span-2 */}
-        <div className="lg:col-span-2 flex flex-col items-center justify-center h-full gap-2">
+        {/* Columna derecha — col-span-3 */}
+        <div className="lg:col-span-3 flex flex-col items-center justify-center h-full gap-10">
 
           {/* Gauge global */}
-          <GaugeGlobal value={globalPct} size="sm" />
+          <GaugeGlobal value={globalPct} size="sm" className="flex flex-col items-center" />
 
-          {/* 5 Gauges de área: una fila de 5 */}
-          <div className="grid grid-cols-5 gap-3 w-full mt-8">
+          {/* 5 gauges de área en una fila */}
+          <div className="grid grid-cols-5 gap-2 w-full">
             {areas.map((area, i) => (
               <div key={area.nombre} className="flex flex-col items-center text-center">
                 <GaugeArea value={area.porcentaje} delayMs={i * 400} compact />

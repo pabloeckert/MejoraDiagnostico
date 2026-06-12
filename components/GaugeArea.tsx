@@ -52,8 +52,9 @@ export default function GaugeArea({ value, delayMs = 0, compact = false }: Props
     <svg
       ref={svgRef}
       viewBox={compact ? '0 0 100 68' : '0 0 100 65'}
-      width={compact ? 100 : 90}
-      height={compact ? 68 : 58}
+      width={compact ? undefined : 90}
+      height={compact ? undefined : 58}
+      style={compact ? { width: '100%', height: 'auto' } : undefined}
     >
       {/* Track gris */}
       <path
