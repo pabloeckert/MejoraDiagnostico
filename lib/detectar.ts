@@ -28,6 +28,8 @@ export function detectarPerfil(r: number[]): PerfilKey {
 
   // 7. LIDER SOLA: liderazgo presente + delega poco + estructura mínima
   if (r[0] >= 2 && r[4] <= 2 && total >= 16) return 'LIDER_SOLA'
+  // puntaje muy alto (≥28): no es "sola", es alguien que ya construyó y quiere escalar
+  if (total >= 28) return 'ORDEN_PARA_CRECER'
   if (r[0] >= 3 && total >= 20) return 'LIDER_SOLA'
 
   // 8. EMPRENDEDOR SATURADO: alta dependencia del dueño + puntaje bajo-medio
