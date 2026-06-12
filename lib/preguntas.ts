@@ -1,53 +1,72 @@
+export type Area = "personal" | "organizacional" | "comercial" | "empresarial"
 export type Opcion = { texto: string; valor: number }
-export type Pregunta = { texto: string; area: number; contexto: string; opciones: Opcion[] }
+export type Pregunta = {
+  texto: string
+  contexto: string
+  areaDominante: Area
+  areaSecundaria: Area
+  opciones: Opcion[]
+}
 
 export const PREGUNTAS: Pregunta[] = [
-  { texto: "Si no estás, ¿qué para?", area: 0, contexto: "Pensá en la última vez que te fuiste de vacaciones.", opciones: [
+  { texto: "Si no estás, ¿qué para?", contexto: "Pensá en la última vez que te fuiste de vacaciones.", areaDominante: "organizacional", areaSecundaria: "personal", opciones: [
     { texto: "Todo se para", valor: 1 },
     { texto: "Se complica bastante", valor: 2 },
     { texto: "Hay algunos roces, pero sigue", valor: 3 },
     { texto: "Funciona igual que si estoy", valor: 4 }
   ]},
-  { texto: "El mes que viene, ¿de dónde viene el próximo cliente?", area: 1, contexto: "Sé honesto. No lo que querés que pase.", opciones: [
-    { texto: "Esperándolos", valor: 1 },
-    { texto: "Solo por recomendación", valor: 2 },
-    { texto: "Sin sistema claro", valor: 3 },
-    { texto: "De forma enteramente predecible", valor: 4 }
+  { texto: "De tu facturación de este mes, ¿cuánto depende de 1 o 2 clientes grandes?", contexto: "Si esos dos te dejaran de comprar mañana, ¿qué pasa con la empresa?", areaDominante: "comercial", areaSecundaria: "empresarial", opciones: [
+    { texto: "Casi todo. Si se van, estamos en problemas serios", valor: 1 },
+    { texto: "Una parte grande, me preocupa", valor: 2 },
+    { texto: "Algo, pero tengo otros clientes para sostenerme", valor: 3 },
+    { texto: "Poco, la cartera está bien repartida", valor: 4 }
   ]},
-  { texto: "Cuando el cliente dice 'está caro', ¿qué pasa?", area: 1, contexto: "Lo primero que hacés, no lo que deberías hacer.", opciones: [
-    { texto: "Bajo el precio, \"al toque\"", valor: 1 },
-    { texto: "Pierdo la venta", valor: 2 },
-    { texto: "Lo intento convencer, a veces funciona", valor: 3 },
-    { texto: "Manejo bien la objeción", valor: 4 }
+  { texto: "Cuando un cliente importante pide condiciones que no te convienen, ¿qué pasa?", contexto: "La negociación real, no la que contás después.", areaDominante: "comercial", areaSecundaria: "personal", opciones: [
+    { texto: "Cedo, no quiero perderlo", valor: 1 },
+    { texto: "Cedo casi siempre, después me arrepiento", valor: 2 },
+    { texto: "Negocio, a veces gano, a veces no", valor: 3 },
+    { texto: "Tengo criterio claro y lo sostengo", valor: 4 }
   ]},
-  { texto: "¿Tu equipo tira para el mismo lado?", area: 0, contexto: "No el que querés tener. El que tenés hoy.", opciones: [
+  { texto: "¿Tu equipo tira para el mismo lado?", contexto: "No el que querés tener. El que tenés hoy.", areaDominante: "organizacional", areaSecundaria: "personal", opciones: [
     { texto: "Cada uno interpreta a su manera", valor: 1 },
     { texto: "Con roces silenciosos", valor: 2 },
     { texto: "Más o menos", valor: 3 },
     { texto: "Sí, hay alineación real", valor: 4 }
   ]},
-  { texto: "¿Cuántas veces resolvés el mismo problema?", area: 2, contexto: "Contá las últimas dos semanas.", opciones: [
+  { texto: "¿Cuántas veces resolvés el mismo problema?", contexto: "Contá las últimas dos semanas.", areaDominante: "empresarial", areaSecundaria: "organizacional", opciones: [
     { texto: "Siempre los mismos, hay que explicar y volver a explicar", valor: 1 },
     { texto: "Con frecuencia, tranquilo", valor: 2 },
     { texto: "A veces, aprendemos lento", valor: 3 },
     { texto: "Raramente se repiten", valor: 4 }
   ]},
-  { texto: "La verdad sobre los asesores que tenés...", area: 3, contexto: "Lo que pensás pero no decís en voz alta.", opciones: [
-    { texto: "La verdad, creo que me venden humo", valor: 1 },
-    { texto: "Tengo mis dudas", valor: 2 },
-    { texto: "Cumplen, solo eso, pero me falta más", valor: 3 },
-    { texto: "Confío 100% en ellos. Estoy seguro", valor: 4 }
+  { texto: "¿Quién maneja la relación comercial con tus clientes principales?", contexto: "No quién debería. Quién realmente atiende esa llamada.", areaDominante: "comercial", areaSecundaria: "empresarial", opciones: [
+    { texto: "Yo, siempre yo", valor: 1 },
+    { texto: "Yo, pero ya no debería ser así", valor: 2 },
+    { texto: "Alguien del equipo, pero recurre a mí seguido", valor: 3 },
+    { texto: "Mi equipo, yo casi no intervengo", valor: 4 }
   ]},
-  { texto: "¿Ves tu negocio en 3 años?", area: 4, contexto: "No la respuesta correcta. La real.", opciones: [
+  { texto: "¿Ves tu negocio en 3 años?", contexto: "No la respuesta correcta. La real.", areaDominante: "empresarial", areaSecundaria: "personal", opciones: [
     { texto: "Voy viendo sobre la marcha", valor: 1 },
     { texto: "Tengo alguna idea vaga", valor: 2 },
     { texto: "La tengo clara, pero sin ejecutar ni bajarla", valor: 3 },
     { texto: "Tengo un plan concreto, bajado y funcionando", valor: 4 }
   ]},
-  { texto: "¿Cómo definirías tu momento hoy?", area: 2, contexto: "Una sola palabra bastaría.", opciones: [
-    { texto: "Caos total", valor: 1 },
-    { texto: "Creciendo, pero sin estructura", valor: 2 },
-    { texto: "Estable, pero quiero más", valor: 3 },
-    { texto: "Ordenado y avanzando", valor: 4 }
+  { texto: "Si subieras tus precios un 20% mañana, ¿qué pasa?", contexto: "La respuesta real, no la que te gustaría dar.", areaDominante: "comercial", areaSecundaria: "empresarial", opciones: [
+    { texto: "Pierdo la mitad de mis clientes", valor: 1 },
+    { texto: "Pierdo algunos, me asusta probarlo", valor: 2 },
+    { texto: "Algunos se van, pero se compensa", valor: 3 },
+    { texto: "Nadie se mueve, ya lo hice antes", valor: 4 }
   ]}
 ]
+
+export type RespuestaPosicion = "fundador" | "heredero" | "gerente"
+
+export const PREGUNTA_POSICION = {
+  texto: "¿Quién fundó esta empresa?",
+  contexto: "La respuesta más simple.",
+  opciones: [
+    { texto: "Yo la fundé", valor: "fundador" as RespuestaPosicion },
+    { texto: "La heredé de mi familia (1°, 2° o 3° generación)", valor: "heredero" as RespuestaPosicion },
+    { texto: "Soy gerente/socio, no la fundé ni la heredé", valor: "gerente" as RespuestaPosicion }
+  ]
+}

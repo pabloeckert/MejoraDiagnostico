@@ -1,6 +1,8 @@
 'use client'
 import { useCallback } from 'react'
 import type { PerfilKey } from '@/lib/perfiles'
+import type { Scores } from '@/lib/scoring'
+import type { RespuestaPosicion } from '@/lib/preguntas'
 
 export type DatosContacto = {
   nombre: string
@@ -12,6 +14,8 @@ export type DiagnosticoSession = {
   respuestas: number[]
   perfil: PerfilKey
   datos: DatosContacto
+  scores?: Scores
+  posicion?: RespuestaPosicion
 }
 
 const KEY = 'mc_diagnostico'
@@ -27,6 +31,18 @@ export function guardarPerfil(perfil: PerfilKey) {
   if (typeof window === 'undefined') return
   const prev = cargarSession()
   sessionStorage.setItem(KEY, JSON.stringify({ ...prev, perfil }))
+}
+
+export function guardarScores(scores: Scores) {
+  if (typeof window === 'undefined') return
+  const prev = cargarSession()
+  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, scores }))
+}
+
+export function guardarPosicion(posicion: RespuestaPosicion) {
+  if (typeof window === 'undefined') return
+  const prev = cargarSession()
+  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, posicion }))
 }
 
 export function guardarDatos(datos: DatosContacto) {

@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { PREGUNTAS } from '@/lib/preguntas'
-import { detectarPerfil } from '@/lib/detectar'
-import { guardarRespuestas, guardarPerfil } from '@/hooks/useDiagnostico'
+import { PREGUNTAS, PREGUNTA_POSICION, type RespuestaPosicion } from '@/lib/preguntas'
+import { calcularScores, requierePosicion, detectarPerfil, type Scores } from '@/lib/scoring'
+import { guardarRespuestas, guardarPerfil, guardarScores, guardarPosicion } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
 import QuestionCard from '@/components/QuestionCard'
 import DesktopLayout from '@/components/DesktopLayout'
@@ -11,7 +11,7 @@ import LeftPanel from '@/components/LeftPanel'
 
 export default function DiagnosticoPage() {
   const router = useRouter()
-  const [paso, setPaso] = useState<'nombre' | 'preguntas'>('nombre')
+  const [paso, setPaso] = useState<'nombre' | 'preguntas' | 'posicion'>('nombre')
   const [nombre, setNombre] = useState('')
   const [errorNombre, setErrorNombre] = useState(false)
   const [shakeNombre, setShakeNombre] = useState(false)
@@ -20,6 +20,8 @@ export default function DiagnosticoPage() {
   const [seleccionada, setSeleccionada] = useState<number | null>(null)
   const [transition, setTransition] = useState<'idle' | 'out' | 'in'>('idle')
   const [btnPulse, setBtnPulse] = useState(false)
+  const [scores, setScores] = useState<Scores | null>(null)
+  const [posicionSeleccionada, setPosicionSeleccionada] = useState<RespuestaPosicion | null>(null)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -73,6 +75,21 @@ export default function DiagnosticoPage() {
     setSeleccionada(valor)
   }
 
+  function finalizarConPerfil(nuevas: number[], s: Scores, pos?: RespuestaPosicion) {
+    const perfil = detectarPerfil(s, pos)
+    guardarPerfil(perfil)
+    guardarScores(s)
+    if (pos) guardarPosicion(pos)
+    trackFunnel('preguntas_completadas', { respuestas: nuevas })
+    const lid = typeof window !== 'undefined' ? sessionStorage.getItem('mc_lid') ?? undefined : undefined
+    fetch('/api/save-completion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ respuestas: nuevas, ...(lid && { lid }) }),
+    }).catch(() => {})
+    router.replace('/datos')
+  }
+
   function handleSiguiente() {
     if (seleccionada === null) return
     const nuevas = [...respuestas]
@@ -94,29 +111,43 @@ export default function DiagnosticoPage() {
         navigator.vibrate([10, 50, 10, 50, 20])
       }
       guardarRespuestas(nuevas)
-      const perfil = detectarPerfil(nuevas)
-      guardarPerfil(perfil)
-      trackFunnel('preguntas_completadas', { respuestas: nuevas })
+      const s = calcularScores(nuevas)
 
-      const lid = typeof window !== 'undefined' ? sessionStorage.getItem('mc_lid') ?? undefined : undefined
-      fetch('/api/save-completion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ respuestas: nuevas, ...(lid && { lid }) }),
-      }).catch(() => {})
-
-      router.replace('/datos')
+      if (requierePosicion(s)) {
+        setRespuestas(nuevas)
+        setScores(s)
+        setTransition('out')
+        setTimeout(() => {
+          setPaso('posicion')
+          setTransition('in')
+          setTimeout(() => setTransition('idle'), 220)
+        }, 180)
+      } else {
+        finalizarConPerfil(nuevas, s)
+      }
     }
   }
+
+  function handleFinalizarDiagnostico() {
+    if (!scores || posicionSeleccionada === null) return
+    if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
+      navigator.vibrate([10, 50, 10, 50, 20])
+    }
+    finalizarConPerfil(respuestas, scores, posicionSeleccionada)
+  }
+
+  const mobileHeader = (
+    <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
+    </div>
+  )
 
   if (paso === 'nombre') {
     return (
       <DesktopLayout leftContent={<LeftPanel step="nombre" />}>
         <div className="min-h-[100dvh] flex flex-col">
-          <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
-          </div>
+          {mobileHeader}
 
           <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
             <p className="text-xs font-bold tracking-widest uppercase text-mc-azul mb-3">
@@ -165,6 +196,83 @@ export default function DiagnosticoPage() {
     )
   }
 
+  if (paso === 'posicion') {
+    return (
+      <DesktopLayout leftContent={
+        <LeftPanel step="preguntas" preguntaIndex={PREGUNTAS.length} />
+      }>
+        <div className="min-h-[100dvh] flex flex-col">
+          {mobileHeader}
+
+          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
+            <div className={
+              transition === 'out' ? 'animate-slide-out-left' :
+              transition === 'in'  ? 'animate-slide-in-right' : ''
+            }>
+              <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-2">
+                {PREGUNTA_POSICION.texto}
+              </h2>
+              <p className="text-xs text-gray-300 mt-1 mb-6">{PREGUNTA_POSICION.contexto}</p>
+              <div className="flex flex-col gap-3" role="radiogroup">
+                {PREGUNTA_POSICION.opciones.map((op) => {
+                  const sel = posicionSeleccionada === op.valor
+                  return (
+                    <button
+                      key={op.valor}
+                      role="radio"
+                      aria-checked={sel}
+                      onClick={() => setPosicionSeleccionada(op.valor)}
+                      className={`w-full text-left px-5 py-4 min-h-[56px] text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 active:scale-[0.98] active:bg-blue-50 ${
+                        sel
+                          ? 'bg-mc-azul border-mc-azul text-white font-semibold'
+                          : 'bg-white border-gray-200 text-mc-negro cursor-pointer'
+                      }`}
+                    >
+                      {op.texto}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Botón fijo al fondo — mobile */}
+          <div
+            className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-100 px-4 pt-3 lg:hidden"
+            style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
+          >
+            <button
+              onClick={handleFinalizarDiagnostico}
+              disabled={posicionSeleccionada === null}
+              className={`w-full min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+                posicionSeleccionada === null
+                  ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
+                  : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
+              }`}
+            >
+              VER MI DIAGNÓSTICO →
+            </button>
+          </div>
+
+          {/* Botón desktop — inline */}
+          <div className="hidden lg:block max-w-2xl mx-auto w-full px-16 pb-12">
+            <button
+              onClick={handleFinalizarDiagnostico}
+              disabled={posicionSeleccionada === null}
+              className={`lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+                posicionSeleccionada === null
+                  ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
+                  : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
+              }`}
+            >
+              VER MI DIAGNÓSTICO →
+            </button>
+          </div>
+        </div>
+      </DesktopLayout>
+    )
+  }
+
   return (
     <DesktopLayout leftContent={
       <LeftPanel
@@ -173,10 +281,7 @@ export default function DiagnosticoPage() {
       />
     }>
       <div className="min-h-[100dvh] flex flex-col">
-        <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
-        </div>
+        {mobileHeader}
 
         <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
           <div className="overflow-x-hidden">
