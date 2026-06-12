@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
 import { PERFILES } from '@/lib/perfiles'
-import { calcularAreas, zonaColor } from '@/lib/areas'
+import { areasParaMostrar, zonaColor } from '@/lib/areas'
+import { calcularScores } from '@/lib/scoring'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
@@ -19,8 +20,7 @@ const Schema = z.object({
 })
 
 function buildAreas(respuestas: number[]) {
-  const calculated = calcularAreas(respuestas)
-  return calculated.map(a => {
+  return areasParaMostrar(calcularScores(respuestas)).map(a => {
     const z = zonaColor(a.porcentaje)
     return { nombre: a.nombre, pct: a.porcentaje, zona: z.zona }
   })

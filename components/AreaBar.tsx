@@ -10,12 +10,16 @@ interface Props {
 
 export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   const [width, setWidth] = useState(0)
+  const [barColor, setBarColor] = useState('#C0392B')
   const { color, zona } = zonaColor(porcentaje)
 
   useEffect(() => {
-    const t = setTimeout(() => setWidth(porcentaje), delay)
+    const t = setTimeout(() => {
+      setWidth(porcentaje)
+      setBarColor(color)
+    }, delay)
     return () => clearTimeout(t)
-  }, [porcentaje, delay])
+  }, [porcentaje, delay, color])
 
   return (
     <div className="mb-4 rounded-xl p-4" style={{ backgroundColor: color + '14' }}>
@@ -33,8 +37,8 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
           className="h-full rounded-full"
           style={{
             width: `${width}%`,
-            backgroundColor: color,
-            transition: 'width 800ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            backgroundColor: barColor,
+            transition: 'width 1800ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 1800ms ease-out',
             transitionDelay: `${delay}ms`,
           }}
         />

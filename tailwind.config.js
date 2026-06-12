@@ -61,8 +61,8 @@ module.exports = {
       },
       animation: {
         'option-select':  'option-select 200ms ease-out',
-        'slide-in-right': 'slide-in-right 220ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        'slide-out-left': 'slide-out-left 180ms cubic-bezier(0.55, 0, 1, 0.45)',
+        'slide-in-right': 'slide-in-right 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        'slide-out-left': 'slide-out-left 380ms cubic-bezier(0.55, 0, 1, 0.45)',
         'btn-activate':   'btn-activate 400ms ease-out',
         'shake':          'shake 400ms ease-in-out',
       },
