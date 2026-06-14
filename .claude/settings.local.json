@@ -52,7 +52,13 @@
       "Bash(echo \"EXIT: $?\")",
       "Bash(del C:/Github/MejoraDiagnostico/lib/__detectar_test.mjs)",
       "Bash(where npx *)",
-      "Bash(dir C:GithubMejoraDiagnosticoBranding *)"
+      "Bash(dir C:GithubMejoraDiagnosticoBranding *)",
+      "Bash(git checkout *)",
+      "Bash(gh run *)",
+      "Skill(run)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(gh api *)"
     ]
   }
 }
