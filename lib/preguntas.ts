@@ -43,7 +43,7 @@ export const PREGUNTAS: Pregunta[] = [
     { texto: "Yo, siempre yo", valor: 1 },
     { texto: "Yo, pero ya no debería ser así", valor: 2 },
     { texto: "Alguien del equipo, pero recurre a mí seguido", valor: 3 },
-    { texto: "Mi equipo, yo casi no intervengo", valor: 4 }
+    { texto: "Mi equipo, yo ya no intervengo", valor: 4 }
   ]},
   { texto: "¿Ves tu negocio en 3 años?", contexto: "No la respuesta correcta. La real.", areaDominante: "empresarial", areaSecundaria: "personal", opciones: [
     { texto: "Voy viendo sobre la marcha", valor: 1 },
@@ -53,9 +53,9 @@ export const PREGUNTAS: Pregunta[] = [
   ]},
   { texto: "Si subieras tus precios un 20% mañana, ¿qué pasa?", contexto: "La respuesta real, no la que te gustaría dar.", areaDominante: "comercial", areaSecundaria: "empresarial", opciones: [
     { texto: "Pierdo la mitad de mis clientes", valor: 1 },
-    { texto: "Pierdo algunos, me asusta probarlo", valor: 2 },
-    { texto: "Algunos se van, pero se compensa", valor: 3 },
-    { texto: "Nadie se mueve, ya lo hice antes", valor: 4 }
+    { texto: "Pierdo algunos clientes, me asusta probarlo", valor: 2 },
+    { texto: "Algunos clientes se van, pero se compensa", valor: 3 },
+    { texto: "Ningún cliente se mueve, ya lo hice antes", valor: 4 }
   ]}
 ]
 
@@ -66,7 +66,7 @@ export const PREGUNTA_POSICION = {
   contexto: "La respuesta más simple.",
   opciones: [
     { texto: "Yo la fundé", valor: "fundador" as RespuestaPosicion },
-    { texto: "La heredé de mi familia (1°, 2° o 3° generación)", valor: "heredero" as RespuestaPosicion },
+    { texto: "La heredé de mi familia (2°, 3° generación o más)", valor: "heredero" as RespuestaPosicion },
     { texto: "Soy gerente/socio, no la fundé ni la heredé", valor: "gerente" as RespuestaPosicion }
   ]
 }

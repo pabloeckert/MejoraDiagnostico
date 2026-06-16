@@ -13,7 +13,7 @@ export default function Home() {
         <img src="/logo-color.png" alt="Mejora Continua" className="h-12 sm:h-14 mb-8 lg:hidden object-contain" loading="eager" decoding="async" />
 
         <p className="text-mc-gris text-center text-lg mb-6 max-w-sm">
-          Lo que tu negocio no te está diciendo.
+          Descubrí dónde está tu negocio hoy.
         </p>
 
         <span className="text-xs font-semibold tracking-widest uppercase text-gray-400 bg-gray-100 px-4 py-1.5 rounded-full mb-10">

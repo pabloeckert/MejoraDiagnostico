@@ -79,6 +79,10 @@ export default function ResultadoPage() {
       {/* === MOBILE LAYOUT === */}
       <div className="max-w-2xl mx-auto px-6 py-8 sm:py-12 lg:hidden">
 
+        <p className="text-xs font-bold tracking-widest uppercase text-mc-azul mb-3">
+          {p.tag}
+        </p>
+
         {/* 1. Verdad central */}
         <div className="bg-mc-azul-marino text-white px-8 py-12 -mx-6 sm:-mx-16 mb-10">
           <p className="text-2xl sm:text-3xl font-bold leading-snug max-w-xl">

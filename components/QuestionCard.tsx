@@ -48,7 +48,7 @@ export default function QuestionCard({ texto, numero, contexto, opciones, selecc
         {texto}
       </h2>
       {contexto && (
-        <p className="text-xs text-gray-300 mt-1 mb-6">{contexto}</p>
+        <p className="text-sm text-gray-500 mt-1 mb-6">{contexto}</p>
       )}
       <div className="flex flex-col gap-3" role="radiogroup">
         {shuffled.map((op) => {
