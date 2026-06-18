@@ -10,7 +10,18 @@ npm run build    # Build de producción
 npm run lint     # ESLint
 ```
 
-No hay suite de tests configurada. El README.md está desactualizado — no lo uses como fuente de verdad.
+No hay suite de tests configurada (unit/integration). El README.md está desactualizado — no lo uses como fuente de verdad.
+
+### Scripts de verificación (`scripts/`)
+
+No son parte de `npm run`, se ejecutan manualmente con `node` (requieren `npm run dev` corriendo en `localhost:3000`):
+
+- `node scripts/verify_e2e.mjs` — recorre el flujo completo con Playwright para varios escenarios de respuestas y compara el perfil resultante contra el esperado.
+- `node scripts/verify_8perfiles.mjs` — variante que cubre los 8 perfiles, generando capturas en `scripts/screenshots/`.
+- `npx tsx scripts/validar-perfiles.ts` (o equivalente) — recorre combinatoriamente las respuestas posibles y valida la distribución de perfiles contra `lib/scoring.ts` sin levantar el navegador.
+- `scripts/crear-sheet-funnel.ts`, `scripts/formatear-sheet-funnel.ts`, `scripts/leer-ultima-fila.ts` — utilidades puntuales para inicializar/inspeccionar la hoja de Google Sheets del funnel.
+
+`scripts/screenshots/` y `scripts/verify-prod.mjs` están en `.gitignore` (artefactos/regenerables, no commitear).
 
 ## Stack
 
@@ -54,6 +65,8 @@ El estado se maneja y persiste a través de `sessionStorage` desde `hooks/useDia
   - `detectarPerfil(scores, posicion?)` → `PerfilKey` — determina el perfil final con reglas de prioridad sobre los scores y la posición.
   - `areasMasDebiles(scores)` → `[Area, Area]` — las dos áreas con menor puntaje.
   - Tipos exportados: `Area` (`"personal" | "organizacional" | "comercial" | "empresarial"`), `Scores`, `PerfilKey`.
+
+- **`lib/detectar.ts`**: shim de compatibilidad que re-exporta `detectarPerfil` y `PerfilKey` desde `lib/scoring.ts`/`lib/perfiles.ts`. No agregar lógica nueva ahí — el sistema vigente es `lib/scoring.ts`.
 
 - **`lib/areas.ts`**: presentación de las 4 áreas.
   - `areasParaMostrar(scores)` → array de `{ nombre, porcentaje }` para renderizar.
