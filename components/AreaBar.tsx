@@ -24,9 +24,9 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   return (
     <div className="mb-4 rounded-xl p-4" style={{ backgroundColor: color + '14' }}>
       <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-bold text-mc-negro">{nombre}</span>
+        <span className="text-base font-bold text-mc-negro">{nombre}</span>
         <span
-          className="text-xs font-bold px-3 py-1 rounded-full text-white"
+          className="text-sm font-bold px-3 py-1 rounded-full text-white"
           style={{ backgroundColor: color }}
         >
           {zona}

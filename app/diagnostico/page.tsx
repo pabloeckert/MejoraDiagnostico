@@ -22,6 +22,7 @@ export default function DiagnosticoPage() {
   const [btnPulse, setBtnPulse] = useState(false)
   const [scores, setScores] = useState<Scores | null>(null)
   const [posicionSeleccionada, setPosicionSeleccionada] = useState<RespuestaPosicion | null>(null)
+  const [posicionAnim, setPosicionAnim] = useState<RespuestaPosicion | null>(null)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -146,11 +147,11 @@ export default function DiagnosticoPage() {
   if (paso === 'nombre') {
     return (
       <DesktopLayout leftContent={<LeftPanel step="nombre" />}>
-        <div className="min-h-[100dvh] flex flex-col">
+        <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
           <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
-            <p className="text-xs font-bold tracking-widest uppercase text-mc-azul mb-3">
+            <p className="text-sm font-bold tracking-widest uppercase text-mc-azul mb-3">
               Antes de empezar
             </p>
             <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro">
@@ -176,13 +177,13 @@ export default function DiagnosticoPage() {
               {errorNombre && (
                 <p className="text-red-500 text-sm mt-2">Ingresá tu nombre para continuar</p>
               )}
-              <p className="text-xs text-gray-400 mt-2">Solo tu nombre. Nada más.</p>
+              <p className="text-sm text-gray-500 mt-2">Solo tu nombre. Nada más.</p>
             </div>
 
             <button
               onClick={handleConfirmarNombre}
               disabled={!nombre.trim()}
-              className={`w-full lg:w-auto lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              className={`w-full lg:w-auto lg:px-12 min-h-[56px] py-4 text-base font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
                 !nombre.trim()
                   ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
                   : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
@@ -201,32 +202,37 @@ export default function DiagnosticoPage() {
       <DesktopLayout leftContent={
         <LeftPanel step="preguntas" preguntaIndex={PREGUNTAS.length} />
       }>
-        <div className="min-h-[100dvh] flex flex-col">
+        <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
+          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
             }>
-              <h2 className="text-2xl sm:text-3xl font-bold text-mc-negro leading-tight mb-2">
+              <h2 className="text-3xl sm:text-4xl font-bold text-mc-negro leading-tight mb-2">
                 {PREGUNTA_POSICION.texto}
               </h2>
-              <p className="text-xs text-gray-300 mt-1 mb-6">{PREGUNTA_POSICION.contexto}</p>
+              <p className="text-sm text-gray-500 mt-1 mb-6">{PREGUNTA_POSICION.contexto}</p>
               <div className="flex flex-col gap-3" role="radiogroup">
-                {PREGUNTA_POSICION.opciones.map((op) => {
+                {PREGUNTA_POSICION.opciones.map((op, i) => {
                   const sel = posicionSeleccionada === op.valor
+                  const delayClass = i === 0 ? 'delay-0' : i === 1 ? 'delay-75' : 'delay-150'
                   return (
                     <button
                       key={op.valor}
                       role="radio"
                       aria-checked={sel}
-                      onClick={() => setPosicionSeleccionada(op.valor)}
-                      className={`w-full text-left px-5 py-4 min-h-[56px] text-base sm:text-lg rounded-md border-[1.5px] transition-all duration-150 active:scale-[0.98] active:bg-blue-50 ${
+                      onClick={() => {
+                        setPosicionSeleccionada(op.valor)
+                        setPosicionAnim(op.valor)
+                        setTimeout(() => setPosicionAnim(null), 250)
+                      }}
+                      className={`w-full text-left px-5 py-5 min-h-[64px] text-lg sm:text-xl font-medium rounded-md border-[1.5px] transition-all duration-150 active:scale-[0.98] active:bg-blue-50 animate-fade-up ${delayClass} ${
                         sel
                           ? 'bg-mc-azul border-mc-azul text-white font-semibold'
                           : 'bg-white border-gray-200 text-mc-negro cursor-pointer'
-                      }`}
+                      } ${posicionAnim === op.valor ? 'animate-option-pop' : ''}`}
                     >
                       {op.texto}
                     </button>
@@ -244,7 +250,7 @@ export default function DiagnosticoPage() {
             <button
               onClick={handleFinalizarDiagnostico}
               disabled={posicionSeleccionada === null}
-              className={`w-full min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              className={`w-full min-h-[56px] py-4 text-base font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
                 posicionSeleccionada === null
                   ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
                   : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
@@ -259,7 +265,7 @@ export default function DiagnosticoPage() {
             <button
               onClick={handleFinalizarDiagnostico}
               disabled={posicionSeleccionada === null}
-              className={`lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              className={`lg:px-12 min-h-[56px] py-4 text-base font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
                 posicionSeleccionada === null
                   ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
                   : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
@@ -280,18 +286,28 @@ export default function DiagnosticoPage() {
         preguntaIndex={step}
       />
     }>
-      <div className="min-h-[100dvh] flex flex-col">
+      <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
         {mobileHeader}
 
-        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-28 lg:pb-12">
+        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
           <div className="overflow-x-hidden">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
             }>
+              <div className="w-full h-1 bg-gray-100 rounded-full mb-6 overflow-hidden">
+                <div
+                  className="h-full bg-mc-azul rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${Math.round((step / PREGUNTAS.length) * 100)}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-400 mb-2">
+                Pregunta {step + 1} de {PREGUNTAS.length}
+              </p>
               <QuestionCard
                 texto={pregunta!.texto}
                 numero={step + 1}
+                preguntaIndex={step}
                 contexto={pregunta!.contexto}
                 opciones={pregunta!.opciones}
                 seleccionada={seleccionada}
@@ -309,7 +325,7 @@ export default function DiagnosticoPage() {
           <button
             onClick={handleSiguiente}
             disabled={seleccionada === null}
-            className={`w-full min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+            className={`w-full min-h-[56px] py-4 text-base font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
               btnPulse ? 'animate-btn-activate' : ''
             } ${
               seleccionada === null
@@ -326,7 +342,7 @@ export default function DiagnosticoPage() {
           <button
             onClick={handleSiguiente}
             disabled={seleccionada === null}
-            className={`lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+            className={`lg:px-12 min-h-[56px] py-4 text-base font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
               btnPulse ? 'animate-btn-activate' : ''
             } ${
               seleccionada === null

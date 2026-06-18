@@ -79,26 +79,26 @@ export default function ResultadoPage() {
       {/* === MOBILE LAYOUT === */}
       <div className="max-w-2xl mx-auto px-6 py-8 sm:py-12 lg:hidden">
 
-        <p className="text-xs font-bold tracking-widest uppercase text-mc-azul mb-3">
+        <p className="text-sm font-bold tracking-widest uppercase text-mc-azul mb-4">
           {p.tag}
         </p>
 
         {/* 1. Verdad central */}
         <div className="bg-mc-azul-marino text-white px-8 py-12 -mx-6 sm:-mx-16 mb-10">
-          <p className="text-2xl sm:text-3xl font-bold leading-snug max-w-xl">
+          <p className="text-3xl sm:text-4xl font-bold leading-snug max-w-xl">
             {p.verdad}
           </p>
         </div>
 
         {/* 2. Descripción */}
-        <p className="text-mc-gris text-lg leading-relaxed mb-10 max-w-lg">
+        <p className="text-mc-gris text-xl leading-relaxed mb-10 max-w-lg">
           {p.desc}
         </p>
 
         {/* 3. Puntaje global */}
         <div className="flex items-baseline gap-3 mb-6">
           <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
-          <span className="text-xs text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
+          <span className="text-sm text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
         </div>
 
         {/* 4. Barras de área */}
@@ -110,10 +110,10 @@ export default function ResultadoPage() {
 
         {/* 5. Cierre */}
         <div className="mt-12 mb-6 max-w-lg">
-          <h2 className="text-2xl font-bold text-mc-negro mb-3 uppercase">
+          <h2 className="text-3xl font-bold text-mc-negro mb-3 uppercase">
             {p.cierreTitulo}
           </h2>
-          <p className="text-mc-gris leading-relaxed mb-8">
+          <p className="text-lg text-mc-gris leading-relaxed mb-8">
             {p.cierreTxt}
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function ResultadoPage() {
         {/* 6. CTA */}
         <button
           onClick={handleCTA}
-          className="w-full bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-5 text-sm tracking-widest uppercase transition-colors duration-200 rounded-sm"
+          className="w-full min-h-[64px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-6 text-base tracking-widest uppercase transition-colors duration-200 rounded-sm"
         >
           {p.cta}
         </button>
