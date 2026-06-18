@@ -1,0 +1,18 @@
+{
+  "projectId": "d2dcf03f-f8d0-4fd9-901d-8e03f270b9e9",
+  "shape": "package",
+  "pkg": "mejora-diagnostico",
+  "globalName": "MejoraDiagnostico",
+  "srcDir": "components",
+  "tsconfig": "./tsconfig.json",
+  "buildCmd": "npx tailwindcss -i app/globals.css -o .design-sync/.cache/tailwind-build.css --config tailwind.config.js",
+  "cssEntry": ".design-sync/.cache/tailwind-build.css",
+  "extraFonts": [".design-sync/fonts-src/league-spartan/fonts.css"],
+  "libOverrides": {
+    "source-kit.mjs": "components use export-default; export* never re-exports default, so the synth entry needs an explicit named alias per component"
+  },
+  "overrides": {
+    "DesktopLayout": { "cardMode": "single", "primaryStory": "Resultado", "viewport": "1280x800" }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
