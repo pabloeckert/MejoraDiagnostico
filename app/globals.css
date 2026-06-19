@@ -61,9 +61,9 @@ input, select, textarea {
   40%,80% { transform: translateX(6px); }
 }
 
-.animate-slide-in-right  { animation: slideInRight 0.38s cubic-bezier(0.22,1,0.36,1) both; }
-.animate-slide-out-left  { animation: slideOutLeft 0.38s cubic-bezier(0.55,0,1,0.45) both; }
-.animate-fade-up         { animation: fadeUp 0.4s ease both; }
+.animate-slide-in-right  { animation: slideInRight 0.25s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-slide-out-left  { animation: slideOutLeft 0.25s cubic-bezier(0.55,0,1,0.45) both; }
+.animate-fade-up         { animation: fadeUp 0.3s ease forwards; }
 .animate-option-pop      { animation: optionPop 0.25s ease both; }
 .animate-btn-activate    { animation: btnPulse 0.4s ease both; }
 .animate-shake           { animation: shake 0.4s ease both; }

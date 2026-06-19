@@ -105,8 +105,8 @@ export default function DiagnosticoPage() {
       setTimeout(() => {
         setStep(step + 1)
         setTransition('in')
-        setTimeout(() => setTransition('idle'), 400)
-      }, 380)
+        setTimeout(() => setTransition('idle'), 250)
+      }, 250)
     } else {
       if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
         navigator.vibrate([10, 50, 10, 50, 20])
@@ -121,8 +121,8 @@ export default function DiagnosticoPage() {
         setTimeout(() => {
           setPaso('posicion')
           setTransition('in')
-          setTimeout(() => setTransition('idle'), 400)
-        }, 380)
+          setTimeout(() => setTransition('idle'), 250)
+        }, 250)
       } else {
         finalizarConPerfil(nuevas, s)
       }
@@ -138,9 +138,9 @@ export default function DiagnosticoPage() {
   }
 
   const mobileHeader = (
-    <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
+    <div className="flex items-center justify-center py-3 border-b border-gray-100 lg:hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
+      <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
     </div>
   )
 
@@ -150,7 +150,7 @@ export default function DiagnosticoPage() {
         <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-12 sm:pt-16 lg:px-16 lg:py-20 flex flex-col gap-6">
+          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 flex flex-col gap-6">
             <p className="text-sm font-bold tracking-widest uppercase text-mc-azul mb-3">
               Antes de empezar
             </p>
@@ -205,7 +205,7 @@ export default function DiagnosticoPage() {
         <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
+          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
@@ -301,7 +301,7 @@ export default function DiagnosticoPage() {
                   style={{ width: `${Math.round((step / PREGUNTAS.length) * 100)}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-400 mb-2">
+              <p className="text-sm text-gray-600 mb-2">
                 Pregunta {step + 1} de {PREGUNTAS.length}
               </p>
               <QuestionCard

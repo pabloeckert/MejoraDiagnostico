@@ -84,21 +84,21 @@ export default function ResultadoPage() {
         </p>
 
         {/* 1. Verdad central */}
-        <div className="bg-mc-azul-marino text-white px-8 py-12 -mx-6 sm:-mx-16 mb-10">
+        <div className="bg-mc-azul-marino text-white px-6 py-8 -mx-6 sm:-mx-16 mb-10">
           <p className="text-3xl sm:text-4xl font-bold leading-snug max-w-xl">
             {p.verdad}
           </p>
         </div>
 
         {/* 2. Descripción */}
-        <p className="text-mc-gris text-xl leading-relaxed mb-10 max-w-lg">
+        <p className="text-gray-700 text-xl leading-relaxed mb-10 max-w-lg">
           {p.desc}
         </p>
 
         {/* 3. Puntaje global */}
         <div className="flex items-baseline gap-3 mb-6">
           <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
-          <span className="text-sm text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
+          <span className="text-sm text-gray-600 uppercase tracking-widest">puntaje global · {globalZona}</span>
         </div>
 
         {/* 4. Barras de área */}
@@ -113,7 +113,7 @@ export default function ResultadoPage() {
           <h2 className="text-3xl font-bold text-mc-negro mb-3 uppercase">
             {p.cierreTitulo}
           </h2>
-          <p className="text-lg text-mc-gris leading-relaxed mb-8">
+          <p className="text-lg text-gray-700 leading-relaxed mb-8">
             {p.cierreTxt}
           </p>
         </div>

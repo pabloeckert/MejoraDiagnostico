@@ -14,5 +14,15 @@
   "overrides": {
     "DesktopLayout": { "cardMode": "single", "primaryStory": "Resultado", "viewport": "1280x800" }
   },
-  "readmeHeader": ".design-sync/conventions.md"
+  "readmeHeader": ".design-sync/conventions.md",
+  "dtsPropsFor": {
+    "AreaBar": "nombre: string;\n  porcentaje: number;\n  delay: number;",
+    "ProgressBar": "current: number;\n  total: number;\n  areaNombre?: string;",
+    "GaugeArea": "value: number;\n  delayMs?: number;\n  compact?: boolean;",
+    "GaugeGlobal": "value: number;\n  onComplete?: () => void;\n  size?: 'sm' | 'lg';\n  className?: string;",
+    "LeftPanel": "step: 'inicio' | 'nombre' | 'preguntas' | 'datos' | 'resultado';\n  preguntaIndex?: number;\n  perfilTag?: string;\n  perfilRef?: string;",
+    "QuestionCard": "texto: string;\n  numero: number;\n  contexto?: string;\n  opciones: { texto: string; valor: number }[];\n  seleccionada: number | null;\n  onSelect: (valor: number) => void;",
+    "PDFButton": "perfil: 'SATURADO' | 'LIDER_QUE_NECESITA_APOYO' | 'INDEPENDIENTE_EN_CRECIMIENTO' | 'EQUIPO_DESALINEADO' | 'ESCEPTICO' | 'NUEVA_GENERACION' | 'AREA_COMERCIAL_SIN_RESULTADOS' | 'SIN_PROFESIONALIZAR_LA_EMPRESA';\n  nombre: string;\n  areas: { nombre: string; porcentaje: number }[];",
+    "DesktopLayout": "leftContent: React.ReactNode;\n  children: React.ReactNode;"
+  }
 }
