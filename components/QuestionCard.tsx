@@ -47,7 +47,7 @@ export default function QuestionCard({ texto, numero, preguntaIndex, contexto, o
         {texto}
       </h2>
       {contexto && (
-        <p className="text-base text-gray-600 mt-1 mb-6">{contexto}</p>
+        <p className="text-base text-gray-700 mt-1 mb-6">{contexto}</p>
       )}
       <div
         key={preguntaIndex}

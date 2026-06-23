@@ -138,9 +138,9 @@ export default function DiagnosticoPage() {
   }
 
   const mobileHeader = (
-    <div className="flex items-center justify-center py-3 border-b border-gray-100 lg:hidden">
+    <div className="flex items-center justify-start pl-6 py-4 border-b border-gray-100 lg:hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
+      <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
     </div>
   )
 
@@ -150,11 +150,11 @@ export default function DiagnosticoPage() {
         <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 flex flex-col gap-6">
-            <p className="text-sm font-bold tracking-widest uppercase text-mc-azul mb-3">
+          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 flex flex-col gap-6">
+            <p className="text-base lg:text-sm font-bold tracking-widest uppercase text-mc-azul mb-3">
               Antes de empezar
             </p>
-            <h1 className="text-3xl sm:text-4xl font-bold text-mc-negro">
+            <h1 className="text-4xl sm:text-5xl lg:text-4xl font-bold text-mc-negro">
               ¿Cómo te llamás?
             </h1>
 
@@ -177,7 +177,7 @@ export default function DiagnosticoPage() {
               {errorNombre && (
                 <p className="text-red-500 text-sm mt-2">Ingresá tu nombre para continuar</p>
               )}
-              <p className="text-sm text-gray-500 mt-2">Solo tu nombre. Nada más.</p>
+              <p className="text-base text-gray-700 lg:text-sm lg:text-gray-500 mt-2">Solo tu nombre. Nada más.</p>
             </div>
 
             <button
@@ -205,15 +205,15 @@ export default function DiagnosticoPage() {
         <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12">
+          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
             }>
-              <h2 className="text-3xl sm:text-4xl font-bold text-mc-negro leading-tight mb-2">
+              <h2 className="text-4xl font-bold text-mc-negro leading-tight mb-2">
                 {PREGUNTA_POSICION.texto}
               </h2>
-              <p className="text-sm text-gray-500 mt-1 mb-6">{PREGUNTA_POSICION.contexto}</p>
+              <p className="text-base text-gray-700 lg:text-sm lg:text-gray-500 mt-1 mb-6">{PREGUNTA_POSICION.contexto}</p>
               <div className="flex flex-col gap-3" role="radiogroup">
                 {PREGUNTA_POSICION.opciones.map((op, i) => {
                   const sel = posicionSeleccionada === op.valor
@@ -289,7 +289,7 @@ export default function DiagnosticoPage() {
       <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
         {mobileHeader}
 
-        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
+        <div className="max-w-2xl mx-auto w-full px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
           <div className="overflow-x-hidden">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
@@ -301,7 +301,7 @@ export default function DiagnosticoPage() {
                   style={{ width: `${Math.round((step / PREGUNTAS.length) * 100)}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-base text-gray-700 lg:text-sm lg:text-gray-600 mb-2">
                 Pregunta {step + 1} de {PREGUNTAS.length}
               </p>
               <QuestionCard

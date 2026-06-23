@@ -30,7 +30,7 @@ const PAISES = [
   { code: '+1',   emoji: '🇺🇸', nombre: 'EE.UU.' },
 ]
 
-const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-md text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan'
+const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-md text-lg lg:text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan'
 
 export default function DatosPage() {
   const router = useRouter()
@@ -121,7 +121,7 @@ export default function DatosPage() {
   return (
     <DesktopLayout leftContent={<LeftPanel step="datos" />}>
       <div className="min-h-[100dvh]">
-        <div className="flex items-center justify-center py-6 border-b border-gray-100 lg:hidden">
+        <div className="flex items-center justify-start pl-6 py-4 border-b border-gray-100 lg:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
         </div>
@@ -131,7 +131,7 @@ export default function DatosPage() {
             {nombre}.
           </h1>
           <p className="text-mc-gris text-xl mb-1">Tu diagnóstico está listo.</p>
-          <p className="text-mc-gris text-base mb-8">¿A dónde te avisamos?</p>
+          <p className="text-base text-gray-700 lg:text-mc-gris mb-8">¿A dónde te avisamos?</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
@@ -170,7 +170,7 @@ export default function DatosPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full lg:w-auto lg:px-12 min-h-[52px] py-4 text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
+              className={`w-full lg:w-auto lg:px-12 min-h-[56px] lg:min-h-[52px] py-4 text-base lg:text-sm font-bold tracking-widest uppercase rounded-sm transition-colors duration-200 ${
                 loading
                   ? 'bg-mc-gris-claro text-mc-gris cursor-not-allowed'
                   : 'bg-mc-azul hover:bg-mc-azul-marino text-white'
@@ -179,7 +179,7 @@ export default function DatosPage() {
               {loading ? 'PROCESANDO...' : 'VER MI DIAGNÓSTICO →'}
             </button>
 
-            <p className="text-xs text-gray-200 text-center mt-8">
+            <p className="text-sm text-gray-600 lg:text-xs lg:text-gray-200 text-center mt-8">
               <a href="/privacidad" className="hover:text-gray-400 transition-colors">
                 política de privacidad
               </a>
