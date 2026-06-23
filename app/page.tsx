@@ -20,42 +20,42 @@ export default function Home() {
       <div className="lg:hidden">
         {momento === 1 ? (
           <div
-            className="min-h-[100dvh] bg-mc-azul flex flex-col justify-between px-6 py-8"
+            className="min-h-[100dvh] bg-mc-azul flex flex-col justify-between px-6 py-10"
             style={{ animation: saliendo ? 'slideOutLeft 0.25s ease forwards' : 'fadeUp 0.5s ease forwards' }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-blanco.png" alt="Mejora Continua" className="h-8 object-contain" loading="eager" decoding="async" />
-
-            <p className="text-4xl font-bold text-white leading-tight max-w-xs">
-              Descubrí dónde está tu negocio hoy.
-            </p>
+            <div className="flex-1 flex items-center">
+              <p className="text-5xl font-bold text-white leading-tight">
+                Descubrí dónde está tu negocio hoy.
+              </p>
+            </div>
 
             <button
               onClick={handleSeguir}
-              className="w-full min-h-[56px] bg-white text-mc-azul-marino font-bold py-4 rounded-sm text-sm tracking-widest uppercase"
+              className="w-full min-h-[56px] bg-white text-mc-azul font-bold py-4 rounded-sm text-base tracking-widest uppercase"
             >
               SEGUIR →
             </button>
           </div>
         ) : (
           <div
-            className="min-h-[100dvh] bg-white flex flex-col justify-center px-6 py-8"
+            className="min-h-[100dvh] bg-white flex flex-col justify-between px-6 py-10"
             style={{ animation: 'slideInRight 0.35s ease forwards' }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain mx-auto mb-8" loading="eager" decoding="async" />
+            <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" loading="eager" decoding="async" />
 
-            <p className="text-2xl font-bold text-mc-negro leading-tight text-center mb-4">
-              Descubrí dónde está tu negocio hoy.
-            </p>
-
-            <span className="text-xs font-semibold tracking-widest uppercase text-gray-500 mx-auto mb-8">
-              MENOS DE 1 MINUTO
-            </span>
+            <div className="flex-1 flex flex-col justify-center gap-4">
+              <p className="text-3xl font-bold text-mc-negro leading-tight">
+                ¿Sabés realmente dónde está tu negocio?
+              </p>
+              <p className="text-base text-gray-600">
+                Un diagnóstico directo. Sin vueltas. Menos de 1 minuto.
+              </p>
+            </div>
 
             <button
               onClick={() => router.push('/diagnostico')}
-              className="w-full min-h-[56px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-4 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200"
+              className="w-full min-h-[56px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-4 rounded-sm text-base tracking-widest uppercase transition-colors duration-200"
             >
               DESCUBRIR MI PERFIL →
             </button>
