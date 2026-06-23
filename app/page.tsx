@@ -42,20 +42,20 @@ export default function Home() {
             style={{ animation: 'slideInRight 0.35s ease forwards' }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" loading="eager" decoding="async" />
+            <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" loading="eager" decoding="async" />
 
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <p className="text-3xl font-bold text-mc-negro leading-tight">
+            <div className="flex-1 flex flex-col justify-center gap-4 mt-8">
+              <p className="text-4xl font-bold text-mc-negro leading-tight">
                 ¿Sabés realmente dónde está tu negocio?
               </p>
-              <p className="text-base text-gray-600">
+              <p className="text-lg text-gray-700 mt-3">
                 Un diagnóstico directo. Sin vueltas. Menos de 1 minuto.
               </p>
             </div>
 
             <button
               onClick={() => router.push('/diagnostico')}
-              className="w-full min-h-[56px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-4 rounded-sm text-base tracking-widest uppercase transition-colors duration-200"
+              className="w-full min-h-[56px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-4 rounded-sm text-base tracking-widest uppercase transition-colors duration-200 mb-2"
             >
               DESCUBRIR MI PERFIL →
             </button>
