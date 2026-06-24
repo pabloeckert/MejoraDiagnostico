@@ -33,12 +33,14 @@ async function findRow(sheets: sheets_v4.Sheets, sessionId: string): Promise<num
   return null
 }
 
-async function updateCell(sheets: sheets_v4.Sheets, row: number, col: string, value: string) {
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: process.env.GOOGLE_SHEETS_ID,
+async function batchUpdateCells(sheets: sheets_v4.Sheets, row: number, updates: Record<string, string>) {
+  const data = Object.entries(updates).map(([col, value]) => ({
     range: `${SHEET_NAME}!${col}${row}`,
-    valueInputOption: 'RAW',
-    requestBody: { values: [[value]] },
+    values: [[value]],
+  }))
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: process.env.GOOGLE_SHEETS_ID,
+    requestBody: { valueInputOption: 'RAW', data },
   })
 }
 
@@ -86,42 +88,44 @@ export async function POST(req: NextRequest) {
     }
     if (!row) return NextResponse.json({ ok: false })
 
-    await updateCell(sheets, row, 'Q', timestamp)
+    const updates: Record<string, string> = { Q: timestamp }
 
     switch (evento) {
       case 'diagnostico_iniciado':
-        await updateCell(sheets, row, 'F', 'preguntas')
+        updates.F = 'preguntas'
         break
       case 'nombre_ingresado':
-        await updateCell(sheets, row, 'C', nombre || '')
-        await updateCell(sheets, row, 'F', 'preguntas')
+        updates.C = nombre || ''
+        updates.F = 'preguntas'
         break
       case 'preguntas_completadas':
         if (Array.isArray(respuestas)) {
           const cols = ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N']
           for (let i = 0; i < 8; i++) {
-            await updateCell(sheets, row, cols[i], textoRespuesta(i, respuestas[i]))
+            updates[cols[i]] = textoRespuesta(i, respuestas[i])
           }
         }
-        await updateCell(sheets, row, 'F', 'formulario')
+        updates.F = 'formulario'
         break
       case 'formulario_completado':
-        await updateCell(sheets, row, 'D', whatsapp || '')
-        await updateCell(sheets, row, 'E', perfil || '')
-        await updateCell(sheets, row, 'F', 'resultado')
+        updates.D = whatsapp || ''
+        updates.E = perfil || ''
+        updates.F = 'resultado'
         break
       case 'resultado_visto':
-        await updateCell(sheets, row, 'O', 'SÍ')
-        await updateCell(sheets, row, 'F', 'resultado_completo')
+        updates.O = 'SÍ'
+        updates.F = 'resultado_completo'
         break
       case 'cta_click':
-        await updateCell(sheets, row, 'R', 'SÍ')
-        await updateCell(sheets, row, 'F', 'whatsapp_contactado')
+        updates.R = 'SÍ'
+        updates.F = 'whatsapp_contactado'
         break
       case 'abandono':
-        await updateCell(sheets, row, 'P', paso || 'desconocido')
+        updates.P = paso || 'desconocido'
         break
     }
+
+    await batchUpdateCells(sheets, row, updates)
 
     console.log('Funnel OK:', evento, session_id)
     return NextResponse.json({ ok: true })
