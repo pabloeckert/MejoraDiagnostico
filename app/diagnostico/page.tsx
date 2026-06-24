@@ -205,7 +205,7 @@ export default function DiagnosticoPage() {
         <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12">
+          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 overflow-y-auto">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
@@ -290,7 +290,7 @@ export default function DiagnosticoPage() {
         {mobileHeader}
 
         <div className="max-w-2xl mx-auto w-full px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
-          <div className="overflow-x-hidden">
+          <div className="overflow-x-hidden overflow-y-auto">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
