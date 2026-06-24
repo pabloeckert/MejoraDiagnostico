@@ -20,42 +20,84 @@ export type DiagnosticoSession = {
 
 const KEY = 'mc_diagnostico'
 const KEY_LEADS = 'mc_leads'
+const KEY_BACKUP = 'mc_diagnostico_backup'
+const BACKUP_TTL_MS = 2 * 60 * 60 * 1000 // 2 horas
+
+function persistir(session: Partial<DiagnosticoSession>) {
+  const raw = JSON.stringify(session)
+  sessionStorage.setItem(KEY, raw)
+  try {
+    // Fallback: en mobile el OS puede recrear la pestaña (perdiendo sessionStorage)
+    // tras una recarga accidental antes de llegar a /datos. localStorage sobrevive eso.
+    localStorage.setItem(KEY_BACKUP, JSON.stringify({ ts: Date.now(), session }))
+  } catch {
+    // storage full — ignorar, no es crítico
+  }
+}
 
 export function guardarRespuestas(respuestas: number[]) {
   if (typeof window === 'undefined') return
   const prev = cargarSession()
-  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, respuestas }))
+  persistir({ ...prev, respuestas })
 }
 
 export function guardarPerfil(perfil: PerfilKey) {
   if (typeof window === 'undefined') return
   const prev = cargarSession()
-  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, perfil }))
+  persistir({ ...prev, perfil })
 }
 
 export function guardarScores(scores: Scores) {
   if (typeof window === 'undefined') return
   const prev = cargarSession()
-  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, scores }))
+  persistir({ ...prev, scores })
 }
 
 export function guardarPosicion(posicion: RespuestaPosicion) {
   if (typeof window === 'undefined') return
   const prev = cargarSession()
-  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, posicion }))
+  persistir({ ...prev, posicion })
 }
 
 export function guardarDatos(datos: DatosContacto) {
   if (typeof window === 'undefined') return
   const prev = cargarSession()
-  sessionStorage.setItem(KEY, JSON.stringify({ ...prev, datos }))
+  persistir({ ...prev, datos })
+}
+
+export function limpiarSession() {
+  if (typeof window === 'undefined') return
+  sessionStorage.removeItem(KEY)
+  try {
+    localStorage.removeItem(KEY_BACKUP)
+  } catch {
+    // ignorar
+  }
 }
 
 export function cargarSession(): Partial<DiagnosticoSession> {
   if (typeof window === 'undefined') return {}
   try {
     const raw = sessionStorage.getItem(KEY)
-    return raw ? JSON.parse(raw) : {}
+    if (raw) return JSON.parse(raw)
+  } catch {
+    // sessionStorage corrupto — intentar fallback
+  }
+  return recuperarBackup()
+}
+
+function recuperarBackup(): Partial<DiagnosticoSession> {
+  try {
+    const raw = localStorage.getItem(KEY_BACKUP)
+    if (!raw) return {}
+    const { ts, session } = JSON.parse(raw)
+    if (typeof ts !== 'number' || Date.now() - ts > BACKUP_TTL_MS) {
+      localStorage.removeItem(KEY_BACKUP)
+      return {}
+    }
+    // Restaurar a sessionStorage para que el resto del flujo opere normalmente
+    sessionStorage.setItem(KEY, JSON.stringify(session))
+    return session
   } catch {
     return {}
   }
