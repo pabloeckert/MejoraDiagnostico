@@ -202,10 +202,10 @@ export default function DiagnosticoPage() {
       <DesktopLayout leftContent={
         <LeftPanel step="preguntas" preguntaIndex={PREGUNTAS.length} />
       }>
-        <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
+        <div className="h-[100dvh] flex flex-col">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 overflow-y-auto">
+          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
@@ -286,11 +286,11 @@ export default function DiagnosticoPage() {
         preguntaIndex={step}
       />
     }>
-      <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
+      <div className="h-[100dvh] flex flex-col">
         {mobileHeader}
 
-        <div className="max-w-2xl mx-auto w-full px-6 pt-8 sm:pt-12 lg:px-16 lg:py-20 pb-32 lg:pb-12">
-          <div className="overflow-x-hidden overflow-y-auto">
+        <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto">
+          <div className="overflow-x-hidden">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
