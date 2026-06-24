@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PREGUNTAS, PREGUNTA_POSICION, type RespuestaPosicion } from '@/lib/preguntas'
 import { calcularScores, requierePosicion, detectarPerfil, type Scores } from '@/lib/scoring'
-import { guardarRespuestas, guardarPerfil, guardarScores, guardarPosicion } from '@/hooks/useDiagnostico'
+import { guardarRespuestas, guardarPerfil, guardarScores, guardarPosicion, limpiarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
 import QuestionCard from '@/components/QuestionCard'
 import DesktopLayout from '@/components/DesktopLayout'
@@ -26,7 +26,7 @@ export default function DiagnosticoPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('mc_diagnostico')
+      limpiarSession()
       sessionStorage.removeItem('mc_nombre')
       const lid = new URLSearchParams(window.location.search).get('lid')
       if (lid) sessionStorage.setItem('mc_lid', lid)
