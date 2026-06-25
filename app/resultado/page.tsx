@@ -115,7 +115,7 @@ export default function ResultadoPage() {
         {/* MOMENTO B — data completa */}
         {momento === 'B' && (
           <div
-            className="min-h-[100dvh] bg-white px-6 py-8"
+            className="h-[100dvh] overflow-y-auto bg-white px-6 py-8"
             style={{
               animation: transicion === 'in' ? 'slideInRight 0.35s ease forwards' :
                          transicion === 'out' ? 'slideOutLeft 0.25s ease forwards' : 'none'
