@@ -15,6 +15,8 @@ import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
 export default function ResultadoPage() {
   const router = useRouter()
   const [session, setSession] = useState<Partial<DiagnosticoSession> | null>(null)
+  const [momento, setMomento] = useState<'A' | 'B'>('A')
+  const [transicion, setTransicion] = useState<'idle' | 'out' | 'in'>('idle')
 
   useEffect(() => {
     const s = cargarSession()
@@ -66,64 +68,108 @@ export default function ResultadoPage() {
     router.push('/gracias')
   }
 
+  const irAMomentoB = () => {
+    setTransicion('out')
+    setTimeout(() => {
+      setMomento('B')
+      setTransicion('in')
+      setTimeout(() => setTransicion('idle'), 250)
+    }, 250)
+  }
+
   return (
     <DesktopLayout leftContent={
       <LeftPanel step="resultado" perfilTag={p.tag} perfilRef={p.ref} />
     }>
-      {/* === MOBILE LAYOUT === */}
-      <div className="max-w-2xl mx-auto px-6 py-8 sm:py-12 lg:hidden">
+      {/* === MOBILE LAYOUT — 2 momentos === */}
+      <div className="lg:hidden">
 
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <div className="flex items-center py-4 mb-6">
-          <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
-        </div>
+        {/* MOMENTO A — impacto azul */}
+        {momento === 'A' && (
+          <div
+            className="h-[100dvh] bg-mc-azul flex flex-col justify-between px-6 py-10"
+            style={{ animation: 'fadeUp 0.5s ease forwards' }}
+          >
+            {/* Tag del perfil */}
+            <p className="text-sm font-bold tracking-widest uppercase text-white opacity-70">
+              {p.tag}
+            </p>
 
-        <p className="text-base font-bold tracking-widest uppercase text-mc-azul mb-6">
-          {p.tag}
-        </p>
+            {/* Verdad central */}
+            <div className="flex-1 flex items-center">
+              <p className="text-4xl sm:text-5xl font-bold text-white leading-tight">
+                {p.verdad}
+              </p>
+            </div>
 
-        {/* 1. Verdad central */}
-        <div className="bg-mc-azul-marino text-white px-6 py-10 -mx-6 sm:-mx-16 mb-10">
-          <p className="text-4xl sm:text-5xl font-bold leading-snug max-w-xl">
-            {p.verdad}
-          </p>
-        </div>
+            {/* Botón para continuar */}
+            <button
+              onClick={irAMomentoB}
+              className="w-full min-h-[56px] bg-white text-mc-azul font-bold uppercase tracking-widest text-base rounded-sm transition-colors duration-200"
+            >
+              VER MI DIAGNÓSTICO COMPLETO →
+            </button>
+          </div>
+        )}
 
-        {/* 2. Descripción */}
-        <p className="text-gray-700 text-xl leading-relaxed mt-8 mb-8 max-w-lg">
-          {p.desc}
-        </p>
+        {/* MOMENTO B — data completa */}
+        {momento === 'B' && (
+          <div
+            className="min-h-[100dvh] bg-white px-6 py-8"
+            style={{
+              animation: transicion === 'in' ? 'slideInRight 0.35s ease forwards' :
+                         transicion === 'out' ? 'slideOutLeft 0.25s ease forwards' : 'none'
+            }}
+          >
+            {/* Logo */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div className="flex items-center py-4 mb-6">
+              <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
+            </div>
 
-        {/* 3. Puntaje global */}
-        <div className="flex items-baseline gap-3 mb-6">
-          <span className="text-6xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
-          <span className="text-base text-gray-700 uppercase tracking-widest">puntaje global · {globalZona}</span>
-        </div>
+            {/* Tag */}
+            <p className="text-base font-bold tracking-widest uppercase text-mc-azul mb-6">
+              {p.tag}
+            </p>
 
-        {/* 4. Barras de área */}
-        <div className="mb-8">
-          {areas.map((area, i) => (
-            <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
-          ))}
-        </div>
+            {/* Descripción */}
+            <p className="text-xl text-gray-700 leading-relaxed mb-8">
+              {p.desc}
+            </p>
 
-        {/* 5. Cierre */}
-        <div className="mt-12 mb-6 max-w-lg">
-          <h2 className="text-4xl font-bold text-mc-negro mb-3 uppercase">
-            {p.cierreTitulo}
-          </h2>
-          <p className="text-xl text-gray-700 leading-relaxed mb-8">
-            {p.cierreTxt}
-          </p>
-        </div>
+            {/* Puntaje global */}
+            <div className="flex items-baseline gap-3 mb-6">
+              <span className="text-6xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
+              <span className="text-base text-gray-700 uppercase tracking-widest">puntaje global · {globalZona}</span>
+            </div>
 
-        {/* 6. CTA */}
-        <button
-          onClick={handleCTA}
-          className="w-full min-h-[64px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-6 text-base tracking-widest uppercase transition-colors duration-200 rounded-sm mb-8"
-        >
-          {p.cta}
-        </button>
+            {/* Barras de área */}
+            <div className="mb-10">
+              {areas.map((area, i) => (
+                <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
+              ))}
+            </div>
+
+            {/* Cierre */}
+            <div className="mb-8">
+              <h2 className="text-4xl font-bold text-mc-negro mb-3 uppercase leading-tight">
+                {p.cierreTitulo}
+              </h2>
+              <p className="text-xl text-gray-700 leading-relaxed mb-8">
+                {p.cierreTxt}
+              </p>
+            </div>
+
+            {/* CTA WhatsApp */}
+            <button
+              onClick={handleCTA}
+              className="w-full min-h-[64px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-6 text-base tracking-widest uppercase transition-colors duration-200 rounded-sm mb-8"
+            >
+              {p.cta}
+            </button>
+
+          </div>
+        )}
 
       </div>
 
