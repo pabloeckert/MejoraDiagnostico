@@ -87,7 +87,7 @@ export default function ResultadoPage() {
         {/* MOMENTO A — impacto azul */}
         {momento === 'A' && (
           <div
-            className="h-[100dvh] bg-mc-azul flex flex-col justify-between px-6 py-10"
+            className="h-[100dvh] bg-mc-azul flex flex-col justify-between px-8 py-12"
             style={{ animation: 'fadeUp 0.5s ease forwards' }}
           >
             {/* Tag del perfil */}
@@ -97,7 +97,7 @@ export default function ResultadoPage() {
 
             {/* Verdad central */}
             <div className="flex-1 flex items-center">
-              <p className="text-4xl sm:text-5xl font-bold text-white leading-tight">
+              <p className="text-3xl sm:text-4xl font-bold text-white leading-tight">
                 {p.verdad}
               </p>
             </div>
@@ -105,7 +105,7 @@ export default function ResultadoPage() {
             {/* Botón para continuar */}
             <button
               onClick={irAMomentoB}
-              className="w-full min-h-[56px] bg-white text-mc-azul font-bold uppercase tracking-widest text-base rounded-sm transition-colors duration-200"
+              className="w-full min-h-[56px] bg-white text-mc-azul font-bold uppercase tracking-widest text-base rounded-sm transition-colors duration-200 px-6"
             >
               VER MI DIAGNÓSTICO COMPLETO →
             </button>
@@ -115,59 +115,60 @@ export default function ResultadoPage() {
         {/* MOMENTO B — data completa */}
         {momento === 'B' && (
           <div
-            className="h-[100dvh] overflow-y-auto bg-white px-6 py-8"
-            style={{
-              animation: transicion === 'in' ? 'slideInRight 0.35s ease forwards' :
-                         transicion === 'out' ? 'slideOutLeft 0.25s ease forwards' : 'none'
-            }}
+            className="h-[100dvh] overflow-y-auto bg-white"
+            style={{ animation: transicion === 'in' ? 'slideInRight 0.35s ease forwards' : 'none' }}
           >
-            {/* Logo */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <div className="flex items-center py-4 mb-6">
-              <img src="/logo-color.png" alt="Mejora Continua" className="h-10 object-contain" />
-            </div>
+            <div className="px-6 py-8 max-w-lg">
 
-            {/* Tag */}
-            <p className="text-base font-bold tracking-widest uppercase text-mc-azul mb-6">
-              {p.tag}
-            </p>
-
-            {/* Descripción */}
-            <p className="text-xl text-gray-700 leading-relaxed mb-8">
-              {p.desc}
-            </p>
-
-            {/* Puntaje global */}
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-6xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
-              <span className="text-base text-gray-700 uppercase tracking-widest">puntaje global · {globalZona}</span>
-            </div>
-
-            {/* Barras de área */}
-            <div className="mb-10">
-              {areas.map((area, i) => (
-                <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
-              ))}
-            </div>
-
-            {/* Cierre */}
-            <div className="mb-8">
-              <h2 className="text-4xl font-bold text-mc-negro mb-3 uppercase leading-tight">
-                {p.cierreTitulo}
-              </h2>
-              <p className="text-xl text-gray-700 leading-relaxed mb-8">
-                {p.cierreTxt}
+              {/* Logo + tag */}
+              <div className="flex items-center mb-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
+              </div>
+              <p className="text-xs font-bold tracking-widest uppercase text-mc-azul mb-6">
+                {p.tag}
               </p>
+
+              {/* Descripción — el gancho */}
+              <p className="text-lg text-gray-800 leading-relaxed mb-8">
+                {p.desc}
+              </p>
+
+              {/* Puntaje — integrado, no grotesco */}
+              <div className="flex items-center gap-2 mb-6 pb-6 border-b border-gray-100">
+                <span className="text-4xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Puntaje global</span>
+                  <span className="text-xs uppercase tracking-widest" style={{ color: globalColor }}>{globalZona}</span>
+                </div>
+              </div>
+
+              {/* Barras — más delgadas, más chicas */}
+              <div className="mb-8">
+                {areas.map((area, i) => (
+                  <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 200} />
+                ))}
+              </div>
+
+              {/* Separador visual */}
+              <div className="border-t border-gray-100 pt-8 mb-6">
+                <h2 className="text-2xl font-bold text-mc-negro mb-3 leading-tight">
+                  {p.cierreTitulo}
+                </h2>
+                <p className="text-base text-gray-700 leading-relaxed mb-8">
+                  {p.cierreTxt}
+                </p>
+              </div>
+
+              {/* CTA */}
+              <button
+                onClick={handleCTA}
+                className="w-full min-h-[56px] bg-mc-azul text-white font-bold py-4 text-sm tracking-widest uppercase transition-colors duration-200 rounded-sm mb-12"
+              >
+                {p.cta}
+              </button>
+
             </div>
-
-            {/* CTA WhatsApp */}
-            <button
-              onClick={handleCTA}
-              className="w-full min-h-[64px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-6 text-base tracking-widest uppercase transition-colors duration-200 rounded-sm mb-8"
-            >
-              {p.cta}
-            </button>
-
           </div>
         )}
 
