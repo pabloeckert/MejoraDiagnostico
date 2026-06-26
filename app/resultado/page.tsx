@@ -138,7 +138,7 @@ export default function ResultadoPage() {
               <div className="flex items-center gap-2 mb-6 pb-6 border-b border-gray-100">
                 <span className="text-4xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Puntaje global</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-700">Puntaje global</span>
                   <span className="text-xs uppercase tracking-widest" style={{ color: globalColor }}>{globalZona}</span>
                 </div>
               </div>

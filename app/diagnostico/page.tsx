@@ -23,6 +23,7 @@ export default function DiagnosticoPage() {
   const [scores, setScores] = useState<Scores | null>(null)
   const [posicionSeleccionada, setPosicionSeleccionada] = useState<RespuestaPosicion | null>(null)
   const [posicionAnim, setPosicionAnim] = useState<RespuestaPosicion | null>(null)
+  const [showScrollHint, setShowScrollHint] = useState(true)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -43,6 +44,7 @@ export default function DiagnosticoPage() {
 
   useEffect(() => {
     setSeleccionada(null)
+    setShowScrollHint(true)
   }, [step])
 
   useEffect(() => {
@@ -289,7 +291,13 @@ export default function DiagnosticoPage() {
       <div className="h-[100dvh] flex flex-col">
         {mobileHeader}
 
-        <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto">
+        <div
+          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto"
+          onScroll={(e) => {
+            if (e.currentTarget.scrollTop > 20) setShowScrollHint(false)
+            else setShowScrollHint(true)
+          }}
+        >
           <div className="overflow-x-hidden">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
@@ -315,6 +323,10 @@ export default function DiagnosticoPage() {
               />
             </div>
           </div>
+          <div
+            className={`sticky bottom-0 left-0 right-0 h-12 pointer-events-none transition-opacity duration-300 ${showScrollHint ? 'opacity-100' : 'opacity-0'}`}
+            style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.95), transparent)' }}
+          />
         </div>
 
         {/* Botón fijo al fondo — mobile */}
