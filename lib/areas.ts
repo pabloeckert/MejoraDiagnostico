@@ -15,7 +15,7 @@ export function areasParaMostrar(scores: Scores): { nombre: string; porcentaje: 
 }
 
 export function zonaColor(p: number): { zona: string; color: string } {
-  if (p < 40) return { zona: "Crítico",  color: "#E1061E" }
-  if (p < 65) return { zona: "En desarrollo", color: "#D4A017" }
-  return { zona: "Sólido", color: "#22A86B" }
+  if (p < 40) return { zona: "Crítico",       color: "#E1061E" }
+  if (p < 65) return { zona: "En desarrollo", color: "#F7CC13" }
+  return              { zona: "Sólido",        color: "#1A3D84" }
 }

@@ -26,8 +26,8 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
       <div className="flex justify-between items-center mb-3">
         <span className="text-base font-bold text-mc-negro">{nombre}</span>
         <span
-          className="text-sm font-bold px-3 py-1 rounded-full text-white"
-          style={{ backgroundColor: color }}
+          className="text-sm font-bold px-3 py-1 rounded-full"
+          style={{ backgroundColor: color, color: zona === 'En desarrollo' ? '#2B2B2B' : 'white' }}
         >
           {zona}
         </span>

@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'Bw Modelica';
+  src: url('/fonts/BwModelica-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bw Modelica';
+  src: url('/fonts/BwModelica-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,7 +24,7 @@
 
 html,
 body {
-  font-family: var(--font-league-spartan), 'League Spartan', sans-serif;
+  font-family: 'Bw Modelica', var(--font-league-spartan), 'League Spartan', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   overscroll-behavior: none;
