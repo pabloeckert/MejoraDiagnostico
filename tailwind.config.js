@@ -8,16 +8,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'mc-rojo':       '#D9072D',
+        'mc-rojo':       '#E1061E',
         'mc-azul-marino':'#020659',
-        'mc-azul':       '#1C4D8C',
-        'mc-amarillo':   '#F2BB16',
+        'mc-azul':       '#1A3D84',
+        'mc-amarillo':   '#F7CC13',
         'mc-negro':      '#0D0D0D',
         'mc-gris':       '#656565',
         'mc-gris-claro': '#F2F2F2',
+        'mc-tinta':      '#2B2B2B',
+        'mc-gris-apoyo': '#6B7280',
       },
       fontFamily: {
         spartan: ['var(--font-league-spartan)', '"League Spartan"', 'sans-serif'],
+        modelica: ['"Bw Modelica"', 'var(--font-bw-modelica)', 'sans-serif'],
       },
       fontWeight: {
         '300': '300',

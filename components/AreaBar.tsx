@@ -10,8 +10,8 @@ interface Props {
 
 export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   const [width, setWidth] = useState(0)
-  const [barColor, setBarColor] = useState('#C0392B')
   const { color, zona } = zonaColor(porcentaje)
+  const [barColor, setBarColor] = useState(color)
 
   useEffect(() => {
     const t = setTimeout(() => {
