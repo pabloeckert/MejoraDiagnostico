@@ -9,7 +9,7 @@ export type Pregunta = {
 }
 
 export const PREGUNTAS: Pregunta[] = [
-  { texto: "Si no estás, ¿qué para?", contexto: "Pensá en la última vez que te fuiste de vacaciones.", areaDominante: "organizacional", areaSecundaria: "personal", opciones: [
+  { texto: "Si no estás, ¿qué se detiene?", contexto: "Pensá en la última vez que te fuiste de vacaciones.", areaDominante: "organizacional", areaSecundaria: "personal", opciones: [
     { texto: "Todo se para", valor: 1 },
     { texto: "Se complica bastante", valor: 2 },
     { texto: "Hay algunos roces, pero sigue", valor: 3 },
@@ -21,7 +21,7 @@ export const PREGUNTAS: Pregunta[] = [
     { texto: "Algo, pero tengo otros clientes para sostenerme", valor: 3 },
     { texto: "Poco, la cartera está bien repartida", valor: 4 }
   ]},
-  { texto: "Cuando un cliente importante pide condiciones que no te convienen, ¿qué pasa?", contexto: "La negociación real, no la que contás después.", areaDominante: "comercial", areaSecundaria: "personal", opciones: [
+  { texto: "Cuando un cliente importante pide condiciones que no te convienen, ¿qué hacés?", contexto: "La negociación real, no la que contás después.", areaDominante: "comercial", areaSecundaria: "personal", opciones: [
     { texto: "Cedo, no quiero perderlo", valor: 1 },
     { texto: "Cedo casi siempre, después me arrepiento", valor: 2 },
     { texto: "Negocio, a veces gano, a veces no", valor: 3 },
@@ -29,11 +29,11 @@ export const PREGUNTAS: Pregunta[] = [
   ]},
   { texto: "¿Tu equipo tira para el mismo lado?", contexto: "No el que querés tener. El que tenés hoy.", areaDominante: "organizacional", areaSecundaria: "personal", opciones: [
     { texto: "Cada uno interpreta a su manera", valor: 1 },
-    { texto: "Con roces silenciosos", valor: 2 },
+    { texto: "Hay roces silenciosos", valor: 2 },
     { texto: "Más o menos", valor: 3 },
     { texto: "Sí, hay alineación real", valor: 4 }
   ]},
-  { texto: "¿Cuántas veces resolvés el mismo problema?", contexto: "Contá las últimas dos semanas.", areaDominante: "empresarial", areaSecundaria: "organizacional", opciones: [
+  { texto: "¿Cuántas veces resolvés el mismo problema?", contexto: "Pensá en las últimas dos semanas.", areaDominante: "empresarial", areaSecundaria: "organizacional", opciones: [
     { texto: "Siempre los mismos, hay que explicar y volver a explicar", valor: 1 },
     { texto: "Con frecuencia, tranquilo", valor: 2 },
     { texto: "A veces, aprendemos lento", valor: 3 },
