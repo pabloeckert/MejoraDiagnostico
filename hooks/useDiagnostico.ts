@@ -11,6 +11,7 @@ export type DatosContacto = {
 }
 
 export type DiagnosticoSession = {
+  nombre?: string
   respuestas: number[]
   perfil: PerfilKey
   datos: DatosContacto

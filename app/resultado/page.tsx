@@ -168,6 +168,15 @@ export default function ResultadoPage() {
                 {p.cta}
               </button>
 
+              <a
+                href="https://mejoraok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center text-sm text-gray-500 underline mt-4"
+              >
+                Volver a mejoraok.com
+              </a>
+
             </div>
           </div>
         )}
@@ -208,6 +217,14 @@ export default function ResultadoPage() {
             >
               {p.cta}
             </button>
+            <a
+              href="https://mejoraok.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-sm text-gray-500 underline mt-4"
+            >
+              Volver a mejoraok.com
+            </a>
           </div>
         </div>
 

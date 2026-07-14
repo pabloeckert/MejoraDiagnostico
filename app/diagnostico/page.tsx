@@ -1,9 +1,9 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { PREGUNTAS, PREGUNTA_POSICION, type RespuestaPosicion } from '@/lib/preguntas'
 import { calcularScores, requierePosicion, detectarPerfil, type Scores } from '@/lib/scoring'
-import { guardarRespuestas, guardarPerfil, guardarScores, guardarPosicion, limpiarSession } from '@/hooks/useDiagnostico'
+import { guardarRespuestas, guardarPerfil, guardarScores, guardarPosicion, limpiarSession, cargarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
 import QuestionCard from '@/components/QuestionCard'
 import DesktopLayout from '@/components/DesktopLayout'
@@ -24,17 +24,59 @@ export default function DiagnosticoPage() {
   const [posicionSeleccionada, setPosicionSeleccionada] = useState<RespuestaPosicion | null>(null)
   const [posicionAnim, setPosicionAnim] = useState<RespuestaPosicion | null>(null)
   const [showScrollHint, setShowScrollHint] = useState(true)
+  const [bannerRetomado, setBannerRetomado] = useState(false)
+
+  const preguntaStartRef = useRef<number>(Date.now())
+  const tiemposRef = useRef<number[]>(Array(8).fill(0))
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return
+
+    const params = new URLSearchParams(window.location.search)
+    const session = cargarSession()
+    const esResume = params.get('resume') === '1' || (!!session.nombre && !session.datos?.whatsapp)
+
+    if (esResume) {
+      if (session.perfil) {
+        // El diagnóstico ya se completó y tiene perfil calculado — solo falta el formulario de contacto
+        trackFunnel('sesion_retomada', { pasoRetomado: 'datos' })
+        router.replace('/datos')
+        return
+      }
+
+      if (session.nombre) setNombre(session.nombre)
+
+      let pasoRetomado = 'nombre'
+      if (session.scores && !session.posicion) {
+        setRespuestas(session.respuestas ?? Array(8).fill(0))
+        setScores(session.scores)
+        setPaso('posicion')
+        pasoRetomado = 'posicion'
+      } else if (session.respuestas && session.respuestas.some((v) => v > 0)) {
+        const nuevas = session.respuestas
+        setRespuestas(nuevas)
+        const idx = nuevas.findIndex((v) => v === 0)
+        const resumeStep = idx === -1 ? nuevas.length - 1 : idx
+        setStep(resumeStep)
+        setPaso('preguntas')
+        setBannerRetomado(true)
+        pasoRetomado = `pregunta_${resumeStep + 1}`
+      } else if (session.nombre) {
+        setPaso('preguntas')
+        setBannerRetomado(true)
+        pasoRetomado = 'pregunta_1'
+      }
+      trackFunnel('sesion_retomada', { pasoRetomado })
+    } else {
       limpiarSession()
       sessionStorage.removeItem('mc_nombre')
-      const lid = new URLSearchParams(window.location.search).get('lid')
-      if (lid) sessionStorage.setItem('mc_lid', lid)
-      else sessionStorage.removeItem('mc_lid')
       trackFunnel('diagnostico_iniciado')
     }
-  }, [])
+
+    const lid = params.get('lid')
+    if (lid) sessionStorage.setItem('mc_lid', lid)
+    else if (!esResume) sessionStorage.removeItem('mc_lid')
+  }, [router])
 
   useEffect(() => {
     const handler = () => trackFunnel('abandono', { paso: 'preguntas' })
@@ -43,8 +85,15 @@ export default function DiagnosticoPage() {
   }, [])
 
   useEffect(() => {
+    if (!bannerRetomado) return
+    const t = setTimeout(() => setBannerRetomado(false), 4000)
+    return () => clearTimeout(t)
+  }, [bannerRetomado])
+
+  useEffect(() => {
     setSeleccionada(null)
     setShowScrollHint(true)
+    preguntaStartRef.current = Date.now()
   }, [step])
 
   useEffect(() => {
@@ -76,6 +125,7 @@ export default function DiagnosticoPage() {
 
   function handleSelect(valor: number) {
     setSeleccionada(valor)
+    setBannerRetomado(false)
   }
 
   function finalizarConPerfil(nuevas: number[], s: Scores, pos?: RespuestaPosicion) {
@@ -83,7 +133,7 @@ export default function DiagnosticoPage() {
     guardarPerfil(perfil)
     guardarScores(s)
     if (pos) guardarPosicion(pos)
-    trackFunnel('preguntas_completadas', { respuestas: nuevas })
+    trackFunnel('preguntas_completadas', { respuestas: nuevas, tiempos: tiemposRef.current })
     const lid = typeof window !== 'undefined' ? sessionStorage.getItem('mc_lid') ?? undefined : undefined
     fetch('/api/save-completion', {
       method: 'POST',
@@ -98,11 +148,16 @@ export default function DiagnosticoPage() {
     const nuevas = [...respuestas]
     nuevas[step] = seleccionada
 
+    const segundos = Math.round((Date.now() - preguntaStartRef.current) / 1000)
+    tiemposRef.current[step] = segundos
+    trackFunnel('pregunta_respondida', { numero: step + 1, segundos, valor: seleccionada })
+
     if (step < PREGUNTAS.length - 1) {
       if (typeof window !== 'undefined' && 'vibrate' in navigator && /android/i.test(navigator.userAgent)) {
         navigator.vibrate([5, 30, 5])
       }
       setRespuestas(nuevas)
+      guardarRespuestas(nuevas)
       setTransition('out')
       setTimeout(() => {
         setStep(step + 1)
@@ -119,6 +174,7 @@ export default function DiagnosticoPage() {
       if (requierePosicion(s)) {
         setRespuestas(nuevas)
         setScores(s)
+        guardarScores(s)
         setTransition('out')
         setTimeout(() => {
           setPaso('posicion')
@@ -303,6 +359,11 @@ export default function DiagnosticoPage() {
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
             }>
+              {bannerRetomado && (
+                <div className="bg-mc-azul/10 text-mc-azul text-sm font-semibold px-4 py-2 rounded-md mb-4 text-center">
+                  Retomamos donde lo dejaste
+                </div>
+              )}
               <div className="w-full h-1 bg-gray-100 rounded-full mb-6 overflow-hidden">
                 <div
                   className="h-full bg-mc-azul rounded-full transition-all duration-700 ease-out"

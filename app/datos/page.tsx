@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { guardarDatos, guardarLead, cargarSession } from '@/hooks/useDiagnostico'
-import { trackFunnel } from '@/lib/funnel'
+import { trackFunnel, getSessionId, getVisitorId } from '@/lib/funnel'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
 
@@ -78,41 +78,60 @@ export default function DatosPage() {
 
     guardarLead({ nombre, whatsapp: `${codPais}${wa}`, perfil, total, respuestas })
 
-    trackFunnel('formulario_completado', { whatsapp: codPais + wa, perfil })
-
+    let funnelData: { duplicado?: boolean } = { duplicado: false }
     try {
-      await fetch('/api/send-email', {
+      const funnelRes = await fetch('/api/funnel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre,
-          apellido: '',
-          empresa: '',
-          whatsapp: wa,
-          codPais,
+          session_id: getSessionId(),
+          visitor_id: getVisitorId(),
+          evento: 'formulario_completado',
+          timestamp: new Date().toISOString(),
+          whatsapp: codPais + wa,
           perfil,
-          respuestas,
-          honeypot: '',
-          consent: true,
         }),
       })
+      funnelData = await funnelRes.json()
     } catch {
-      // continuar aunque falle el email
+      // continuar aunque falle el tracking del funnel
     }
 
-    try {
-      await fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre,
-          whatsapp: wa,
-          codPais,
-          perfil,
-        }),
-      })
-    } catch (e) {
-      console.error('Telegram notify error:', e)
+    if (!funnelData.duplicado) {
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre,
+            apellido: '',
+            empresa: '',
+            whatsapp: wa,
+            codPais,
+            perfil,
+            respuestas,
+            honeypot: '',
+            consent: true,
+          }),
+        })
+      } catch {
+        // continuar aunque falle el email
+      }
+
+      try {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre,
+            whatsapp: wa,
+            codPais,
+            perfil,
+          }),
+        })
+      } catch (e) {
+        console.error('Telegram notify error:', e)
+      }
     }
 
     router.replace('/resultado')

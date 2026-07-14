@@ -1,10 +1,28 @@
 'use client'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
+import { cargarSession } from '@/hooks/useDiagnostico'
+import { trackFunnel, getContextoLanding } from '@/lib/funnel'
 
 export default function Home() {
   const router = useRouter()
+
+  useEffect(() => {
+    const session = cargarSession()
+    const sesionIncompleta = !!session.nombre && !session.datos?.whatsapp
+    if (sesionIncompleta) {
+      router.replace('/diagnostico?resume=1')
+      return
+    }
+
+    const yaTrackeado = sessionStorage.getItem('mc_landing_tracked')
+    if (!yaTrackeado) {
+      trackFunnel('landing', getContextoLanding())
+      sessionStorage.setItem('mc_landing_tracked', '1')
+    }
+  }, [router])
 
   return (
     <DesktopLayout leftContent={<LeftPanel step="inicio" />}>
