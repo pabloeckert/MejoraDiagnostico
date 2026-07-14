@@ -68,6 +68,12 @@ export default function PreviewPage() {
       <h1 className="text-2xl font-bold text-mc-negro mb-2">Preview de Perfiles</h1>
       <p className="text-gray-700 mb-8">Elegí un perfil para ver la pantalla de resultado en una pestaña nueva. Se abre con scores dummy (60% en las 4 áreas).</p>
 
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p className="text-sm text-red-700 font-semibold">
+          ⚠️ No toques el botón de WhatsApp en la pantalla de resultado — dispara una notificación real a Sindy por Telegram y queda registrado en Sheets como si fuera un lead real.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 gap-3">
         {Object.keys(PERFILES).map((key) => {
           const perfil = PERFILES[key as PerfilKey]
