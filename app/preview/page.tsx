@@ -64,7 +64,7 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 max-w-2xl mx-auto">
+    <div className="min-h-screen h-screen overflow-y-auto bg-white px-6 py-10 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-mc-negro mb-2">Preview de Perfiles</h1>
       <p className="text-gray-700 mb-8">Elegí un perfil para ver la pantalla de resultado en una pestaña nueva. Se abre con scores dummy (60% en las 4 áreas).</p>
 
