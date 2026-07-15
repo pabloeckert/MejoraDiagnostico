@@ -5,10 +5,49 @@ import { PREGUNTAS } from '@/lib/preguntas'
 import { sendTelegram } from '@/lib/telegram'
 
 const SHEET_NAME = 'Funnel'
+const SHEET_EVENTOS = 'Eventos'
 
 function textoRespuesta(preguntaIdx: number, valor: number): string {
   const opcion = PREGUNTAS[preguntaIdx]?.opciones.find(o => o.valor === valor)
   return opcion ? `${valor} — ${opcion.texto}` : String(valor)
+}
+
+function construirDetalle(evento: string, ctx: {
+  nombre?: string
+  whatsapp?: string
+  numero?: number
+  segundos?: number
+  valor?: number
+  tiempos?: number[]
+  paso?: string
+  pasoRetomado?: string
+  dispositivo?: string
+  origen?: string
+}): string {
+  switch (evento) {
+    case 'landing':
+      return `${ctx.dispositivo || ''} · ${ctx.origen || ''}`.trim()
+    case 'diagnostico_iniciado':
+      return 'inició el diagnóstico'
+    case 'nombre_ingresado':
+      return `nombre: ${ctx.nombre || ''}`
+    case 'pregunta_respondida':
+      return `pregunta ${ctx.numero ?? ''} · ${ctx.segundos ?? ''}s · valor ${ctx.valor ?? ''}`
+    case 'preguntas_completadas':
+      return `8 preguntas · tiempos: ${Array.isArray(ctx.tiempos) ? ctx.tiempos.join(',') : ''}`
+    case 'formulario_completado':
+      return `whatsapp: ${ctx.whatsapp || ''}`
+    case 'resultado_visto':
+      return 'resultado visto'
+    case 'cta_click':
+      return 'click en CTA de WhatsApp'
+    case 'abandono':
+      return `abandonó en: ${ctx.paso || 'desconocido'}`
+    case 'sesion_retomada':
+      return `retomó en: ${ctx.pasoRetomado || ''}`
+    default:
+      return ''
+  }
 }
 
 async function getSheets() {
@@ -62,6 +101,31 @@ async function createRow(sheets: sheets_v4.Sheets, sessionId: string, fecha: str
   })
 }
 
+async function appendEvento(sheets: sheets_v4.Sheets, fila: [string, string, string, string, string]) {
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: process.env.GOOGLE_SHEETS_ID,
+    range: `${SHEET_EVENTOS}!A1`,
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [fila] },
+  })
+}
+
+async function registrarEvento(
+  sheets: sheets_v4.Sheets,
+  sessionId: string,
+  visitorId: string,
+  evento: string,
+  detalle: string,
+  timestamp: string
+) {
+  try {
+    await appendEvento(sheets, [timestamp || '', visitorId || '', sessionId, evento, detalle])
+  } catch (e) {
+    console.error('Eventos error en evento:', evento, 'session:', sessionId, e)
+  }
+}
+
 async function buscarCompletadoPrevio(sheets: sheets_v4.Sheets, whatsapp: string, sessionActual: string): Promise<boolean> {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEETS_ID,
@@ -94,6 +158,7 @@ export async function POST(req: NextRequest) {
     const {
       session_id: sid, evento: ev, timestamp, nombre, whatsapp, perfil, respuestas, paso,
       visitor_id, referrer, utm_source, dispositivo, numero, tiempos, pasoRetomado,
+      segundos, valor,
     } = body
     session_id = sid ?? 'desconocido'
     evento = ev ?? 'desconocido'
@@ -109,11 +174,12 @@ export async function POST(req: NextRequest) {
     if (!row) return NextResponse.json({ ok: false })
 
     const updates: Record<string, string> = { Q: timestamp }
+    const origen = `${referrer || ''} ${utm_source ? '(' + utm_source + ')' : ''}`.trim()
 
     switch (evento) {
       case 'landing':
         updates.S = visitor_id || ''
-        updates.T = `${referrer || ''} ${utm_source ? '(' + utm_source + ')' : ''}`.trim()
+        updates.T = origen
         updates.U = dispositivo || ''
         break
       case 'diagnostico_iniciado':
@@ -166,11 +232,17 @@ export async function POST(req: NextRequest) {
       const yaCompletado = await buscarCompletadoPrevio(sheets, whatsapp, session_id)
       if (yaCompletado) {
         await batchUpdateCells(sheets, row, { F: 'duplicado_bloqueado', Q: timestamp })
+        registrarEvento(sheets, session_id, visitor_id, evento, 'duplicado_bloqueado', timestamp)
         return NextResponse.json({ ok: true, duplicado: true })
       }
     }
 
     await batchUpdateCells(sheets, row, updates)
+
+    const detalle = construirDetalle(evento, {
+      nombre, whatsapp, numero, segundos, valor, tiempos, paso, pasoRetomado, dispositivo, origen,
+    })
+    registrarEvento(sheets, session_id, visitor_id, evento, detalle, timestamp)
 
     console.log('Funnel OK:', evento, session_id)
     return NextResponse.json({ ok: true, duplicado: false })
