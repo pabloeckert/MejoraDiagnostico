@@ -9,7 +9,6 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_buil
 
 const Schema = z.object({
   respuestas: z.array(z.number().min(1).max(4)).length(8),
-  lid: z.string().max(200).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -27,17 +26,12 @@ export async function POST(req: NextRequest) {
       })
       .join('')
 
-    const lidHtml = d.lid
-      ? `<p><b>Contacto:</b> ${d.lid}</p>`
-      : `<p style="color:#888"><em>Sin link personalizado — contacto no identificado</em></p>`
-
     await resend.emails.send({
       from: 'Mejora Continua <diagnostico@mejoraok.com>',
       to: 'diagnostico@mejoraok.com',
-      subject: `🔔 Diagnóstico completado${d.lid ? ` — ${d.lid}` : ''}`,
+      subject: `🔔 Diagnóstico completado`,
       html: `
         <h2 style="color:#1C4D8C">Diagnóstico completado — sin formulario aún</h2>
-        ${lidHtml}
         <p><b>Perfil detectado:</b> ${p.tag}</p>
         <p><b>Descripción:</b> ${p.ref}</p>
         <p><b>Puntaje total:</b> ${total}/32</p>

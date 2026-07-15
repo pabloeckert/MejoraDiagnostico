@@ -72,10 +72,6 @@ export default function DiagnosticoPage() {
       sessionStorage.removeItem('mc_nombre')
       trackFunnel('diagnostico_iniciado')
     }
-
-    const lid = params.get('lid')
-    if (lid) sessionStorage.setItem('mc_lid', lid)
-    else if (!esResume) sessionStorage.removeItem('mc_lid')
   }, [router])
 
   useEffect(() => {
@@ -134,11 +130,10 @@ export default function DiagnosticoPage() {
     guardarScores(s)
     if (pos) guardarPosicion(pos)
     trackFunnel('preguntas_completadas', { respuestas: nuevas, tiempos: tiemposRef.current })
-    const lid = typeof window !== 'undefined' ? sessionStorage.getItem('mc_lid') ?? undefined : undefined
     fetch('/api/save-completion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ respuestas: nuevas, ...(lid && { lid }) }),
+      body: JSON.stringify({ respuestas: nuevas }),
     }).catch(() => {})
     router.replace('/datos')
   }
