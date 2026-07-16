@@ -125,7 +125,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-mc-gris-claro">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-mc-negro">Panel de Monitoreo — Mejora Continua</h1>
+        <div className="flex items-center gap-3">
+          <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
+          <h1 className="text-xl font-bold text-mc-negro">Panel de Monitoreo</h1>
+        </div>
         <div className="flex items-center gap-2">
           {RANGOS.map((r) => (
             <button

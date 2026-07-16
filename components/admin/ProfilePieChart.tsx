@@ -1,11 +1,13 @@
 'use client'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import type { DistribucionPerfil } from '@/lib/admin'
+import { PALETA_GRAFICOS } from '@/lib/admin-colors'
 
-const COLORES = [
-  '#1A3D84', '#E1061E', '#F7CC13', '#020659',
-  '#656565', '#2B2B2B', '#6B7280', '#8CA3D8',
-]
+function colorSlice(i: number): string {
+  const color = PALETA_GRAFICOS[i % PALETA_GRAFICOS.length]
+  const vuelta = Math.floor(i / PALETA_GRAFICOS.length)
+  return vuelta % 2 === 1 ? `${color}CC` : color // CC ≈ 80% opacidad en la segunda vuelta
+}
 
 export default function ProfilePieChart({ datos }: { datos: DistribucionPerfil[] }) {
   return (
@@ -18,7 +20,7 @@ export default function ProfilePieChart({ datos }: { datos: DistribucionPerfil[]
           <PieChart>
             <Pie data={datos} dataKey="cantidad" nameKey="perfil" outerRadius={80} label>
               {datos.map((_, i) => (
-                <Cell key={i} fill={COLORES[i % COLORES.length]} />
+                <Cell key={i} fill={colorSlice(i)} />
               ))}
             </Pie>
             <Tooltip />

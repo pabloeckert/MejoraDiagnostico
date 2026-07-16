@@ -1,8 +1,7 @@
 'use client'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import type { EtapaEmbudo } from '@/lib/admin'
-
-const COLORES = ['#1A3D84', '#020659', '#F7CC13', '#E1061E']
+import { PALETA_GRAFICOS } from '@/lib/admin-colors'
 
 export default function FunnelBarChart({ etapas }: { etapas: EtapaEmbudo[] }) {
   return (
@@ -15,7 +14,7 @@ export default function FunnelBarChart({ etapas }: { etapas: EtapaEmbudo[] }) {
           <Tooltip />
           <Bar dataKey="cantidad" radius={[0, 4, 4, 0]}>
             {etapas.map((_, i) => (
-              <Cell key={i} fill={COLORES[i % COLORES.length]} />
+              <Cell key={i} fill={PALETA_GRAFICOS[i % PALETA_GRAFICOS.length]} />
             ))}
           </Bar>
         </BarChart>

@@ -3,10 +3,10 @@ import { calcularEstado, tiempoTranscurrido, formatFechaCorta } from '@/lib/admi
 import type { SessionRow, EstadoSesion } from '@/lib/admin'
 
 const ESTADO_PILL: Record<EstadoSesion, string> = {
-  completado: 'bg-green-100 text-green-700',
-  en_curso: 'bg-yellow-100 text-yellow-700',
-  retomado: 'bg-orange-100 text-orange-700',
-  abandonado: 'bg-gray-200 text-gray-600',
+  completado: 'bg-[#1A3D84]/10 text-[#1A3D84]',
+  en_curso: 'bg-[#F7CC13]/15 text-[#2B2B2B]',
+  retomado: 'bg-[#E1061E]/10 text-[#E1061E]',
+  abandonado: 'bg-gray-100 text-[#6B7280]',
 }
 
 const ESTADO_LABEL: Record<EstadoSesion, string> = {
