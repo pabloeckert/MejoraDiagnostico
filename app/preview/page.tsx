@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { PERFILES } from '@/lib/perfiles'
 import type { PerfilKey } from '@/lib/scoring'
 
-const PREVIEW_PASSWORD = 'mejoraok2026' // cambiar por una clave real
+const PREVIEW_PASSWORD = 'adminmc' // cambiar por una clave real
 
 export default function PreviewPage() {
   const [autenticado, setAutenticado] = useState(false)

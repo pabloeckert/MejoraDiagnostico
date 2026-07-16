@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Dashboard from '@/components/admin/Dashboard'
 
-const ADMIN_PASSWORD = 'mcadmin2026' // cambiar por una clave real
+const ADMIN_PASSWORD = 'adminmc' // cambiar por una clave real
 
 export default function AdminPage() {
   const [autenticado, setAutenticado] = useState(false)
