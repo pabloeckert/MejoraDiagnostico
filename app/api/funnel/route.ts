@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import type { sheets_v4 } from 'googleapis'
 import { PREGUNTAS } from '@/lib/preguntas'
-import { sendTelegram } from '@/lib/telegram'
 
 const SHEET_NAME = 'Funnel'
 const SHEET_EVENTOS = 'Eventos'
@@ -188,7 +187,6 @@ export async function POST(req: NextRequest) {
       case 'nombre_ingresado':
         updates.C = nombre || ''
         updates.F = 'preguntas'
-        sendTelegram(`🟢 <b>Alguien empezó el diagnóstico</b>\n\n👤 ${nombre || 'Sin nombre'}`).catch(() => {})
         break
       case 'pregunta_respondida':
         updates.F = `pregunta_${numero}`
@@ -224,7 +222,6 @@ export async function POST(req: NextRequest) {
       case 'sesion_retomada':
         updates.W = 'SÍ'
         updates.F = `retomado_${pasoRetomado || ''}`
-        sendTelegram(`🔄 <b>Sesión retomada</b>\n\nAlguien volvió a continuar un diagnóstico que había dejado a medias.`).catch(() => {})
         break
     }
 
