@@ -136,18 +136,35 @@ export default function Dashboard() {
       </header>
 
       <main className="px-6 py-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2 mb-6">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`text-xs font-semibold px-3 py-2 rounded ${
-                tab === t.key ? 'bg-mc-azul text-white' : 'bg-mc-gris-claro text-mc-gris'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`text-xs font-semibold px-3 py-2 rounded ${
+                  tab === t.key ? 'bg-mc-azul text-white' : 'bg-mc-gris-claro text-mc-gris'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {tab === 'general' && (
+            <div className="flex items-center gap-2">
+              {RANGOS.map((r) => (
+                <button
+                  key={r.key}
+                  onClick={() => setRango(r.key)}
+                  className={`text-xs font-semibold px-3 py-2 rounded ${
+                    rango === r.key ? 'bg-mc-azul text-white' : 'bg-mc-gris-claro text-mc-gris'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {error && (
@@ -162,20 +179,6 @@ export default function Dashboard() {
         <div key={tab} className="animate-fade-up space-y-8">
           {tab === 'general' && (
             <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                {RANGOS.map((r) => (
-                  <button
-                    key={r.key}
-                    onClick={() => setRango(r.key)}
-                    className={`text-xs font-semibold px-3 py-2 rounded ${
-                      rango === r.key ? 'bg-mc-azul text-white' : 'bg-mc-gris-claro text-mc-gris'
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-
               <StatsCards
                 tarjetas={[
                   { label: 'Visitas', valor: String(visitas) },
