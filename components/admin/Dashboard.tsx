@@ -10,12 +10,14 @@ import {
   esCompletada,
 } from '@/lib/admin'
 import type { SessionRow, EventoRow, RangoFecha, EstadoSesion } from '@/lib/admin'
+import { DATOS_DEMO, DATOS_DEMO_EVENTOS } from '@/lib/admin-demo-data'
 import StatsCards from './StatsCards'
 import FunnelBarChart from './FunnelBarChart'
 import ProfilePieChart from './ProfilePieChart'
 import SessionsTable from './SessionsTable'
 import SessionDetailModal from './SessionDetailModal'
 import ExportPanel from './ExportPanel'
+import TourGuiado from './TourGuiado'
 
 const POLL_MS = 20000
 const RANGOS: { key: RangoFecha; label: string }[] = [
@@ -48,6 +50,12 @@ export default function Dashboard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [detalleSessionId, setDetalleSessionId] = useState<string | null>(null)
   const [tab, setTab] = useState<'general' | 'detalle' | 'exportacion'>('general')
+  const [modoDemo, setModoDemo] = useState(false)
+  const [mostrarTour, setMostrarTour] = useState(false)
+
+  useEffect(() => {
+    if (!localStorage.getItem('mc_admin_tour_visto')) setMostrarTour(true)
+  }, [])
 
   const cargarDatos = useCallback(async () => {
     try {
@@ -70,8 +78,11 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [cargarDatos])
 
-  const sesionesRango = useMemo(() => filtrarSesionesPorRango(sessions, rango), [sessions, rango])
-  const eventosRango = useMemo(() => filtrarEventosPorRango(eventos, rango), [eventos, rango])
+  const sessionsActivas = modoDemo ? DATOS_DEMO : sessions
+  const eventosActivas = modoDemo ? DATOS_DEMO_EVENTOS : eventos
+
+  const sesionesRango = useMemo(() => filtrarSesionesPorRango(sessionsActivas, rango), [sessionsActivas, rango])
+  const eventosRango = useMemo(() => filtrarEventosPorRango(eventosActivas, rango), [eventosActivas, rango])
 
   const visitas = useMemo(
     () => new Set(eventosRango.filter((e) => e.evento === 'landing').map((e) => e.session_id)).size,
@@ -89,14 +100,14 @@ export default function Dashboard() {
   const filasGrid = useMemo(() => {
     const ahora = Date.now()
     const q = busqueda.trim().toLowerCase()
-    return [...sessions]
+    return [...sessionsActivas]
       .filter((s) => {
         if (q && !s.nombre.toLowerCase().includes(q) && !s.whatsapp.toLowerCase().includes(q)) return false
         if (filtroEstado !== 'todos' && calcularEstado(s, ahora) !== filtroEstado) return false
         return true
       })
       .sort((a, b) => Date.parse(b.fecha_inicio || '') - Date.parse(a.fecha_inicio || ''))
-  }, [sessions, busqueda, filtroEstado])
+  }, [sessionsActivas, busqueda, filtroEstado])
 
   const todasSeleccionadas = filasGrid.length > 0 && filasGrid.every((s) => selectedIds.has(s.session_id))
 
@@ -119,21 +130,44 @@ export default function Dashboard() {
   }
 
   const filasParaExportar = useMemo(() => {
-    if (selectedIds.size > 0) return sessions.filter((s) => selectedIds.has(s.session_id))
+    if (selectedIds.size > 0) return sessionsActivas.filter((s) => selectedIds.has(s.session_id))
     return filasGrid
-  }, [sessions, selectedIds, filasGrid])
+  }, [sessionsActivas, selectedIds, filasGrid])
 
   const eventosDetalle = useMemo(
-    () => (detalleSessionId ? eventos.filter((e) => e.session_id === detalleSessionId) : []),
-    [eventos, detalleSessionId]
+    () => (detalleSessionId ? eventosActivas.filter((e) => e.session_id === detalleSessionId) : []),
+    [eventosActivas, detalleSessionId]
   )
 
   return (
     <div className="min-h-screen bg-mc-gris-claro">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-        <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
-        <h1 className="text-xl font-bold text-mc-negro">Panel de Monitoreo</h1>
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-6">
+          <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
+          <h1 className="text-xl font-bold text-mc-negro">Monitor MejoraDiagnostico</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setModoDemo((v) => !v)}
+            className="text-xs font-semibold px-3 py-2 rounded bg-mc-gris-claro text-mc-gris"
+          >
+            {modoDemo ? 'Ver datos reales' : 'Ver datos de ejemplo'}
+          </button>
+          <button
+            onClick={() => setMostrarTour(true)}
+            aria-label="Ver recorrido de ayuda"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-mc-gris-claro text-mc-gris font-bold text-sm"
+          >
+            ?
+          </button>
+        </div>
       </header>
+
+      {modoDemo && (
+        <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 text-sm font-semibold text-center py-2 px-4">
+          🎭 MODO DEMO — datos de ejemplo, no reales
+        </div>
+      )}
 
       <main className="px-6 py-6 space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
@@ -167,12 +201,12 @@ export default function Dashboard() {
           )}
         </div>
 
-        {error && (
+        {error && !modoDemo && (
           <p className="text-sm text-mc-rojo bg-red-50 border border-red-200 rounded p-3">
             No se pudieron cargar los datos. Reintentando cada {POLL_MS / 1000}s.
           </p>
         )}
-        {cargando && !sessions.length && !error && (
+        {cargando && !sessionsActivas.length && !error && (
           <p className="text-sm text-mc-gris">Cargando datos…</p>
         )}
 
@@ -245,6 +279,8 @@ export default function Dashboard() {
           onClose={() => setDetalleSessionId(null)}
         />
       )}
+
+      {mostrarTour && <TourGuiado onCerrar={() => setMostrarTour(false)} />}
     </div>
   )
 }
