@@ -7,7 +7,6 @@ import type { SessionRow } from '@/lib/admin'
 type Formato = 'xlsx' | 'csv'
 
 export default function ExportPanel({ filas }: { filas: SessionRow[] }) {
-  const [abierto, setAbierto] = useState(false)
   const [columnas, setColumnas] = useState<Set<string>>(new Set(COLUMNAS_EXPORT_DEFAULT))
   const [formato, setFormato] = useState<Formato>('xlsx')
 
@@ -41,55 +40,47 @@ export default function ExportPanel({ filas }: { filas: SessionRow[] }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <button
-        onClick={() => setAbierto((v) => !v)}
-        className="w-full flex items-center justify-between text-sm font-bold text-mc-negro"
-      >
-        Exportar sesiones
-        <span className="text-mc-gris text-xs">{abierto ? 'ocultar ▲' : 'mostrar ▼'}</span>
-      </button>
+      <p className="text-sm font-bold text-mc-negro mb-4">Exportar sesiones</p>
 
-      {abierto && (
-        <div className="mt-4 space-y-4">
-          <div>
-            <p className="text-xs font-semibold text-mc-gris uppercase mb-2">Columnas a exportar</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {COLUMNAS_EXPORT.map((c) => (
-                <label key={c.key} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={columnas.has(c.key)}
-                    onChange={() => toggleColumna(c.key)}
-                  />
-                  {c.label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-end gap-4">
-            <div>
-              <p className="text-xs font-semibold text-mc-gris uppercase mb-1">Formato</p>
-              <select
-                value={formato}
-                onChange={(e) => setFormato(e.target.value as Formato)}
-                className="border border-gray-300 rounded px-3 py-2 text-sm"
-              >
-                <option value="xlsx">XLSX</option>
-                <option value="csv">CSV</option>
-              </select>
-            </div>
-
-            <button
-              onClick={exportar}
-              disabled={!filas.length}
-              className="bg-mc-azul text-white font-bold px-5 py-2 rounded disabled:opacity-40"
-            >
-              Exportar ({filas.length})
-            </button>
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold text-mc-gris uppercase mb-2">Columnas a exportar</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {COLUMNAS_EXPORT.map((c) => (
+              <label key={c.key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={columnas.has(c.key)}
+                  onChange={() => toggleColumna(c.key)}
+                />
+                {c.label}
+              </label>
+            ))}
           </div>
         </div>
-      )}
+
+        <div className="flex items-end gap-4">
+          <div>
+            <p className="text-xs font-semibold text-mc-gris uppercase mb-1">Formato</p>
+            <select
+              value={formato}
+              onChange={(e) => setFormato(e.target.value as Formato)}
+              className="border border-gray-300 rounded px-3 py-2 text-sm"
+            >
+              <option value="xlsx">XLSX</option>
+              <option value="csv">CSV</option>
+            </select>
+          </div>
+
+          <button
+            onClick={exportar}
+            disabled={!filas.length}
+            className="bg-mc-azul text-white font-bold px-5 py-2 rounded disabled:opacity-40"
+          >
+            Exportar ({filas.length})
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
