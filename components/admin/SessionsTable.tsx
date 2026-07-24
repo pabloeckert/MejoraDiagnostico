@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { calcularEstado, tiempoTranscurrido, formatFechaCorta } from '@/lib/admin'
 import type { SessionRow, EstadoSesion } from '@/lib/admin'
 
@@ -23,6 +24,8 @@ interface Props {
   onToggleSelectAll: () => void
   todasSeleccionadas: boolean
   onVerDetalle: (sessionId: string) => void
+  onBorradoExitoso: () => void
+  onDeselectAll: () => void
 }
 
 export default function SessionsTable({
@@ -32,11 +35,83 @@ export default function SessionsTable({
   onToggleSelectAll,
   todasSeleccionadas,
   onVerDetalle,
+  onBorradoExitoso,
+  onDeselectAll,
 }: Props) {
   const ahora = Date.now()
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
+  const [borrando, setBorrando] = useState(false)
+  const [errorBorrado, setErrorBorrado] = useState(false)
+
+  const confirmarBorrado = async () => {
+    setBorrando(true)
+    setErrorBorrado(false)
+    try {
+      const res = await fetch('/api/admin/delete-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_ids: Array.from(selectedIds) }),
+      })
+      if (!res.ok) throw new Error('borrado falló')
+      onDeselectAll()
+      setMostrarConfirmacion(false)
+      onBorradoExitoso()
+    } catch {
+      setErrorBorrado(true)
+    } finally {
+      setBorrando(false)
+    }
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 px-3 pt-3">
+          <span className="text-xs text-mc-gris">{selectedIds.size} seleccionadas</span>
+          <button
+            onClick={() => setMostrarConfirmacion(true)}
+            disabled={selectedIds.size === 0}
+            className="text-sm font-semibold px-3 py-1.5 rounded border border-red-300 text-red-600 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            🗑 Borrar seleccionadas
+          </button>
+        </div>
+      )}
+
+      {mostrarConfirmacion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-mc-negro mb-3">
+              ¿Seguro que querés borrar {selectedIds.size} sesión(es)?
+            </h2>
+            <p className="text-sm text-gray-700 mb-6">
+              Esta acción no se puede deshacer. Se van a eliminar todos los datos de estas sesiones, incluido su historial en Eventos.
+            </p>
+            {errorBorrado && (
+              <p className="text-sm text-mc-rojo bg-red-50 border border-red-200 rounded p-3 mb-4">
+                No se pudo borrar. Intentá de nuevo.
+              </p>
+            )}
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setMostrarConfirmacion(false)}
+                disabled={borrando}
+                className="text-sm font-semibold px-4 py-2 rounded bg-mc-gris-claro text-mc-gris disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarBorrado}
+                disabled={borrando}
+                className="text-sm font-bold px-4 py-2 rounded bg-[#E1061E] text-white disabled:opacity-60"
+              >
+                {borrando ? 'Borrando...' : 'Sí, borrar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-gray-200 text-left text-xs text-mc-gris uppercase tracking-wide">

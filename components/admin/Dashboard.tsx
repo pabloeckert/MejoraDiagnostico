@@ -248,9 +248,6 @@ export default function Dashboard() {
                     <option key={f.key} value={f.key}>{f.label}</option>
                   ))}
                 </select>
-                {selectedIds.size > 0 && (
-                  <span className="text-xs text-mc-gris">{selectedIds.size} seleccionadas</span>
-                )}
               </div>
 
               <SessionsTable
@@ -260,6 +257,8 @@ export default function Dashboard() {
                 onToggleSelectAll={toggleSelectAll}
                 todasSeleccionadas={todasSeleccionadas}
                 onVerDetalle={setDetalleSessionId}
+                onBorradoExitoso={cargarDatos}
+                onDeselectAll={() => setSelectedIds(new Set())}
               />
             </section>
           )}
