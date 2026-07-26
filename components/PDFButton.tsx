@@ -138,7 +138,7 @@ export default function PDFButton({ perfil, nombre, areas }: Props) {
       style={{
         fontSize: '14px',
         fontWeight: 700,
-        color: '#1C4D8C',
+        color: '#1A3D84',
         textDecoration: 'underline',
         cursor: loading ? 'not-allowed' : 'pointer',
         background: 'none',
@@ -149,7 +149,7 @@ export default function PDFButton({ perfil, nombre, areas }: Props) {
         transition: 'color 200ms',
       }}
       onMouseEnter={e => { if (!loading) e.currentTarget.style.color = '#020659' }}
-      onMouseLeave={e => { e.currentTarget.style.color = '#1C4D8C' }}
+      onMouseLeave={e => { e.currentTarget.style.color = '#1A3D84' }}
     >
       {loading ? 'Generando...' : 'Descargar PDF'}
     </button>

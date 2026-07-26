@@ -47,7 +47,7 @@ export const PERFILES = {
     tag: "El Empresario Escéptico",
     ref: "TENÉS GENTE. TENÉS ESTRUCTURA. Y ALGO NO CIERRA.",
     desc: "Pagás por cosas que no estás seguro de que sirvan. Tu entorno opina, pero parece que nunca le pega en el blanco. Sospechás que estás mal informado.",
-    verdad: "En el fondo, pedir ayuda te parece admitir debilidad. Entonces buscás que otro tome las decisiones difíciles — y si salen mal, no es tu culpa.",
+    verdad: "No es que no sepas decidir. Es que tomás decisiones sin un criterio externo que las contraste — y por eso cada elección se siente como una apuesta.",
     cierreTitulo: "LA SOSPECHA TIENE NOMBRE.",
     cierreTxt: "Si te incomoda, pasa algo. Hablemos francamente. De lo que está pasando, de lo que no te cierra.",
     cta: "QUIERO LA VERDAD →",

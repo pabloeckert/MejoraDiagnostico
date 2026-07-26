@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { zonaColor } from '@/lib/areas'
 
 interface Props {
   value: number
@@ -89,10 +90,10 @@ export default function GaugeGlobal({ value, onComplete, size = 'lg', className 
   return (
     <div ref={containerRef} className={className ?? "flex flex-col items-center my-8"}>
       <svg viewBox="0 0 200 130" width={w} height={h} overflow="visible">
-        {/* Tres zonas de fondo: rojo → naranja → verde */}
-        <path d={arcSeg(CX, CY, R, 180, 120)} fill="none" stroke="#C0392B" strokeWidth={14} strokeLinecap="butt" />
-        <path d={arcSeg(CX, CY, R, 120,  60)} fill="none" stroke="#E67E22" strokeWidth={14} strokeLinecap="butt" />
-        <path d={arcSeg(CX, CY, R,  60,   0)} fill="none" stroke="#27AE60" strokeWidth={14} strokeLinecap="butt" />
+        {/* Tres zonas de fondo, alineadas con zonaColor de lib/areas.ts */}
+        <path d={arcSeg(CX, CY, R, 180, 120)} fill="none" stroke={zonaColor(0).color} strokeWidth={14} strokeLinecap="butt" />
+        <path d={arcSeg(CX, CY, R, 120,  60)} fill="none" stroke={zonaColor(50).color} strokeWidth={14} strokeLinecap="butt" />
+        <path d={arcSeg(CX, CY, R,  60,   0)} fill="none" stroke={zonaColor(100).color} strokeWidth={14} strokeLinecap="butt" />
 
         {/* Aguja */}
         <line

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       to: 'diagnostico@mejoraok.com',
       subject: `🔔 Diagnóstico completado`,
       html: `
-        <h2 style="color:#1C4D8C">Diagnóstico completado — sin formulario aún</h2>
+        <h2 style="color:#1A3D84">Diagnóstico completado — sin formulario aún</h2>
         <p><b>Perfil detectado:</b> ${p.tag}</p>
         <p><b>Descripción:</b> ${p.ref}</p>
         <p><b>Puntaje total:</b> ${total}/32</p>
