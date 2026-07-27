@@ -190,11 +190,9 @@ export default function ResultadoPage() {
         </div>
 
         {mostrarScrollHint && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 hidden lg:flex flex-col items-center gap-1 pointer-events-none transition-opacity duration-500">
-            <span className="text-xs text-mc-gris uppercase tracking-widest bg-white/90 px-3 py-1 rounded-full shadow-sm">
-              Seguí bajando
-            </span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-mc-azul animate-bounce">
+          <div className="fixed bottom-0 left-0 right-0 z-10 hidden lg:flex justify-center items-end pb-3 pt-10 pointer-events-none transition-opacity duration-500"
+               style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.95), transparent)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-mc-gris animate-bounce">
               <path d="M12 5v14M19 12l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
