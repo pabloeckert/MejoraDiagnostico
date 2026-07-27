@@ -46,6 +46,7 @@ export default function ResultadoPage() {
   const globalPct = Math.round(
     (scoresData.personal + scoresData.organizacional + scoresData.comercial + scoresData.empresarial) / 4
   )
+  const globalPctMostrado = Math.min(98, globalPct)
   const { color: globalColor, zona: globalZona } = zonaColor(globalPct)
 
   const handleCTA = async () => {
@@ -136,7 +137,7 @@ export default function ResultadoPage() {
 
               {/* Puntaje — integrado, no grotesco */}
               <div className="flex items-center gap-2 mb-6 pb-6 border-b border-gray-100">
-                <span className="text-4xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
+                <span className="text-4xl font-bold" style={{ color: globalColor }}>{globalPctMostrado}%</span>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold uppercase tracking-widest text-gray-700">Puntaje global</span>
                   <span className="text-xs uppercase tracking-widest" style={{ color: globalColor }}>{globalZona}</span>
@@ -168,15 +169,6 @@ export default function ResultadoPage() {
                 {p.cta}
               </button>
 
-              <a
-                href="https://mejoraok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-center text-sm text-gray-500 underline mt-4"
-              >
-                Volver a mejoraok.com
-              </a>
-
             </div>
           </div>
         )}
@@ -184,27 +176,22 @@ export default function ResultadoPage() {
       </div>
 
       {/* === DESKTOP LAYOUT — dashboard sin scroll === */}
-      <div className="hidden lg:grid lg:grid-cols-5 lg:gap-6
-                      lg:h-[calc(100vh-80px)] lg:overflow-hidden
+      <div className="hidden lg:grid lg:grid-cols-5 lg:gap-10
+                      lg:h-[calc(100vh-80px)] lg:overflow-y-auto
                       lg:px-10 lg:mt-10">
 
-        {/* Columna izquierda — col-span-2 */}
+        {/* Columna izquierda — col-span-2, más protagonismo */}
         <div className="lg:col-span-2 flex flex-col h-full">
 
           {/* Verdad central */}
-          <div className="bg-mc-azul-marino text-white px-6 py-6 rounded-lg mb-4">
-            <p className="text-lg font-bold leading-snug">
+          <div className="bg-mc-azul-marino text-white px-7 py-6 rounded-lg mb-6 flex-1 flex items-center overflow-y-auto">
+            <p className="text-2xl font-bold leading-snug">
               {p.verdad}
             </p>
           </div>
 
-          {/* Descripción */}
-          <p className="text-mc-gris text-sm leading-relaxed flex-1 px-1 line-clamp-4">
-            {p.desc}
-          </p>
-
           {/* Cierre + CTA pegados al fondo */}
-          <div className="mt-auto">
+          <div>
             <h2 className="text-base font-bold uppercase text-mc-negro mb-1">
               {p.cierreTitulo}
             </h2>
@@ -217,23 +204,20 @@ export default function ResultadoPage() {
             >
               {p.cta}
             </button>
-            <a
-              href="https://mejoraok.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block text-center text-sm text-gray-500 underline mt-4"
-            >
-              Volver a mejoraok.com
-            </a>
           </div>
         </div>
 
-        {/* Columna derecha — col-span-3 */}
-        <div className="lg:col-span-3 flex flex-col justify-center h-full gap-4 pl-4">
+        {/* Columna derecha — col-span-3, con más aire */}
+        <div className="lg:col-span-3 flex flex-col justify-center h-full gap-6 pl-4">
+
+          {/* Descripción */}
+          <p className="text-mc-gris text-base leading-relaxed">
+            {p.desc}
+          </p>
 
           {/* Puntaje global */}
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPct}%</span>
+          <div className="flex items-baseline gap-3">
+            <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPctMostrado}%</span>
             <span className="text-xs text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
           </div>
 

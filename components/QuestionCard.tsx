@@ -43,15 +43,15 @@ export default function QuestionCard({ texto, numero, preguntaIndex, contexto, o
 
   return (
     <div>
-      <h2 className="text-3xl sm:text-4xl font-bold text-mc-negro leading-tight mb-2">
+      <h2 className="text-3xl sm:text-4xl lg:text-2xl font-bold text-mc-negro leading-tight mb-2 lg:mb-1">
         {texto}
       </h2>
       {contexto && (
-        <p className="text-base text-gray-700 mt-1 mb-6">{contexto}</p>
+        <p className="text-base lg:text-sm text-gray-700 mt-1 mb-6 lg:mb-4">{contexto}</p>
       )}
       <div
         key={preguntaIndex}
-        className="flex flex-col gap-3"
+        className="flex flex-col gap-3 lg:gap-2"
         role="radiogroup"
         style={{ animation: 'fadeUp 0.3s ease forwards' }}
       >
@@ -63,7 +63,7 @@ export default function QuestionCard({ texto, numero, preguntaIndex, contexto, o
               role="radio"
               aria-checked={sel}
               onClick={() => handleClick(op.valor)}
-              className={`w-full text-left px-5 py-5 min-h-[64px] text-lg sm:text-xl font-medium rounded-md border-[1.5px] transition-all duration-200 ${
+              className={`w-full text-left px-5 py-5 lg:py-3 min-h-[64px] lg:min-h-[52px] text-lg sm:text-xl lg:text-base font-medium rounded-md border-[1.5px] transition-all duration-200 ${
                 sel
                   ? 'bg-mc-azul border-mc-azul text-white font-semibold'
                   : 'bg-white border-gray-200 text-mc-negro cursor-pointer'

@@ -343,7 +343,7 @@ export default function DiagnosticoPage() {
         {mobileHeader}
 
         <div
-          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto"
+          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-6 pb-32 lg:pb-4 flex-1 overflow-y-auto"
           onScroll={(e) => {
             if (e.currentTarget.scrollTop > 20) setShowScrollHint(false)
             else setShowScrollHint(true)
@@ -355,17 +355,17 @@ export default function DiagnosticoPage() {
               transition === 'in'  ? 'animate-slide-in-right' : ''
             }>
               {bannerRetomado && (
-                <div className="bg-mc-azul/10 text-mc-azul text-sm font-semibold px-4 py-2 rounded-md mb-4 text-center">
+                <div className="bg-mc-azul/10 text-mc-azul text-sm font-semibold px-4 py-2 rounded-md mb-4 lg:mb-2 text-center">
                   Retomamos donde lo dejaste
                 </div>
               )}
-              <div className="w-full h-1 bg-gray-100 rounded-full mb-6 overflow-hidden">
+              <div className="w-full h-1 bg-gray-100 rounded-full mb-6 lg:mb-3 overflow-hidden">
                 <div
                   className="h-full bg-mc-azul rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${Math.round((step / PREGUNTAS.length) * 100)}%` }}
                 />
               </div>
-              <p className="text-base text-gray-700 lg:text-sm lg:text-gray-600 mb-2">
+              <p className="text-base text-gray-700 lg:text-sm lg:text-gray-600 mb-2 lg:mb-1">
                 Pregunta {step + 1} de {PREGUNTAS.length}
               </p>
               <QuestionCard
@@ -406,7 +406,7 @@ export default function DiagnosticoPage() {
         </div>
 
         {/* Botón desktop — inline */}
-        <div className="hidden lg:block max-w-2xl mx-auto w-full px-16 pb-12">
+        <div className="hidden lg:block max-w-2xl mx-auto w-full px-16 pb-6">
           <button
             onClick={handleSiguiente}
             disabled={seleccionada === null}

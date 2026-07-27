@@ -13,13 +13,15 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   const { color, zona } = zonaColor(porcentaje)
   const [barColor, setBarColor] = useState(color)
 
+  const porcentajeMostrado = Math.min(98, Math.round(porcentaje))
+
   useEffect(() => {
     const t = setTimeout(() => {
-      setWidth(porcentaje)
+      setWidth(porcentajeMostrado)
       setBarColor(color)
     }, delay)
     return () => clearTimeout(t)
-  }, [porcentaje, delay, color])
+  }, [porcentajeMostrado, delay, color])
 
   return (
     <div className="mb-4 rounded-xl p-4" style={{ backgroundColor: color + '14' }}>

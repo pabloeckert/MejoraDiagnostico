@@ -49,7 +49,7 @@ export default function Home() {
 
       {/* Desktop — pantalla única existente */}
       <div className="hidden lg:flex lg:flex-col items-center justify-center min-h-[100dvh] px-6 py-12 lg:px-16">
-        <p className="text-mc-gris text-center text-lg mb-6 max-w-sm">
+        <p className="text-mc-gris text-center text-4xl font-semibold leading-tight mb-8 max-w-lg">
           Descubrí dónde está tu negocio hoy.
         </p>
 
@@ -59,7 +59,7 @@ export default function Home() {
 
         <button
           onClick={() => router.push('/diagnostico')}
-          className="w-full max-w-xs lg:w-auto lg:px-12 min-h-[52px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-4 px-8 rounded-sm text-sm tracking-widest uppercase transition-colors duration-200"
+          className="w-full max-w-xs lg:w-auto lg:px-16 min-h-[64px] bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-5 px-8 rounded-sm text-base tracking-widest uppercase transition-all duration-200 shadow-md hover:shadow-lg"
         >
           DESCUBRIR MI PERFIL →
         </button>
