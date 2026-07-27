@@ -7,8 +7,6 @@ import { PERFILES } from '@/lib/perfiles'
 import { zonaColor, areasParaMostrar } from '@/lib/areas'
 import type { Scores } from '@/lib/scoring'
 import AreaBar from '@/components/AreaBar'
-import DesktopLayout from '@/components/DesktopLayout'
-import LeftPanel from '@/components/LeftPanel'
 import type { PerfilKey } from '@/lib/perfiles'
 import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
 
@@ -79,9 +77,7 @@ export default function ResultadoPage() {
   }
 
   return (
-    <DesktopLayout leftContent={
-      <LeftPanel step="resultado" perfilTag={p.tag} perfilRef={p.ref} />
-    }>
+    <div className="min-h-[100dvh] bg-white">
       {/* === MOBILE LAYOUT — 2 momentos === */}
       <div className="lg:hidden">
 
@@ -175,61 +171,67 @@ export default function ResultadoPage() {
 
       </div>
 
-      {/* === DESKTOP LAYOUT — dashboard sin scroll === */}
-      <div className="hidden lg:grid lg:grid-cols-5 lg:gap-10
-                      lg:h-[calc(100vh-80px)] lg:overflow-y-auto
-                      lg:px-10 lg:mt-10">
+      {/* === DESKTOP LAYOUT — flujo vertical, una columna === */}
+      <div className="hidden lg:block">
 
-        {/* Columna izquierda — col-span-2, más protagonismo */}
-        <div className="lg:col-span-2 flex flex-col h-full">
+        {/* Header */}
+        <div className="max-w-4xl mx-auto px-10 py-8">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-color.png" alt="Mejora Continua" className="h-9 object-contain" />
+        </div>
 
-          {/* Verdad central */}
-          <div className="bg-mc-azul-marino text-white px-7 py-6 rounded-lg mb-6 flex-1 flex items-center overflow-y-auto">
-            <p className="text-2xl font-bold leading-snug">
+        {/* Franja navy — ancho completo, momento de impacto */}
+        <div className="w-full bg-mc-azul-marino relative overflow-hidden">
+          <div className="max-w-4xl mx-auto px-10 py-16">
+            <p className="text-sm font-bold uppercase tracking-widest text-mc-amarillo mb-4">
+              {p.tag}
+            </p>
+            <p className="text-4xl font-bold text-white leading-tight max-w-3xl">
               {p.verdad}
             </p>
           </div>
+          <div className="absolute -bottom-6 right-10 w-16 h-16 rounded-full bg-mc-amarillo opacity-90"></div>
+        </div>
 
-          {/* Cierre + CTA pegados al fondo */}
-          <div>
-            <h2 className="text-base font-bold uppercase text-mc-negro mb-1">
+        {/* Contenido — columna de lectura centrada */}
+        <div className="max-w-4xl mx-auto px-10 py-14">
+
+          <p className="text-lg text-mc-gris leading-relaxed mb-10 max-w-2xl">
+            {p.desc}
+          </p>
+
+          <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-gray-100">
+            <span className="text-6xl font-bold" style={{ color: globalColor }}>{globalPctMostrado}%</span>
+            <span className="text-sm text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-12 gap-y-8 mb-6">
+            {areas.map((area, i) => (
+              <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
+            ))}
+          </div>
+
+        </div>
+
+        {/* Cierre — franja celeste pálido, ancho completo */}
+        <div className="w-full bg-mc-azul/5">
+          <div className="max-w-3xl mx-auto px-10 py-16 text-center">
+            <h2 className="text-2xl font-bold text-mc-azul mb-4">
               {p.cierreTitulo}
             </h2>
-            <p className="text-xs text-mc-gris mb-4 line-clamp-2">
+            <p className="text-base text-mc-negro leading-relaxed mb-8 max-w-xl mx-auto">
               {p.cierreTxt}
             </p>
             <button
               onClick={handleCTA}
-              className="w-full bg-mc-azul hover:bg-mc-azul-marino text-white font-bold py-3 text-xs tracking-widest uppercase transition-colors duration-200 rounded-sm"
+              className="bg-mc-azul hover:bg-mc-azul-marino text-white font-bold px-10 py-4 text-sm tracking-widest uppercase transition-colors duration-200 rounded-sm"
             >
               {p.cta}
             </button>
           </div>
         </div>
 
-        {/* Columna derecha — col-span-3, con más aire */}
-        <div className="lg:col-span-3 flex flex-col justify-center h-full gap-6 pl-4">
-
-          {/* Descripción */}
-          <p className="text-mc-gris text-base leading-relaxed">
-            {p.desc}
-          </p>
-
-          {/* Puntaje global */}
-          <div className="flex items-baseline gap-3">
-            <span className="text-5xl font-bold" style={{ color: globalColor }}>{globalPctMostrado}%</span>
-            <span className="text-xs text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
-          </div>
-
-          {/* 4 barras de área */}
-          <div className="w-full">
-            {areas.map((area, i) => (
-              <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} />
-            ))}
-          </div>
-        </div>
-
       </div>
-    </DesktopLayout>
+    </div>
   )
 }
