@@ -15,6 +15,15 @@ export default function ResultadoPage() {
   const [session, setSession] = useState<Partial<DiagnosticoSession> | null>(null)
   const [momento, setMomento] = useState<'A' | 'B'>('A')
   const [transicion, setTransicion] = useState<'idle' | 'out' | 'in'>('idle')
+  const [mostrarScrollHint, setMostrarScrollHint] = useState(true)
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.scrollY > 40) setMostrarScrollHint(false)
+    }
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     const s = cargarSession()
@@ -179,6 +188,17 @@ export default function ResultadoPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-color.png" alt="Mejora Continua" className="h-9 object-contain" />
         </div>
+
+        {mostrarScrollHint && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 hidden lg:flex flex-col items-center gap-1 pointer-events-none transition-opacity duration-500">
+            <span className="text-xs text-mc-gris uppercase tracking-widest bg-white/90 px-3 py-1 rounded-full shadow-sm">
+              Seguí bajando
+            </span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-mc-azul animate-bounce">
+              <path d="M12 5v14M19 12l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
 
         {/* Franja navy — ancho completo, momento de impacto */}
         <div className="w-full bg-mc-azul-marino relative overflow-hidden">
