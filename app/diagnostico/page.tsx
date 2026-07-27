@@ -339,11 +339,11 @@ export default function DiagnosticoPage() {
         preguntaIndex={step}
       />
     }>
-      <div className="h-[100dvh] flex flex-col">
+      <div className="h-[100dvh] flex flex-col lg:justify-center">
         {mobileHeader}
 
         <div
-          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-6 pb-32 lg:pb-4 flex-1 overflow-y-auto"
+          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-6 pb-32 lg:pb-4 flex-1 lg:flex-none overflow-y-auto"
           onScroll={(e) => {
             if (e.currentTarget.scrollTop > 20) setShowScrollHint(false)
             else setShowScrollHint(true)
@@ -406,7 +406,7 @@ export default function DiagnosticoPage() {
         </div>
 
         {/* Botón desktop — inline */}
-        <div className="hidden lg:block max-w-2xl mx-auto w-full px-16 pb-6">
+        <div className="hidden lg:block max-w-2xl mx-auto w-full px-16 pb-6 lg:mt-8">
           <button
             onClick={handleSiguiente}
             disabled={seleccionada === null}
