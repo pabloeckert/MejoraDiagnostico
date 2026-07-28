@@ -41,8 +41,8 @@ No son parte de `npm run`, se ejecutan manualmente con `node` (requieren `npm ru
 
 - `node scripts/verify_e2e.mjs` — recorre el flujo completo con Playwright para varios escenarios de respuestas y compara el perfil resultante contra el esperado.
 - `node scripts/verify_8perfiles.mjs` — variante que cubre los 8 perfiles, generando capturas en `scripts/screenshots/`.
-- `npx tsx scripts/validar-perfiles.ts` (o equivalente) — recorre combinatoriamente las respuestas posibles y valida la distribución de perfiles contra `lib/scoring.ts` sin levantar el navegador.
-- `scripts/crear-sheet-funnel.ts`, `scripts/formatear-sheet-funnel.ts`, `scripts/leer-ultima-fila.ts` — utilidades puntuales para inicializar/inspeccionar la hoja de Google Sheets del funnel.
+- `npx tsx scripts/validar-perfiles.ts` (o equivalente) — recorre combinatoriamente las respuestas posibles y valida la distribución de perfiles contra `lib/scoring.ts` sin levantar el navegador. (`scripts/simular_combinaciones.mjs` es una variante previa y quedó desactualizada — usa nombres de perfiles antiguos que ya no existen en `lib/perfiles.ts`; no usarla como referencia.)
+- `scripts/crear-sheet-funnel.ts`, `scripts/crear-sheet-eventos.ts`, `scripts/formatear-sheet-funnel.ts`, `scripts/fix-headers.ts`, `scripts/limpiar-sheets.ts`, `scripts/leer-ultima-fila.ts` — utilidades puntuales para inicializar/inspeccionar/mantener las hojas Funnel y Eventos de Google Sheets (crear pestaña, reescribir headers si el schema de columnas se corrompe, vaciar dejando headers).
 
 `scripts/screenshots/` y `scripts/verify-prod.mjs` están en `.gitignore` (artefactos/regenerables, no commitear).
 
@@ -53,6 +53,8 @@ Next.js 14.2.35 (App Router) · React 18 · TypeScript · Tailwind CSS v3 · Res
 ## Arquitectura general
 
 App de diagnóstico empresarial de una sola pasada: el usuario responde 8 preguntas (más una 9ª opcional de posición) → ingresa sus datos → ve el resultado completo. Rutas: `/` → `/diagnostico` → `/datos` → `/resultado`. Existe también `/privacidad` (página estática) y `/gracias` (página final post-CTA).
+
+`app/preview/page.tsx` es una herramienta interna: previsualiza cómo se ve `/resultado` para cada uno de los 8 perfiles sin completar el diagnóstico real (inyecta scores dummy en `sessionStorage` y abre `/resultado` en una pestaña nueva). Gateada por una contraseña hardcodeada en el cliente (`PREVIEW_PASSWORD`) — no es seguridad real, solo fricción para no exponerla casualmente.
 
 Todas las páginas de usuario son `'use client'` — no hay Server Components en las rutas.
 
@@ -103,10 +105,9 @@ El estado se maneja y persiste a través de `sessionStorage` desde `hooks/useDia
 - **`/api/save-completion`**: Recibe `{ respuestas, lid? }`. Envía email al admin con el reporte inicial. Inicializa Resend con fallback `|| 're_placeholder_for_build'` para builds sin env vars.
 - **`/api/send-email`**: Recibe formulario + respuestas. Envía reporte de lead completo al admin. Mismo fallback de Resend.
 - **`/api/notify`**: Envía mensaje de Telegram a Sindy vía Telegram Bot API. Se invoca al enviar el formulario en `/datos`.
-- **`/api/funnel`**: Actualiza el embudo en Google Sheets usando `batchUpdate` (todas las celdas de un evento en una sola llamada, vía `batchUpdateCells`).
-  - Col A: `sessionId` | B: `fecha` | C: `nombre` | D: `whatsapp` | E: `perfil` | F: `paso`
-  - Cols G-N: `P1`-`P8` respuestas (texto completo de la opción seleccionada)
-  - Col O: `resultado_visto` (`SÍ`/`NO`) | P: `abandono` | Q: `último timestamp` | R: `cta_click` (`SÍ`/`NO`)
+- **`/api/funnel`**: Actualiza el embudo en Google Sheets usando `batchUpdate` (todas las celdas de un evento en una sola llamada, vía `batchUpdateCells`). Escribe en dos hojas:
+  - **Funnel** (`A1:W1`, 23 columnas — schema fijado por `scripts/fix-headers.ts`): `session_id, fecha_inicio, nombre, whatsapp, perfil, paso, p1..p8, resultado_visto, abandono_en, ultimo_update, cta_click, visitor_id, origen, dispositivo, tiempos_preguntas, retomado`. Es el estado agregado por sesión (una fila por `session_id`, se actualiza in-place).
+  - **Eventos** (`A1:E1`): `timestamp, visitor_id, session_id, evento, detalle` — log granular, una fila por evento (más fino que el estado agregado de Funnel).
 
 Las cuatro APIs públicas (`funnel`, `notify`, `send-email`, `save-completion`) están protegidas con rate limiting por IP (`lib/rate-limit.ts`, in-memory best-effort): `funnel` 60/min (una sesión legítima dispara ~13 eventos), el resto 6/min por disparar email/Telegram.
 
@@ -116,9 +117,16 @@ Las cuatro APIs públicas (`funnel`, `notify`, `send-email`, `save-completion`) 
 - **`/api/admin/data`** y **`/api/admin/delete-sessions`**: exigen `sesionValida(req)` (cookie del login) → `401` si falta. Antes eran públicas — nunca reintroducir esa exposición.
 - `app/admin/page.tsx` ya **no** compara la contraseña en el cliente; delega en `/api/admin/login`. `app/admin/layout.tsx` marca la sección `noindex`.
 
+El dashboard (`components/admin/Dashboard.tsx`) tiene 3 tabs (General / Detalle / Exportación), pollea `/api/admin/data` cada 20s, tiene un modo demo (datos ficticios de `lib/admin-demo-data.ts`) y un tour guiado que se muestra la primera vez (`localStorage` `mc_admin_tour_visto`). Componentes asociados: `StatsCards`, `FunnelBarChart`, `ProfilePieChart`, `SessionsTable`, `SessionDetailModal`, `ExportPanel`, `TourGuiado`, `PDFTemplateResultado`, `InfografiaGeneral`.
+
+- **`lib/admin.ts`**: tipos `SessionRow`/`EventoRow` (espejan las columnas de las hojas Funnel/Eventos) y helpers de agregación: `calcularEstado` (`completado | en_curso | retomado | abandonado`), `esCompletada`, `filtrarSesionesPorRango`/`filtrarEventosPorRango` (`hoy | 7dias | todo`), `contarEtapas`, `distribucionPerfiles`, `tiempoPromedioSesion`.
+- **`lib/admin-colors.ts`**: paleta de colores exclusiva para los gráficos del admin (`PALETA_GRAFICOS`). No deriva de `tailwind.config.js` — mantenerla en sync a mano si cambia la marca.
+- **`lib/admin-demo-data.ts`**: dataset ficticio para el modo demo del dashboard. No representa leads reales.
+- **`lib/admin-pdf.ts`**: genera el PDF individual por sesión y la infografía general descargable — renderiza componentes React off-screen y los captura con `html2canvas` + `jsPDF` (contenedor de tamaño cero + `overflow: hidden` para evitar que `html2canvas` calcule un canvas descomunal).
+
 ### `lib/funnel.ts`
 
-Cliente de tracking. `trackFunnel(evento, datos?)` envía fire-and-forget a `/api/funnel`. Usa `crypto.randomUUID()` para generar un `sessionId` persistido en `sessionStorage` bajo `mc_session_id`.
+Cliente de tracking. `trackFunnel(evento, datos?)` envía fire-and-forget a `/api/funnel`. `getSessionId()` genera un `sessionId` (`crypto.randomUUID()`) persistido en `sessionStorage` bajo `mc_session_id`. `getVisitorId()` genera/persiste un `visitor_id` en `localStorage` (`mc_visitor_id`) para identificar al visitante entre sesiones distintas. `getContextoLanding()` lee `referrer`, `utm_source`, `utm_campaign` y si el user agent es mobile/desktop, usado para poblar `origen`/`dispositivo` en la hoja Funnel.
 
 ## Diseño y Estilos
 
