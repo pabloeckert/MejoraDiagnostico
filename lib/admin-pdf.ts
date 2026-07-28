@@ -36,10 +36,18 @@ export async function generarPDFSesion(session: SessionRow, perfil: PerfilKey): 
       import('@/components/admin/PDFTemplateResultado'),
     ])
 
+  // Contenedor de tamaño cero + overflow hidden: evita que html2canvas
+  // calcule un canvas descomunal, algo que sí ocurre con el truco clásico
+  // de "left: -9999px" (el elemento queda fuera del viewport a la izquierda
+  // y html2canvas termina renderizando un lienzo que incluye ese offset).
   const contenedor = document.createElement('div')
   contenedor.style.position = 'fixed'
-  contenedor.style.left = '-9999px'
   contenedor.style.top = '0'
+  contenedor.style.left = '0'
+  contenedor.style.width = '0'
+  contenedor.style.height = '0'
+  contenedor.style.overflow = 'hidden'
+  contenedor.style.zIndex = '-1'
   document.body.appendChild(contenedor)
 
   const root = createRoot(contenedor)
@@ -60,7 +68,7 @@ export async function generarPDFSesion(session: SessionRow, perfil: PerfilKey): 
     const imgData = canvas.toDataURL('image/png')
 
     const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] })
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height, undefined, 'FAST')
 
     const nombreLimpio = (session.nombre || 'sesion').trim().replace(/\s+/g, '-').toLowerCase() || 'sesion'
     const fecha = new Date().toISOString().slice(0, 10)
