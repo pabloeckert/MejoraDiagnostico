@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { PERFILES } from '@/lib/perfiles'
 import { calcularScores, detectarPerfil } from '@/lib/scoring'
 import { zonaColor } from '@/lib/areas'
+import { rateLimit } from '@/lib/rate-limit'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
@@ -13,6 +14,9 @@ const Schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    if (!rateLimit(req, 'save-completion', 6)) {
+      return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
+    }
     const d = Schema.parse(await req.json())
     const scores = calcularScores(d.respuestas)
     const perfil = detectarPerfil(scores)

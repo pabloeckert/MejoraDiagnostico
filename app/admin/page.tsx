@@ -2,27 +2,53 @@
 import { useState, useEffect } from 'react'
 import Dashboard from '@/components/admin/Dashboard'
 
-const ADMIN_PASSWORD = 'adminmc' // cambiar por una clave real
-
 export default function AdminPage() {
   const [autenticado, setAutenticado] = useState(false)
+  const [verificando, setVerificando] = useState(true)
   const [clave, setClave] = useState('')
-  const [error, setError] = useState(false)
-  const [mostrarClave, setMostrarClave] = useState(true)
+  const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [mostrarClave, setMostrarClave] = useState(false)
 
+  // Al montar, preguntamos al servidor si la cookie de sesión sigue válida.
   useEffect(() => {
-    const auth = sessionStorage.getItem('mc_admin_auth')
-    if (auth === 'true') setAutenticado(true)
+    fetch('/api/admin/login')
+      .then((r) => r.json())
+      .then((d) => setAutenticado(Boolean(d.autenticado)))
+      .catch(() => setAutenticado(false))
+      .finally(() => setVerificando(false))
   }, [])
 
-  const handleLogin = () => {
-    if (clave === ADMIN_PASSWORD) {
-      sessionStorage.setItem('mc_admin_auth', 'true')
-      setAutenticado(true)
-      setError(false)
-    } else {
-      setError(true)
+  const handleLogin = async () => {
+    if (!clave || enviando) return
+    setEnviando(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: clave }),
+      })
+      if (res.ok) {
+        setAutenticado(true)
+      } else if (res.status === 429) {
+        setError('Demasiados intentos. Esperá un minuto.')
+      } else {
+        setError('Contraseña incorrecta')
+      }
+    } catch {
+      setError('No se pudo conectar. Reintentá.')
+    } finally {
+      setEnviando(false)
     }
+  }
+
+  if (verificando) {
+    return (
+      <div className="min-h-screen bg-mc-azul flex items-center justify-center">
+        <p className="text-white text-sm">Cargando…</p>
+      </div>
+    )
   }
 
   if (!autenticado) {
@@ -49,12 +75,13 @@ export default function AdminPage() {
               {mostrarClave ? '🙈' : '👁️'}
             </button>
           </div>
-          {error && <p className="text-red-600 text-sm mb-3">Contraseña incorrecta</p>}
+          {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
           <button
             onClick={handleLogin}
-            className="w-full bg-mc-azul text-white font-bold py-3 rounded"
+            disabled={enviando}
+            className="w-full bg-mc-azul text-white font-bold py-3 rounded disabled:opacity-50"
           >
-            Entrar
+            {enviando ? 'Entrando…' : 'Entrar'}
           </button>
         </div>
       </div>

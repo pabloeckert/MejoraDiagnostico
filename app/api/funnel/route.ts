@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import type { sheets_v4 } from 'googleapis'
 import { PREGUNTAS } from '@/lib/preguntas'
+import { rateLimit } from '@/lib/rate-limit'
 
 const SHEET_NAME = 'Funnel'
 const SHEET_EVENTOS = 'Eventos'
@@ -144,6 +145,12 @@ export async function POST(req: NextRequest) {
   let evento = 'desconocido'
   let session_id = 'desconocido'
   try {
+    // Límite generoso: una sesión legítima dispara ~13 eventos; esto solo
+    // frena un abuso masivo desde una IP.
+    if (!rateLimit(req, 'funnel', 60)) {
+      return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
+    }
+
     if (
       !process.env.GOOGLE_SHEETS_ID ||
       !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||

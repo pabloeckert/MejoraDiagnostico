@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSheetsClient } from '@/lib/sheets'
+import { sesionValida } from '@/lib/admin-auth'
 import type { SessionRow, EventoRow } from '@/lib/admin'
 
 const SHEET_FUNNEL = 'Funnel'
@@ -49,6 +50,11 @@ function mapEvento(row: string[]): EventoRow | null {
 
 export async function GET(req: NextRequest) {
   try {
+    // Protección real: exige la cookie de sesión emitida por /api/admin/login.
+    if (!sesionValida(req)) {
+      return NextResponse.json({ ok: false, error: 'no_autorizado' }, { status: 401 })
+    }
+
     if (
       !process.env.GOOGLE_SHEETS_ID ||
       !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
@@ -56,14 +62,6 @@ export async function GET(req: NextRequest) {
     ) {
       console.error('admin/data: variables de entorno faltantes')
       return NextResponse.json({ ok: false, error: 'config' }, { status: 500 })
-    }
-
-    // Chequeo simple de origen — no bloqueante, la protección real es la
-    // contraseña del lado del cliente en /admin.
-    const origin = req.headers.get('origin') || req.headers.get('referer') || ''
-    const host = req.headers.get('host') || ''
-    if (origin && host && !origin.includes(host)) {
-      console.warn('admin/data: request desde origen inesperado:', origin)
     }
 
     const sheets = await getSheetsClient()

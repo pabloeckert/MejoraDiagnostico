@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { PERFILES } from '@/lib/perfiles'
 import { areasParaMostrar, zonaColor } from '@/lib/areas'
 import { calcularScores } from '@/lib/scoring'
+import { rateLimit } from '@/lib/rate-limit'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
@@ -28,6 +29,9 @@ function buildAreas(respuestas: number[]) {
 
 export async function POST(req: NextRequest) {
   try {
+    if (!rateLimit(req, 'send-email', 6)) {
+      return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
+    }
     const d = Schema.parse(await req.json())
     const perfil = PERFILES[d.perfil as keyof typeof PERFILES]
     if (!perfil) throw new Error('Perfil inválido: ' + d.perfil)

@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSheetsClient } from '@/lib/sheets'
+import { sesionValida } from '@/lib/admin-auth'
 
 const SHEET_FUNNEL = 'Funnel'
 const SHEET_EVENTOS = 'Eventos'
 
 export async function POST(req: NextRequest) {
   try {
+    // Exige sesión admin: borrar leads no puede ser una acción pública.
+    if (!sesionValida(req)) {
+      return NextResponse.json({ ok: false, error: 'no_autorizado' }, { status: 401 })
+    }
+
     if (
       !process.env.GOOGLE_SHEETS_ID ||
       !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||

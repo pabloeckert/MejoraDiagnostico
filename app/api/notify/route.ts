@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { PERFILES } from '@/lib/perfiles'
 import { sendTelegram } from '@/lib/telegram'
+import { rateLimit } from '@/lib/rate-limit'
 
 const Schema = z.object({
   nombre: z.string().min(1),
@@ -12,6 +13,9 @@ const Schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    if (!rateLimit(req, 'notify', 6)) {
+      return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
+    }
     const data = Schema.parse(await req.json())
     const perfil = PERFILES[data.perfil as keyof typeof PERFILES]
 

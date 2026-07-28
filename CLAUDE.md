@@ -80,10 +80,18 @@ El estado se maneja y persiste a través de `sessionStorage` desde `hooks/useDia
 - **`/api/save-completion`**: Recibe `{ respuestas, lid? }`. Envía email al admin con el reporte inicial. Inicializa Resend con fallback `|| 're_placeholder_for_build'` para builds sin env vars.
 - **`/api/send-email`**: Recibe formulario + respuestas. Envía reporte de lead completo al admin. Mismo fallback de Resend.
 - **`/api/notify`**: Envía mensaje de Telegram a Sindy vía Telegram Bot API. Se invoca al enviar el formulario en `/datos`.
-- **`/api/funnel`**: Actualiza el embudo en Google Sheets celda por celda usando `updateCell` (individual, no batch).
+- **`/api/funnel`**: Actualiza el embudo en Google Sheets usando `batchUpdate` (todas las celdas de un evento en una sola llamada, vía `batchUpdateCells`).
   - Col A: `sessionId` | B: `fecha` | C: `nombre` | D: `whatsapp` | E: `perfil` | F: `paso`
   - Cols G-N: `P1`-`P8` respuestas (texto completo de la opción seleccionada)
   - Col O: `resultado_visto` (`SÍ`/`NO`) | P: `abandono` | Q: `último timestamp` | R: `cta_click` (`SÍ`/`NO`)
+
+Las cuatro APIs públicas (`funnel`, `notify`, `send-email`, `save-completion`) están protegidas con rate limiting por IP (`lib/rate-limit.ts`, in-memory best-effort): `funnel` 60/min (una sesión legítima dispara ~13 eventos), el resto 6/min por disparar email/Telegram.
+
+### APIs y seguridad del admin
+
+- **`/api/admin/login`**: `POST` valida la contraseña server-side (comparación en tiempo constante) y emite una cookie httpOnly firmada con HMAC-SHA256 (`lib/admin-auth.ts`). `GET` informa si la cookie es válida (lo usa `/admin` al montar). `DELETE` cierra sesión. Rate limit 8/min.
+- **`/api/admin/data`** y **`/api/admin/delete-sessions`**: exigen `sesionValida(req)` (cookie del login) → `401` si falta. Antes eran públicas — nunca reintroducir esa exposición.
+- `app/admin/page.tsx` ya **no** compara la contraseña en el cliente; delega en `/api/admin/login`. `app/admin/layout.tsx` marca la sección `noindex`.
 
 ### `lib/funnel.ts`
 
@@ -105,12 +113,13 @@ GOOGLE_SHEETS_ID
 GOOGLE_SERVICE_ACCOUNT_EMAIL
 GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY   # con \n literales — el código hace .replace(/\\n/g, '\n')
 NEXT_PUBLIC_WA_NUMBER
+ADMIN_PASSWORD                       # contraseña del panel /admin (fallback server-side: 'AdminMC')
+ADMIN_SESSION_SECRET                 # secreto para firmar la cookie de sesión admin (opcional; deriva de ADMIN_PASSWORD si falta)
 ```
 
 ---
 
 ## Mejoras futuras recomendadas
 
-1. **Google Sheets batchUpdate:** Optimizar `/api/funnel/route.ts` para usar `spreadsheets.values.batchUpdate` en lugar de llamadas secuenciales `updateCell`. Reducirá latencia de red en móviles.
-2. **Revisar visualización de PDF:** Asegurar que `components/PDFButton.tsx` dibuja los colores del semáforo unificados según `lib/areas.ts`.
-3. **Persistencia fallback:** Evaluar cookies o `localStorage` temporal para prevenir pérdidas de estado en recargas móviles accidentales antes de llegar a `/datos`.
+1. **Rate limiting con store externo:** El actual (`lib/rate-limit.ts`) es in-memory y no comparte estado entre instancias serverless de Vercel. Para un límite estricto global, migrar a Upstash/Redis.
+2. **Persistencia fallback:** Evaluar cookies o `localStorage` temporal para prevenir pérdidas de estado en recargas móviles accidentales antes de llegar a `/datos`.
