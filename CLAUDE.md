@@ -12,6 +12,29 @@ npm run lint     # ESLint
 
 No hay suite de tests configurada (unit/integration). El README.md está desactualizado — no lo uses como fuente de verdad.
 
+## Deploy a producción
+
+Producción es **Vercel** (proyecto `mejoradiagnostico`, dominio `diagnostico.mejoraok.com`). El deploy es **automático por push a `main`** — no hay comando de deploy manual ni se usa el CLI de Vercel (no está logueado en la máquina de desarrollo). Las variables de entorno de producción viven en el dashboard de Vercel, **no** en `.env.local` (que localmente tiene las de Google en blanco).
+
+Flujo estándar para subir un cambio:
+
+```bash
+npm run build                      # 0 errores antes de commitear; si falla, NO commitear
+git add -A
+git commit -m "tipo: descripcion"  # commit único por cambio lógico; convención tipo: feat/fix/test/...
+git push origin main               # dispara el build+deploy en Vercel (~30s–3min)
+```
+
+Verificar que el deploy nuevo ya está live (sin acceso al dashboard) — pollear un marcador que solo exista en el commit recién subido, p. ej.:
+
+```bash
+P=https://diagnostico.mejoraok.com
+curl -s -o /dev/null -w "%{http_code}\n" $P/api/admin/data   # 401 = auth nueva ya desplegada
+curl -s -o /dev/null -w "%{http_code}\n" $P/robots.txt       # 200 = robots.ts ya desplegado
+```
+
+Validación end-to-end post-deploy: `npx tsx scripts/test-e2e-completo.ts` simula un diagnóstico completo **contra producción** (escribe en el Sheet real, dispara Telegram a Sindy y email vía Resend), verifica Funnel + Eventos y **limpia el Sheet al terminar**. Requiere el JSON de service account (`mejoraproyecto-*.json`, gitignored) en la raíz. Tras correrlo, confirmar Sheet vacío con `scripts/leer-ultima-fila.ts` y revisar que llegó **exactamente 1** mensaje de Telegram.
+
 ### Scripts de verificación (`scripts/`)
 
 No son parte de `npm run`, se ejecutan manualmente con `node` (requieren `npm run dev` corriendo en `localhost:3000`):
