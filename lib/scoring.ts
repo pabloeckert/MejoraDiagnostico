@@ -43,9 +43,12 @@ function estanParejas(scores: Scores, umbral = 12): boolean {
   return Math.max(...valores) - Math.min(...valores) <= umbral
 }
 
+// Solo se listan los pares dom/sec cuya resolución en detectarPerfil() realmente
+// depende de `posicion`. ["organizacional","personal"] fue removido a propósito:
+// detectarPerfil() resuelve ese orden exacto como EQUIPO_DESALINEADO sin mirar
+// `posicion` (ver más abajo), así que preguntarla ahí era fricción sin efecto.
 const PARES_AMBIGUOS: [Area, Area][] = [
   ["personal", "organizacional"],
-  ["organizacional", "personal"],
   ["comercial", "personal"],
   ["personal", "comercial"],
 ]
@@ -67,7 +70,7 @@ export function detectarPerfil(scores: Scores, posicion?: RespuestaPosicion): Pe
   if (dom === "empresarial" && sec === "personal") return "SATURADO"
   if (dom === "organizacional" && sec === "personal") return "EQUIPO_DESALINEADO"
 
-  if ((dom === "personal" && sec === "organizacional") || (dom === "organizacional" && sec === "personal")) {
+  if (dom === "personal" && sec === "organizacional") {
     if (posicion === "fundador") return "LIDER_QUE_NECESITA_APOYO"
     return "NUEVA_GENERACION"
   }

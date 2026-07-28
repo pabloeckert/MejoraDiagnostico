@@ -1,4 +1,5 @@
-import { calcularScores, detectarPerfil } from '../lib/scoring'
+import { calcularScores, detectarPerfil, requierePosicion } from '../lib/scoring'
+import type { RespuestaPosicion } from '../lib/preguntas'
 
 const PERFILES_ESPERADOS = [
   'SATURADO',
@@ -10,6 +11,12 @@ const PERFILES_ESPERADOS = [
   'AREA_COMERCIAL_SIN_RESULTADOS',
   'SIN_PROFESIONALIZAR_LA_EMPRESA',
 ]
+
+// Cuando el par de áreas débiles es ambiguo, el flujo real le pregunta la
+// posición al usuario — hay que probar las 3 respuestas posibles, si no,
+// cualquier perfil que solo se alcance vía `posicion` aparece como
+// "inalcanzable" de forma falsa.
+const POSICIONES: RespuestaPosicion[] = ['fundador', 'heredero', 'gerente']
 
 const conteo: Record<string, number> = {}
 const ejemplos: Record<string, number[]> = {}
@@ -27,10 +34,20 @@ for (let r6 = 1; r6 <= 4; r6++)
 for (let r7 = 1; r7 <= 4; r7++) {
   const r = [r0, r1, r2, r3, r4, r5, r6, r7]
   const scores = calcularScores(r)
-  const perfil = detectarPerfil(scores)
-  conteo[perfil] = (conteo[perfil] || 0) + 1
-  if (!ejemplos[perfil]) ejemplos[perfil] = r
-  total++
+
+  if (requierePosicion(scores)) {
+    for (const posicion of POSICIONES) {
+      const perfil = detectarPerfil(scores, posicion)
+      conteo[perfil] = (conteo[perfil] || 0) + 1
+      if (!ejemplos[perfil]) ejemplos[perfil] = r
+    }
+    total += POSICIONES.length
+  } else {
+    const perfil = detectarPerfil(scores)
+    conteo[perfil] = (conteo[perfil] || 0) + 1
+    if (!ejemplos[perfil]) ejemplos[perfil] = r
+    total++
+  }
 }
 
 console.log('\n=== VALIDACIÓN EXHAUSTIVA — 65.536 combinaciones ===\n')
