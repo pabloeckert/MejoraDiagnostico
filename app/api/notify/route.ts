@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { PERFILES } from '@/lib/perfiles'
 import { sendTelegram } from '@/lib/telegram'
 import { rateLimit } from '@/lib/rate-limit'
+import { escapeHtml } from '@/lib/sanitize'
 
 const Schema = z.object({
   nombre: z.string().min(1),
@@ -22,10 +23,10 @@ export async function POST(req: NextRequest) {
     const mensaje = `
 🔔 <b>Nuevo diagnóstico completado</b>
 
-👤 <b>Nombre:</b> ${data.nombre}
-📱 <b>WhatsApp:</b> ${data.codPais}${data.whatsapp}
-🎯 <b>Perfil:</b> ${perfil?.tag ?? data.perfil}
-💬 <b>Ref:</b> ${perfil?.ref ?? ''}
+👤 <b>Nombre:</b> ${escapeHtml(data.nombre)}
+📱 <b>WhatsApp:</b> ${escapeHtml(data.codPais)}${escapeHtml(data.whatsapp)}
+🎯 <b>Perfil:</b> ${escapeHtml(perfil?.tag ?? data.perfil)}
+💬 <b>Ref:</b> ${escapeHtml(perfil?.ref ?? '')}
 
 <i>El usuario está esperando tu contacto.</i>
     `.trim()

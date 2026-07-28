@@ -1,11 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
 import type { sheets_v4 } from 'googleapis'
+import { z } from 'zod'
 import { PREGUNTAS } from '@/lib/preguntas'
 import { rateLimit } from '@/lib/rate-limit'
 
 const SHEET_NAME = 'Funnel'
 const SHEET_EVENTOS = 'Eventos'
+
+// Permisivo a propósito: cada tipo de evento manda un subconjunto distinto de
+// campos (ver lib/funnel.ts y los `trackFunnel(...)` en app/**). Solo se
+// acotan tipo y tamaño para bloquear payloads con forma inesperada — el
+// switch de abajo ya ignora cualquier campo que no reconozca.
+const FunnelSchema = z.object({
+  session_id: z.string().min(1).max(200),
+  visitor_id: z.string().max(200).optional(),
+  evento: z.string().min(1).max(60),
+  timestamp: z.string().max(60).optional(),
+  nombre: z.string().max(200).optional(),
+  whatsapp: z.string().max(50).optional(),
+  perfil: z.string().max(60).optional(),
+  respuestas: z.array(z.number()).max(8).optional(),
+  paso: z.string().max(60).optional(),
+  referrer: z.string().max(500).optional(),
+  utm_source: z.string().max(200).optional(),
+  utm_campaign: z.string().max(200).optional(),
+  origen: z.string().max(200).optional(),
+  dispositivo: z.string().max(30).optional(),
+  numero: z.number().optional(),
+  tiempos: z.array(z.number()).max(20).optional(),
+  pasoRetomado: z.string().max(60).optional(),
+  segundos: z.number().optional(),
+  valor: z.number().optional(),
+}).passthrough()
 
 function textoRespuesta(preguntaIdx: number, valor: number): string {
   const opcion = PREGUNTAS[preguntaIdx]?.opciones.find(o => o.valor === valor)
@@ -160,26 +187,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'config' }, { status: 500 })
     }
 
-    const body = await req.json()
+    const parsed = FunnelSchema.safeParse(await req.json())
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: 'payload_invalido' }, { status: 400 })
+    }
     const {
       session_id: sid, evento: ev, timestamp, nombre, whatsapp, perfil, respuestas, paso,
       visitor_id, referrer, utm_source, dispositivo, numero, tiempos, pasoRetomado,
       segundos, valor,
-    } = body
-    session_id = sid ?? 'desconocido'
-    evento = ev ?? 'desconocido'
-    if (!sid) return NextResponse.json({ ok: false })
+    } = parsed.data
+    session_id = sid
+    evento = ev
 
     const sheets = await getSheets()
     let row = await findRow(sheets, session_id)
 
     if (!row) {
-      await createRow(sheets, session_id, timestamp)
+      await createRow(sheets, session_id, timestamp ?? '')
       row = await findRow(sheets, session_id)
     }
     if (!row) return NextResponse.json({ ok: false })
 
-    const updates: Record<string, string> = { Q: timestamp }
+    const updates: Record<string, string> = { Q: timestamp ?? '' }
     const origen = `${referrer || ''} ${utm_source ? '(' + utm_source + ')' : ''}`.trim()
 
     switch (evento) {
@@ -235,8 +264,8 @@ export async function POST(req: NextRequest) {
     if (evento === 'formulario_completado' && whatsapp) {
       const yaCompletado = await buscarCompletadoPrevio(sheets, whatsapp, session_id)
       if (yaCompletado) {
-        await batchUpdateCells(sheets, row, { F: 'duplicado_bloqueado', Q: timestamp })
-        registrarEvento(sheets, session_id, visitor_id, evento, 'duplicado_bloqueado', timestamp)
+        await batchUpdateCells(sheets, row, { F: 'duplicado_bloqueado', Q: timestamp ?? '' })
+        registrarEvento(sheets, session_id, visitor_id ?? '', evento, 'duplicado_bloqueado', timestamp ?? '')
         return NextResponse.json({ ok: true, duplicado: true })
       }
     }
@@ -246,7 +275,7 @@ export async function POST(req: NextRequest) {
     const detalle = construirDetalle(evento, {
       nombre, whatsapp, numero, segundos, valor, tiempos, paso, pasoRetomado, dispositivo, origen,
     })
-    registrarEvento(sheets, session_id, visitor_id, evento, detalle, timestamp)
+    registrarEvento(sheets, session_id, visitor_id ?? '', evento, detalle, timestamp ?? '')
 
     console.log('Funnel OK:', evento, session_id)
     return NextResponse.json({ ok: true, duplicado: false })

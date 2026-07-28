@@ -3,26 +3,46 @@ import { useState, useEffect } from 'react'
 import { PERFILES } from '@/lib/perfiles'
 import type { PerfilKey } from '@/lib/scoring'
 
-const PREVIEW_PASSWORD = 'adminmc' // cambiar por una clave real
-
+// Reutiliza la misma cookie de sesión que /admin (server-side, HMAC-firmada)
+// en vez de una contraseña hardcodeada en el bundle del cliente — antes
+// cualquiera podía leer 'adminmc' con DevTools y entrar sin autenticarse.
 export default function PreviewPage() {
   const [autenticado, setAutenticado] = useState(false)
+  const [verificando, setVerificando] = useState(true)
   const [clave, setClave] = useState('')
-  const [error, setError] = useState(false)
+  const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
   const [mostrarClave, setMostrarClave] = useState(true)
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('mc_preview_auth')
-    if (auth === 'true') setAutenticado(true)
+    fetch('/api/admin/login')
+      .then((r) => r.json())
+      .then((d) => setAutenticado(Boolean(d.autenticado)))
+      .catch(() => setAutenticado(false))
+      .finally(() => setVerificando(false))
   }, [])
 
-  const handleLogin = () => {
-    if (clave === PREVIEW_PASSWORD) {
-      sessionStorage.setItem('mc_preview_auth', 'true')
-      setAutenticado(true)
-      setError(false)
-    } else {
-      setError(true)
+  const handleLogin = async () => {
+    if (!clave || enviando) return
+    setEnviando(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: clave }),
+      })
+      if (res.ok) {
+        setAutenticado(true)
+      } else if (res.status === 429) {
+        setError('Demasiados intentos. Esperá un minuto.')
+      } else {
+        setError('Contraseña incorrecta')
+      }
+    } catch {
+      setError('No se pudo conectar. Reintentá.')
+    } finally {
+      setEnviando(false)
     }
   }
 
@@ -36,6 +56,14 @@ export default function PreviewPage() {
       datos: { nombre: 'Vista Previa', codPais: '+54', whatsapp: '000000000' },
     }))
     window.open('/resultado', '_blank')
+  }
+
+  if (verificando) {
+    return (
+      <div className="min-h-screen bg-mc-azul flex items-center justify-center">
+        <p className="text-white text-sm">Cargando…</p>
+      </div>
+    )
   }
 
   if (!autenticado) {
@@ -62,12 +90,13 @@ export default function PreviewPage() {
               {mostrarClave ? '🙈' : '👁️'}
             </button>
           </div>
-          {error && <p className="text-red-600 text-sm mb-3">Contraseña incorrecta</p>}
+          {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
           <button
             onClick={handleLogin}
-            className="w-full bg-mc-azul text-white font-bold py-3 rounded"
+            disabled={enviando}
+            className="w-full bg-mc-azul text-white font-bold py-3 rounded disabled:opacity-60"
           >
-            Entrar
+            {enviando ? 'Verificando…' : 'Entrar'}
           </button>
         </div>
       </div>
@@ -102,7 +131,7 @@ export default function PreviewPage() {
       </div>
 
       <button
-        onClick={() => { sessionStorage.removeItem('mc_preview_auth'); setAutenticado(false); }}
+        onClick={() => { fetch('/api/admin/login', { method: 'DELETE' }).finally(() => setAutenticado(false)) }}
         className="mt-8 text-sm text-gray-500 underline"
       >
         Cerrar sesión de preview

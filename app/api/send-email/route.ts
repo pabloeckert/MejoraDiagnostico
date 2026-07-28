@@ -5,6 +5,8 @@ import { PERFILES } from '@/lib/perfiles'
 import { areasParaMostrar, zonaColor } from '@/lib/areas'
 import { calcularScores } from '@/lib/scoring'
 import { rateLimit } from '@/lib/rate-limit'
+import { escapeHtml } from '@/lib/sanitize'
+import { enviarConReintento } from '@/lib/resend-retry'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
@@ -40,11 +42,16 @@ export async function POST(req: NextRequest) {
     const total = d.respuestas.reduce((a, b) => a + b, 0)
     const areasTxt = areas.map(a => `  ${a.nombre}: ${a.pct}% — ${a.zona}`).join('\n')
 
+    const nombre = escapeHtml(d.nombre)
+    const apellido = escapeHtml(d.apellido)
+    const empresa = escapeHtml(d.empresa)
+    const whatsapp = escapeHtml(`${d.codPais}${d.whatsapp}`)
+
     const adminHtml = `
-<h2>Nuevo lead: ${d.nombre} ${d.apellido} — ${perfil.tag}</h2>
+<h2>Nuevo lead: ${nombre} ${apellido} — ${perfil.tag}</h2>
 <table>
-  <tr><td><b>WhatsApp</b></td><td>${d.codPais}${d.whatsapp}</td></tr>
-  <tr><td><b>Empresa</b></td><td>${d.empresa || '—'}</td></tr>
+  <tr><td><b>WhatsApp</b></td><td>${whatsapp}</td></tr>
+  <tr><td><b>Empresa</b></td><td>${empresa || '—'}</td></tr>
   <tr><td><b>Perfil</b></td><td>${perfil.tag}</td></tr>
   <tr><td><b>Puntaje</b></td><td>${total}/32</td></tr>
 </table>
@@ -58,10 +65,10 @@ export async function POST(req: NextRequest) {
 <p><b>${perfil.verdad}</b></p>
 `
 
-    await resend.emails.send({
+    await enviarConReintento(resend, {
       from: 'Mejora Continua <diagnostico@mejoraok.com>',
       to: 'diagnostico@mejoraok.com',
-      subject: `Nuevo lead: ${d.nombre} — ${perfil.tag}`,
+      subject: `Nuevo lead: ${nombre} — ${perfil.tag}`,
       html: adminHtml,
     })
 
