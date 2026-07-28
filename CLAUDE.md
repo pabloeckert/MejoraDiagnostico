@@ -54,7 +54,7 @@ Next.js 14.2.35 (App Router) · React 18 · TypeScript · Tailwind CSS v3 · Res
 
 App de diagnóstico empresarial de una sola pasada: el usuario responde 8 preguntas (más una 9ª opcional de posición) → ingresa sus datos → ve el resultado completo. Rutas: `/` → `/diagnostico` → `/datos` → `/resultado`. Existe también `/privacidad` (página estática) y `/gracias` (página final post-CTA).
 
-`app/preview/page.tsx` es una herramienta interna: previsualiza cómo se ve `/resultado` para cada uno de los 8 perfiles sin completar el diagnóstico real (inyecta scores dummy en `sessionStorage` y abre `/resultado` en una pestaña nueva). Gateada por una contraseña hardcodeada en el cliente (`PREVIEW_PASSWORD`) — no es seguridad real, solo fricción para no exponerla casualmente.
+`app/preview/page.tsx` es una herramienta interna: previsualiza cómo se ve `/resultado` para cada uno de los 8 perfiles sin completar el diagnóstico real (inyecta scores dummy en `sessionStorage` y abre `/resultado` en una pestaña nueva). Requiere la misma cookie de sesión server-side que `/admin` (reutiliza `/api/admin/login`, ya no tiene contraseña hardcodeada en el cliente) y está bloqueada en `robots.ts`. Ojo: tocar el CTA de WhatsApp desde una preview dispara un `/api/notify` y un registro de Sheets **reales** — no es un mock.
 
 Todas las páginas de usuario son `'use client'` — no hay Server Components en las rutas.
 
@@ -86,7 +86,7 @@ El estado se maneja y persiste a través de `sessionStorage` desde `hooks/useDia
 
 - **`lib/scoring.ts`**: núcleo de la lógica de evaluación.
   - `calcularScores(respuestas)` → `Scores` (objeto con 4 áreas en porcentaje 0-100, usando ponderación 70%/30% dominante/secundaria).
-  - `requierePosicion(scores)` → `boolean` — `true` cuando las áreas más débiles forman un par ambiguo que requiere saber el rol del usuario para distinguir perfil.
+  - `requierePosicion(scores)` → `boolean` — `true` cuando las áreas más débiles forman un par ambiguo que requiere saber el rol del usuario para distinguir perfil. `PARES_AMBIGUOS` solo lista los pares dom/sec cuya resolución en `detectarPerfil` depende realmente de `posicion` — no agregar `["organizacional","personal"]` de vuelta ahí (ver comentario en el código): ese orden se resuelve como `EQUIPO_DESALINEADO` sin mirar `posicion`, agregarlo vuelve a preguntar la 9ª pregunta de más al ~17% de los usuarios sin cambiar el resultado.
   - `detectarPerfil(scores, posicion?)` → `PerfilKey` — determina el perfil final con reglas de prioridad sobre los scores y la posición.
   - `areasMasDebiles(scores)` → `[Area, Area]` — las dos áreas con menor puntaje.
   - Tipos exportados: `Area` (`"personal" | "organizacional" | "comercial" | "empresarial"`), `Scores`, `PerfilKey`.
@@ -103,13 +103,15 @@ El estado se maneja y persiste a través de `sessionStorage` desde `hooks/useDia
 ### APIs server-side
 
 - **`/api/save-completion`**: Recibe `{ respuestas, lid? }`. Envía email al admin con el reporte inicial. Inicializa Resend con fallback `|| 're_placeholder_for_build'` para builds sin env vars.
-- **`/api/send-email`**: Recibe formulario + respuestas. Envía reporte de lead completo al admin. Mismo fallback de Resend.
-- **`/api/notify`**: Envía mensaje de Telegram a Sindy vía Telegram Bot API. Se invoca al enviar el formulario en `/datos`.
-- **`/api/funnel`**: Actualiza el embudo en Google Sheets usando `batchUpdate` (todas las celdas de un evento en una sola llamada, vía `batchUpdateCells`). Escribe en dos hojas:
+- **`/api/send-email`**: Recibe formulario + respuestas. Envía reporte de lead completo al admin. Mismo fallback de Resend. `nombre`/`apellido`/`empresa`/`whatsapp` se escapan con `escapeHtml` (`lib/sanitize.ts`) antes de interpolarse en el HTML del email.
+- **`/api/notify`**: Envía mensaje de Telegram a Sindy vía Telegram Bot API. Se invoca al enviar el formulario en `/datos`. Mismo escapado de `nombre`/`whatsapp`/`perfil` antes de interpolarse en el mensaje (`parse_mode: 'HTML'`).
+- **`/api/funnel`**: Valida el body con Zod (`FunnelSchema`, permisivo con `.passthrough()` ya que cada evento manda un subconjunto distinto de campos — ver `lib/funnel.ts` y los `trackFunnel(...)` en `app/**`). Actualiza el embudo en Google Sheets usando `batchUpdate` (todas las celdas de un evento en una sola llamada, vía `batchUpdateCells`). Escribe en dos hojas:
   - **Funnel** (`A1:W1`, 23 columnas — schema fijado por `scripts/fix-headers.ts`): `session_id, fecha_inicio, nombre, whatsapp, perfil, paso, p1..p8, resultado_visto, abandono_en, ultimo_update, cta_click, visitor_id, origen, dispositivo, tiempos_preguntas, retomado`. Es el estado agregado por sesión (una fila por `session_id`, se actualiza in-place).
   - **Eventos** (`A1:E1`): `timestamp, visitor_id, session_id, evento, detalle` — log granular, una fila por evento (más fino que el estado agregado de Funnel).
 
 Las cuatro APIs públicas (`funnel`, `notify`, `send-email`, `save-completion`) están protegidas con rate limiting por IP (`lib/rate-limit.ts`, in-memory best-effort): `funnel` 60/min (una sesión legítima dispara ~13 eventos), el resto 6/min por disparar email/Telegram.
+
+**Resiliencia ante fallas transitorias**: `sendTelegram` (`lib/telegram.ts`) y el envío de email vía `enviarConReintento` (`lib/resend-retry.ts`, usado por `send-email` y `save-completion`) reintentan una vez con backoff de 500ms antes de darse por vencidos. `enviarConReintento` además chequea el campo `error` que devuelve el SDK de Resend (no siempre tira excepción ante una falla de la API — sin este chequeo la falla quedaba silenciosa). Aun así, `/datos` sigue llamando a `send-email`/`notify` en catches silenciosos del lado del cliente — si ambos reintentos fallan, el usuario avanza a `/resultado` igual y el lead no queda alertado por ningún canal (limitación conocida, ver "Mejoras futuras").
 
 ### APIs y seguridad del admin
 
@@ -127,6 +129,10 @@ El dashboard (`components/admin/Dashboard.tsx`) tiene 3 tabs (General / Detalle 
 ### `lib/funnel.ts`
 
 Cliente de tracking. `trackFunnel(evento, datos?)` envía fire-and-forget a `/api/funnel`. `getSessionId()` genera un `sessionId` (`crypto.randomUUID()`) persistido en `sessionStorage` bajo `mc_session_id`. `getVisitorId()` genera/persiste un `visitor_id` en `localStorage` (`mc_visitor_id`) para identificar al visitante entre sesiones distintas. `getContextoLanding()` lee `referrer`, `utm_source`, `utm_campaign` y si el user agent es mobile/desktop, usado para poblar `origen`/`dispositivo` en la hoja Funnel.
+
+## Seguridad
+
+`next.config.js` agrega headers de seguridad básicos a todas las respuestas vía `headers()`: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (bloquea cámara/micrófono/geolocalización). No hay CSP — la app usa bastante inline/hidratación de Next y no se armó con cuidado para no romper nada sin poder probarlo a fondo.
 
 ## Diseño y Estilos
 
@@ -154,3 +160,6 @@ ADMIN_SESSION_SECRET                 # secreto para firmar la cookie de sesión 
 
 1. **Rate limiting con store externo:** El actual (`lib/rate-limit.ts`) es in-memory y no comparte estado entre instancias serverless de Vercel. Para un límite estricto global, migrar a Upstash/Redis.
 2. **Persistencia fallback:** Evaluar cookies o `localStorage` temporal para prevenir pérdidas de estado en recargas móviles accidentales antes de llegar a `/datos`.
+3. **`xlsx` sin fix upstream:** el paquete usado en `ExportPanel` (admin) tiene una vulnerabilidad conocida (prototype pollution/ReDoS) sin parche disponible de SheetJS. Evaluar migrar a `exceljs`.
+4. **Alertar cuando falla todo el camino de notificación:** si en `/datos` fallan tanto `send-email` como `notify` después de sus reintentos, hoy no hay ningún canal de alerta (el usuario igual avanza a `/resultado`). Evaluar un fallback (ej. un mensaje de Telegram de "emergencia" separado, o un error-tracking tipo Sentry).
+5. **Race condition en `/api/funnel`:** `findRow` + `createRow` no es atómico — eventos casi simultáneos para una sesión nueva pueden crear filas duplicadas en la hoja Funnel. Es un problema de calidad de datos de analytics, no bloquea el flujo del usuario.
