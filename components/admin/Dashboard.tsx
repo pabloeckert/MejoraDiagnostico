@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   calcularEstado,
   filtrarSesionesPorRango,
@@ -11,9 +11,8 @@ import {
 } from '@/lib/admin'
 import type { SessionRow, EventoRow, RangoFecha, EstadoSesion } from '@/lib/admin'
 import { DATOS_DEMO, DATOS_DEMO_EVENTOS } from '@/lib/admin-demo-data'
-import StatsCards from './StatsCards'
-import FunnelBarChart from './FunnelBarChart'
-import ProfilePieChart from './ProfilePieChart'
+import { generarInfografiaGeneral } from '@/lib/admin-pdf'
+import InfografiaGeneral from './InfografiaGeneral'
 import SessionsTable from './SessionsTable'
 import SessionDetailModal from './SessionDetailModal'
 import ExportPanel from './ExportPanel'
@@ -52,6 +51,8 @@ export default function Dashboard() {
   const [tab, setTab] = useState<'general' | 'detalle' | 'exportacion'>('general')
   const [modoDemo, setModoDemo] = useState(false)
   const [mostrarTour, setMostrarTour] = useState(false)
+  const [generandoInfografia, setGenerandoInfografia] = useState(false)
+  const infografiaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!localStorage.getItem('mc_admin_tour_visto')) setMostrarTour(true)
@@ -138,6 +139,22 @@ export default function Dashboard() {
     () => (detalleSessionId ? eventosActivas.filter((e) => e.session_id === detalleSessionId) : []),
     [eventosActivas, detalleSessionId]
   )
+  const sesionDetalle = useMemo(
+    () => (detalleSessionId ? sessionsActivas.find((s) => s.session_id === detalleSessionId) ?? null : null),
+    [sessionsActivas, detalleSessionId]
+  )
+
+  const handleDescargarInfografia = async () => {
+    if (!infografiaRef.current) return
+    setGenerandoInfografia(true)
+    try {
+      await generarInfografiaGeneral(infografiaRef.current)
+    } catch (e) {
+      console.error('Error generando infografía:', e)
+    } finally {
+      setGenerandoInfografia(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-mc-gris-claro">
@@ -186,6 +203,13 @@ export default function Dashboard() {
           </div>
           {tab === 'general' && (
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleDescargarInfografia}
+                disabled={generandoInfografia}
+                className="text-xs font-semibold px-3 py-2 rounded bg-mc-gris-claro text-mc-gris disabled:opacity-50"
+              >
+                {generandoInfografia ? 'Generando…' : '📊 Descargar infografía'}
+              </button>
               {RANGOS.map((r) => (
                 <button
                   key={r.key}
@@ -213,7 +237,8 @@ export default function Dashboard() {
         <div key={tab} className="animate-fade-up space-y-8">
           {tab === 'general' && (
             <section className="space-y-4">
-              <StatsCards
+              <InfografiaGeneral
+                ref={infografiaRef}
                 tarjetas={[
                   { label: 'Visitas', valor: String(visitas) },
                   { label: 'Iniciaron', valor: String(iniciaron) },
@@ -221,11 +246,9 @@ export default function Dashboard() {
                   { label: 'Tasa de conversión', valor: tasaConversion },
                   { label: 'Tiempo promedio sesión completa', valor: tiempoPromedio },
                 ]}
+                etapas={etapas}
+                perfiles={perfiles}
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FunnelBarChart etapas={etapas} />
-                <ProfilePieChart datos={perfiles} />
-              </div>
             </section>
           )}
 
@@ -271,8 +294,9 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {detalleSessionId && (
+      {detalleSessionId && sesionDetalle && (
         <SessionDetailModal
+          session={sesionDetalle}
           sessionId={detalleSessionId}
           eventos={eventosDetalle}
           onClose={() => setDetalleSessionId(null)}
