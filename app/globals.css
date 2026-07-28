@@ -27,7 +27,7 @@ body {
   font-family: 'Bw Modelica', var(--font-league-spartan), 'League Spartan', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
 

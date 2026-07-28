@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cargarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel } from '@/lib/funnel'
@@ -16,13 +16,24 @@ export default function ResultadoPage() {
   const [momento, setMomento] = useState<'A' | 'B'>('A')
   const [transicion, setTransicion] = useState<'idle' | 'out' | 'in'>('idle')
   const [mostrarScrollHint, setMostrarScrollHint] = useState(true)
+  const yaLlegoAlFinal = useRef(false)
 
   useEffect(() => {
     const onScroll = () => {
-      if (window.scrollY > 40) setMostrarScrollHint(false)
+      if (yaLlegoAlFinal.current) return
+      const cercaDelFinal = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 24
+      if (cercaDelFinal) {
+        yaLlegoAlFinal.current = true
+        setMostrarScrollHint(false)
+      }
     }
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [])
 
   useEffect(() => {
@@ -186,13 +197,14 @@ export default function ResultadoPage() {
         {/* Header */}
         <div className="max-w-4xl mx-auto px-10 py-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-color.png" alt="Mejora Continua" className="h-9 object-contain" />
+          <img src="/logo-color.png" alt="Mejora Continua" className="h-16 object-contain" />
         </div>
 
         {mostrarScrollHint && (
-          <div className="fixed bottom-0 left-0 right-0 z-10 hidden lg:flex justify-center items-end pb-3 pt-10 pointer-events-none transition-opacity duration-500"
-               style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.95), transparent)' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-mc-gris animate-bounce">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 hidden lg:flex flex-col items-center gap-1 px-6 py-3 rounded-sm pointer-events-none transition-opacity duration-500"
+               style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.92), transparent)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-mc-gris">Seguí bajando</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-mc-gris">
               <path d="M12 5v14M19 12l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
