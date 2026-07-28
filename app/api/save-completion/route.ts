@@ -5,6 +5,7 @@ import { PERFILES } from '@/lib/perfiles'
 import { calcularScores, detectarPerfil } from '@/lib/scoring'
 import { zonaColor } from '@/lib/areas'
 import { rateLimit } from '@/lib/rate-limit'
+import { enviarConReintento } from '@/lib/resend-retry'
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
       })
       .join('')
 
-    await resend.emails.send({
+    await enviarConReintento(resend, {
       from: 'Mejora Continua <diagnostico@mejoraok.com>',
       to: 'diagnostico@mejoraok.com',
       subject: `🔔 Diagnóstico completado`,
