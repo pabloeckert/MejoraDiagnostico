@@ -132,7 +132,7 @@ export default function ResultadoPage() {
         {/* MOMENTO B — data completa */}
         {momento === 'B' && (
           <div
-            className="h-[100dvh] overflow-y-auto bg-white"
+            className="h-[100dvh] overflow-y-auto overscroll-y-contain bg-white"
             style={{ animation: transicion === 'in' ? 'slideInRight 0.35s ease forwards' : 'none' }}
           >
             <div className="px-6 py-8 max-w-lg">

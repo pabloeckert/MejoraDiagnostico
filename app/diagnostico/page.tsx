@@ -200,7 +200,7 @@ export default function DiagnosticoPage() {
   if (paso === 'nombre') {
     return (
       <DesktopLayout leftContent={<LeftPanel step="nombre" />}>
-        <div className="min-h-[100dvh] flex flex-col overflow-y-auto">
+        <div className="min-h-[100dvh] flex flex-col overflow-y-auto overscroll-y-contain">
           {mobileHeader}
 
           <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 flex flex-col gap-6">
@@ -258,7 +258,7 @@ export default function DiagnosticoPage() {
         <div className="h-[100dvh] flex flex-col">
           {mobileHeader}
 
-          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-20 pb-32 lg:pb-12 flex-1 overflow-y-auto overscroll-y-contain">
             <div className={
               transition === 'out' ? 'animate-slide-out-left' :
               transition === 'in'  ? 'animate-slide-in-right' : ''
@@ -343,7 +343,7 @@ export default function DiagnosticoPage() {
         {mobileHeader}
 
         <div
-          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-6 pb-32 lg:pb-4 flex-1 lg:flex-none overflow-y-auto"
+          className="max-w-2xl mx-auto w-full px-6 pt-4 sm:pt-6 lg:px-16 lg:py-6 pb-32 lg:pb-4 flex-1 lg:flex-none overflow-y-auto overscroll-y-contain"
           onScroll={(e) => {
             if (e.currentTarget.scrollTop > 20) setShowScrollHint(false)
             else setShowScrollHint(true)
