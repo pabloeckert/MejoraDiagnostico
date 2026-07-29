@@ -22,8 +22,9 @@ Flujo estándar para subir un cambio:
 npm run build                      # 0 errores antes de commitear; si falla, NO commitear
 git add -A
 git commit -m "tipo: descripcion"  # commit único por cambio lógico; convención tipo: feat/fix/test/...
-git push origin main               # dispara el build+deploy en Vercel (~30s–3min)
 ```
+
+**`.git/hooks/post-commit` pushea solo a `origin main` tras cada commit en esa rama** — no hace falta correr `git push` a mano, ya dispara el build+deploy en Vercel (~30s–3min) en el momento del commit. Si se hacen varios commits lógicos seguidos, cada uno dispara su propio push/deploy (Vercel cancela los builds viejos a favor del último).
 
 Verificar que el deploy nuevo ya está live (sin acceso al dashboard) — pollear un marcador que solo exista en el commit recién subido, p. ej.:
 
@@ -34,6 +35,8 @@ curl -s -o /dev/null -w "%{http_code}\n" $P/robots.txt       # 200 = robots.ts y
 ```
 
 Validación end-to-end post-deploy: `npx tsx scripts/test-e2e-completo.ts` simula un diagnóstico completo **contra producción** (escribe en el Sheet real, dispara Telegram a Sindy y email vía Resend), verifica Funnel + Eventos y **limpia el Sheet al terminar**. Requiere el JSON de service account (`mejoraproyecto-*.json`, gitignored) en la raíz. Tras correrlo, confirmar Sheet vacío con `scripts/leer-ultima-fila.ts` y revisar que llegó **exactamente 1** mensaje de Telegram.
+
+Última corrida completa (12/12 checks) el 2026-07-28, después del hardening de esa fecha (fix de `PARES_AMBIGUOS` en scoring, sanitización de email/Telegram, Zod en `/api/funnel`, reintentos de Resend/Telegram, `/preview` con auth server-side).
 
 ### Scripts de verificación (`scripts/`)
 
