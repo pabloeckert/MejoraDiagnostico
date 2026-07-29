@@ -146,6 +146,23 @@ export function distribucionPerfiles(sessions: SessionRow[]): DistribucionPerfil
   return Array.from(conteo.entries()).map(([perfil, cantidad]) => ({ perfil, cantidad }))
 }
 
+// El registro granular de Eventos guarda cada `pregunta_respondida` con su
+// número y valor elegido en `detalle` (ver construirDetalle en
+// app/api/funnel/route.ts) apenas se responde — a diferencia de las columnas
+// p1..p8 de Funnel, que solo se completan en bloque al terminar las 8. Esto
+// es lo único que permite reconstruir qué respondió alguien que abandonó a mitad de camino.
+export function parsearRespuestasDeEventos(eventos: EventoRow[]): Map<number, number> {
+  const respuestas = new Map<number, number>()
+  const ordenados = [...eventos].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))
+  for (const e of ordenados) {
+    if (e.evento !== 'pregunta_respondida') continue
+    const m = e.detalle.match(/pregunta (\d+) · \d+s · valor (\d+)/)
+    if (!m) continue
+    respuestas.set(Number(m[1]), Number(m[2]))
+  }
+  return respuestas
+}
+
 // Columnas disponibles para el panel de exportación (D). Las primeras
 // coinciden con la tabla del grid (C3); el resto son columnas crudas del
 // Sheet, disponibles pero apagadas por defecto.

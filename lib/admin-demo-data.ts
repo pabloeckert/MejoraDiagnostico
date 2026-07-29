@@ -115,6 +115,26 @@ export const DATOS_DEMO: SessionRow[] = [
   },
 ]
 
+// Réplica de construirDetalle('pregunta_respondida', ...) en app/api/funnel/route.ts —
+// es lo que permite reconstruir en la vista previa qué respondió cada sesión
+// en curso/abandonada, ya que esas columnas p1..p8 de Funnel solo se llenan
+// al completar las 8 preguntas.
+function sesion(id: string): SessionRow {
+  return DATOS_DEMO.find((s) => s.session_id === id)!
+}
+
+function eventoPregunta(sessionId: string, numero: number, valor: number, segundosAntesDelUltimoUpdate: number): EventoRow {
+  const s = sesion(sessionId)
+  const timestamp = new Date(Date.parse(s.ultimo_update) - segundosAntesDelUltimoUpdate * 1000).toISOString()
+  return {
+    timestamp,
+    visitor_id: s.visitor_id,
+    session_id: s.session_id,
+    evento: 'pregunta_respondida',
+    detalle: `pregunta ${numero} · ${10 + numero}s · valor ${valor}`,
+  }
+}
+
 // Un evento 'landing' por cada sesión demo, más algunas visitas anónimas que
 // nunca llegaron a ingresar su nombre — para que el embudo muestre caída real.
 export const DATOS_DEMO_EVENTOS: EventoRow[] = [
@@ -128,4 +148,17 @@ export const DATOS_DEMO_EVENTOS: EventoRow[] = [
   { timestamp: hace(6 * HORA), visitor_id: 'demo_v_011', session_id: 'demo_land_011', evento: 'landing', detalle: 'Mobile · instagram' },
   { timestamp: hace(1 * DIA + 3 * HORA), visitor_id: 'demo_v_012', session_id: 'demo_land_012', evento: 'landing', detalle: 'Desktop · directo' },
   { timestamp: hace(2 * DIA + 5 * HORA), visitor_id: 'demo_v_013', session_id: 'demo_land_013', evento: 'landing', detalle: 'Mobile · referido' },
+
+  // demo_005 (Julián Ferreyra) — en curso, quedó en pregunta_3: respondió 1 y 2.
+  eventoPregunta('demo_005', 1, 2, 60), eventoPregunta('demo_005', 2, 3, 45),
+  // demo_006 (Sofía Maldonado) — en curso, quedó en pregunta_6: respondió 1 a 5.
+  eventoPregunta('demo_006', 1, 1, 90), eventoPregunta('demo_006', 2, 2, 78), eventoPregunta('demo_006', 3, 3, 65),
+  eventoPregunta('demo_006', 4, 4, 52), eventoPregunta('demo_006', 5, 1, 40),
+  // demo_007 (Emiliano Godoy) — recién ingresó el nombre, sin preguntas respondidas.
+  // demo_008 (Camila Rojas) — abandonó en pregunta_2: respondió solo la 1.
+  eventoPregunta('demo_008', 1, 2, 30),
+  // demo_009 (Nahuel Ibarra) — completó las 8 pero abandonó antes del formulario.
+  ...[2, 1, 2, 1, 1, 2, 1, 2].map((v, i) => eventoPregunta('demo_009', i + 1, v, 120 - i * 10)),
+  // demo_010 (Brenda Acosta) — retomó en pregunta_5: había respondido 1 a 4 antes de cortarse.
+  eventoPregunta('demo_010', 1, 1, 200), eventoPregunta('demo_010', 2, 2, 180), eventoPregunta('demo_010', 3, 1, 160), eventoPregunta('demo_010', 4, 2, 140),
 ]

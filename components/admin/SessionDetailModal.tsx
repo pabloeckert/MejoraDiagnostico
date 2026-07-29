@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { EventoRow, SessionRow } from '@/lib/admin'
 import { PERFILES, type PerfilKey } from '@/lib/perfiles'
 import { calcularScoresDeSesion, generarPDFSesion } from '@/lib/admin-pdf'
+import PreviewModal from './PreviewModal'
 
 interface Props {
   session: SessionRow
@@ -13,10 +14,12 @@ interface Props {
 
 export default function SessionDetailModal({ session, sessionId, eventos, onClose }: Props) {
   const [generandoPDF, setGenerandoPDF] = useState(false)
+  const [mostrarPreview, setMostrarPreview] = useState(false)
   const ordenados = [...eventos].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp))
 
   const perfilValido = session.perfil && session.perfil in PERFILES ? (session.perfil as PerfilKey) : null
-  const puedeGenerarPDF = Boolean(perfilValido && calcularScoresDeSesion(session))
+  const scores = calcularScoresDeSesion(session)
+  const puedeGenerarPDF = Boolean(perfilValido && scores)
 
   const handleDescargarPDF = async () => {
     if (!perfilValido) return
@@ -44,7 +47,13 @@ export default function SessionDetailModal({ session, sessionId, eventos, onClos
           <button onClick={onClose} className="text-mc-gris text-xl leading-none">×</button>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setMostrarPreview(true)}
+            className="text-sm font-bold px-4 py-2 rounded bg-mc-gris-claro text-mc-azul-marino"
+          >
+            👁 Vista previa
+          </button>
           <button
             onClick={handleDescargarPDF}
             disabled={!puedeGenerarPDF || generandoPDF}
@@ -53,8 +62,8 @@ export default function SessionDetailModal({ session, sessionId, eventos, onClos
             {generandoPDF ? 'Generando…' : '📄 Descargar PDF para el cliente'}
           </button>
           {!puedeGenerarPDF && (
-            <p className="text-xs text-mc-gris mt-1">
-              Esta sesión todavía no tiene un perfil calculado (abandonada o en curso).
+            <p className="text-xs text-mc-gris w-full mt-1">
+              Todavía no tiene un perfil calculado (abandonada o en curso) — la vista previa muestra su recorrido de respuestas.
             </p>
           )}
         </div>
@@ -75,6 +84,18 @@ export default function SessionDetailModal({ session, sessionId, eventos, onClos
           </ol>
         )}
       </div>
+
+      {mostrarPreview && (
+        <PreviewModal
+          session={session}
+          eventos={eventos}
+          perfil={perfilValido}
+          scores={scores}
+          onClose={() => setMostrarPreview(false)}
+          onDescargarPDF={handleDescargarPDF}
+          generandoPDF={generandoPDF}
+        />
+      )}
     </div>
   )
 }
