@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev      # Dev server en localhost:3000
 npm run build    # Build de producción
+npm run start    # Server de producción (tras build)
 npm run lint     # ESLint
 ```
 
@@ -52,6 +53,8 @@ No son parte de `npm run`, se ejecutan manualmente con `node` (requieren `npm ru
 ## Stack
 
 Next.js 14.2.35 (App Router) · React 18 · TypeScript · Tailwind CSS v3 · Resend (email) · Google Sheets API (funnel) · Telegram Bot API (notificaciones) · Zod (validación server-side) · jsPDF (PDF cliente).
+
+`tsconfig.json` define el alias `@/*` → `./*` (raíz del repo), usado en imports en todo el código (`@/lib/...`, `@/components/...`).
 
 ## Arquitectura general
 
@@ -105,6 +108,7 @@ El estado se maneja y persiste a través de `sessionStorage` desde `hooks/useDia
 
 ### APIs server-side
 
+- **`lib/sheets.ts`**: `getSheetsClient()` — cliente compartido de Google Sheets API, autentica con `google.auth.GoogleAuth` a partir de `GOOGLE_SERVICE_ACCOUNT_EMAIL`/`GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`. Lo usa `/api/funnel` y cualquier otro acceso server-side a las hojas Funnel/Eventos.
 - **`/api/save-completion`**: Recibe `{ respuestas, lid? }`. Envía email al admin con el reporte inicial. Inicializa Resend con fallback `|| 're_placeholder_for_build'` para builds sin env vars.
 - **`/api/send-email`**: Recibe formulario + respuestas. Envía reporte de lead completo al admin. Mismo fallback de Resend. `nombre`/`apellido`/`empresa`/`whatsapp` se escapan con `escapeHtml` (`lib/sanitize.ts`) antes de interpolarse en el HTML del email.
 - **`/api/notify`**: Envía mensaje de Telegram a Sindy vía Telegram Bot API. Se invoca al enviar el formulario en `/datos`. Mismo escapado de `nombre`/`whatsapp`/`perfil` antes de interpolarse en el mensaje (`parse_mode: 'HTML'`).
@@ -139,9 +143,11 @@ Cliente de tracking. `trackFunnel(evento, datos?)` envía fire-and-forget a `/ap
 
 ## Diseño y Estilos
 
-- Colores en `tailwind.config.js`: `mc-azul` (#1C4D8C), `mc-azul-marino` (#020659), `mc-rojo` (#D9072D), `mc-amarillo` (#F2BB16), `mc-negro` (#0D0D0D), `mc-gris` (#656565).
+- Colores en `tailwind.config.js`: `mc-rojo` (#E1061E), `mc-azul-marino` (#020659), `mc-azul` (#1A3D84), `mc-amarillo` (#F7CC13), `mc-negro` (#0D0D0D), `mc-gris` (#656565), `mc-gris-claro` (#F2F2F2), `mc-tinta` (#2B2B2B), `mc-gris-apoyo` (#6B7280).
 - Semáforo de áreas: colores definidos en `lib/areas.ts`. No los reemplace con valores hardcoded.
-- Tipografía global: `League Spartan` cargada en `globals.css`.
+- Tipografía: dos familias en `tailwind.config.js` — `font-spartan` (League Spartan, la global, cargada en `globals.css`) y `font-modelica` ("Bw Modelica").
+- Animaciones custom en `tailwind.config.js` (`keyframes`/`animation`): `option-select` (feedback al elegir una opción), `slide-in-right`/`slide-out-left` (transición entre preguntas), `btn-activate` (pulso en botón), `shake` (error de validación).
+- Patrón de reveal-on-scroll: `hooks/useInView.ts` es un hook genérico (`IntersectionObserver`, `threshold: 0.15`, dispara una sola vez y se desconecta) que devuelve `{ ref, inView }`. Se usa en `/resultado` para revelar bloques progresivamente al hacer scroll (en vez de animar todo al montar) y en `AreaBar` (prop `start`, default `true`) para no arrancar la animación de la barra hasta que el contenedor entre en viewport.
 
 ## Variables de entorno requeridas
 
