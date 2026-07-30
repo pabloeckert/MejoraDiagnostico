@@ -98,8 +98,9 @@ export default function DatosPage() {
     }
 
     if (!funnelData.duplicado) {
+      let emailOk = false
       try {
-        await fetch('/api/send-email', {
+        const r = await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -114,12 +115,14 @@ export default function DatosPage() {
             consent: true,
           }),
         })
+        emailOk = r.ok
       } catch {
-        // continuar aunque falle el email
+        emailOk = false
       }
 
+      let telegramOk = false
       try {
-        await fetch('/api/notify', {
+        const r = await fetch('/api/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -129,8 +132,18 @@ export default function DatosPage() {
             perfil,
           }),
         })
+        telegramOk = r.ok
       } catch (e) {
         console.error('Telegram notify error:', e)
+        telegramOk = false
+      }
+
+      // Antes esto quedaba invisible: fetch no tira excepción ante 4xx/5xx,
+      // así que una falla real de la API pasaba como éxito silencioso.
+      if (!emailOk || !telegramOk) {
+        trackFunnel('alerta_fallida', {
+          paso: `email:${emailOk ? 'ok' : 'fail'},telegram:${telegramOk ? 'ok' : 'fail'}`,
+        })
       }
     }
 

@@ -72,6 +72,8 @@ function construirDetalle(evento: string, ctx: {
       return `abandonó en: ${ctx.paso || 'desconocido'}`
     case 'sesion_retomada':
       return `retomó en: ${ctx.pasoRetomado || ''}`
+    case 'alerta_fallida':
+      return `notificación con fallas — ${ctx.paso || ''}`
     default:
       return ''
   }
