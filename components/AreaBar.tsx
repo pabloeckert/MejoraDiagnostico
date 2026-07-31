@@ -6,9 +6,10 @@ interface Props {
   nombre: string
   porcentaje: number
   delay: number
+  start?: boolean
 }
 
-export default function AreaBar({ nombre, porcentaje, delay }: Props) {
+export default function AreaBar({ nombre, porcentaje, delay, start = true }: Props) {
   const [width, setWidth] = useState(0)
   const { color, zona } = zonaColor(porcentaje)
   const [barColor, setBarColor] = useState(color)
@@ -16,12 +17,13 @@ export default function AreaBar({ nombre, porcentaje, delay }: Props) {
   const porcentajeMostrado = Math.min(98, Math.round(porcentaje))
 
   useEffect(() => {
+    if (!start) return
     const t = setTimeout(() => {
       setWidth(porcentajeMostrado)
       setBarColor(color)
     }, delay)
     return () => clearTimeout(t)
-  }, [porcentajeMostrado, delay, color])
+  }, [porcentajeMostrado, delay, color, start])
 
   return (
     <div className="mb-4 rounded-xl p-4" style={{ backgroundColor: color + '14' }}>

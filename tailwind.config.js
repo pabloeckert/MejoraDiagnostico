@@ -61,6 +61,14 @@ module.exports = {
           '60%':      { transform: 'translateX(-4px)' },
           '80%':      { transform: 'translateX(4px)' },
         },
+        'blink-cursor': {
+          '0%, 100%': { opacity: '1' },
+          '50%':      { opacity: '0' },
+        },
+        'bounce-soft': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%':      { transform: 'translateY(4px)' },
+        },
       },
       animation: {
         'option-select':  'option-select 200ms ease-out',
@@ -68,6 +76,8 @@ module.exports = {
         'slide-out-left': 'slide-out-left 380ms cubic-bezier(0.55, 0, 1, 0.45)',
         'btn-activate':   'btn-activate 400ms ease-out',
         'shake':          'shake 400ms ease-in-out',
+        'blink-cursor':   'blink-cursor 900ms steps(1) infinite',
+        'bounce-soft':    'bounce-soft 1800ms ease-in-out infinite',
       },
     },
   },
