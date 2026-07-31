@@ -1,12 +1,19 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export function useInView<T extends HTMLElement>(options?: IntersectionObserverInit) {
-  const ref = useRef<T>(null)
+  // Callback ref (no useRef): en /resultado el árbol con estos refs recién
+  // se monta después de que `session` carga (la primera pasada muestra un
+  // spinner sin estos nodos) — un efecto con deps [] atado a un useRef
+  // corre una única vez, ANTES de que el nodo real exista, ve `null` y
+  // nunca vuelve a intentarlo. El callback ref dispara `setEl` recién
+  // cuando React efectivamente adjunta el nodo, sea en el primer render o
+  // en uno posterior.
+  const [el, setEl] = useState<T | null>(null)
   const [inView, setInView] = useState(false)
+  const ref = useCallback((node: T | null) => setEl(node), [])
 
   useEffect(() => {
-    const el = ref.current
     if (!el) return
 
     // Si ya está a la vista al montar (contenido sobre el pliegue, o la
@@ -37,7 +44,7 @@ export function useInView<T extends HTMLElement>(options?: IntersectionObserverI
       obs.disconnect()
       clearTimeout(fallback)
     }
-  }, [])
+  }, [el])
 
   return { ref, inView }
 }
