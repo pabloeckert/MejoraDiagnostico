@@ -35,7 +35,9 @@ function solutionRevealStyle(visible: boolean, delayMs = 0): CSSProperties {
 
 // Tipeo del título de cierre: la lectura activa (seguir el cursor) retiene
 // más atención que un texto que aparece de golpe — se usa solo en el título,
-// no en el párrafo largo, para no demorar la llegada al CTA.
+// no en el párrafo largo, para no demorar la llegada al CTA. Mientras no
+// está activo, devuelve el texto COMPLETO (nunca vacío) — el tipeo es un
+// adorno opcional, jamás una condición para que el título se vea.
 function useTypewriter(texto: string, activo: boolean, velocidadMs: number) {
   const [largo, setLargo] = useState(0)
   useEffect(() => {
@@ -49,7 +51,7 @@ function useTypewriter(texto: string, activo: boolean, velocidadMs: number) {
     }, velocidadMs)
     return () => clearInterval(id)
   }, [activo, texto, velocidadMs])
-  return largo
+  return activo ? largo : texto.length
 }
 
 // Pista de scroll: banda con blur progresivo (backdrop-filter + máscara, se
