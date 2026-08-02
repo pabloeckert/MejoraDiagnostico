@@ -15,7 +15,7 @@ No hay suite de tests configurada (unit/integration). El README.md está desactu
 
 ## Deploy a producción
 
-Producción es **Vercel** (proyecto `mejoradiagnostico`, dominio `diagnostico.mejoraok.com`). El deploy es **automático por push a `main`** — no hay comando de deploy manual ni se usa el CLI de Vercel (no está logueado en la máquina de desarrollo). Las variables de entorno de producción viven en el dashboard de Vercel, **no** en `.env.local` (que localmente tiene las de Google en blanco).
+Producción es **Vercel** (proyecto `mejoradiagnostico`, dominio `diagnostico.mejoraok.com`). El deploy es **automático por push a `main`** — no hay comando de deploy manual. Las variables de entorno de producción viven en el dashboard de Vercel, **no** en `.env.local` (que localmente tiene las de Google en blanco).
 
 Flujo estándar para subir un cambio:
 
@@ -38,6 +38,16 @@ curl -s -o /dev/null -w "%{http_code}\n" $P/robots.txt       # 200 = robots.ts y
 Validación end-to-end post-deploy: `npx tsx scripts/test-e2e-completo.ts` simula un diagnóstico completo **contra producción** (escribe en el Sheet real, dispara Telegram a Sindy y email vía Resend), verifica Funnel + Eventos y **limpia el Sheet al terminar**. Requiere el JSON de service account (`mejoraproyecto-*.json`, gitignored) en la raíz. Tras correrlo, confirmar Sheet vacío con `scripts/leer-ultima-fila.ts` y revisar que llegó **exactamente 1** mensaje de Telegram.
 
 Última corrida completa (12/12 checks) el 2026-07-28, después del hardening de esa fecha (fix de `PARES_AMBIGUOS` en scoring, sanitización de email/Telegram, Zod en `/api/funnel`, reintentos de Resend/Telegram, `/preview` con auth server-side).
+
+Corrida adicional el 2026-08-01 (verificación pre-deploy sin cambios de código): 12/12 checks OK, `exit code 0`, Sheet confirmado vacío (`session_id: dbcf070f-cf23-4018-a695-6d038ba82d11`). **Pendiente:** falta la confirmación manual de que llegó exactamente 1 mensaje de Telegram por esa corrida — no bloquea nada, es el único check que no se puede automatizar.
+
+### CLI de Vercel (para consultar env vars sin entrar al dashboard)
+
+El CLI está instalado globalmente (`npm i -g vercel`) y el proyecto ya está linkeado (`.vercel/repo.json`: project id `prj_fZYir4Hruv79uwCpwAyV7wDtodXF`, org id `team_7IpSKP23kMLFwShzU7WfcsYj`). La autenticación es con un token de acceso personal (creado en vercel.com/account/tokens, nombre "MejoraDiagnostico") guardado como variable de entorno de **usuario** en Windows bajo `VERCEL_TOKEN`. **El valor del token nunca debe escribirse en este archivo ni en ningún archivo del repo** — vive solo como variable de entorno local.
+
+Uso: `vercel env ls production --token=$env:VERCEL_TOKEN` lista los *nombres* de las variables en producción (nunca los valores — para eso haría falta `vercel env pull`, que expone los valores reales en disco; no usar de forma rutinaria).
+
+**Pendiente:** las herramientas de Claude Code en esta máquina heredaron el entorno de Windows *antes* de que se seteara `VERCEL_TOKEN` a nivel usuario, así que todavía no lo ven. Hace falta cerrar la app/CLI de Claude Code **por completo** (no solo la conversación) y volver a abrirla. Verificar con `echo $env:VERCEL_TOKEN` (PowerShell) o `echo $VERCEL_TOKEN` (Bash) — si devuelve el valor, ya quedó tomado y se puede usar sin pegarlo de nuevo.
 
 ### Scripts de verificación (`scripts/`)
 
