@@ -46,7 +46,7 @@ export function crearTokenSesion(): { token: string; maxAgeSegundos: number } {
   return { token, maxAgeSegundos: Math.floor(DURACION_MS / 1000) }
 }
 
-function tokenValido(token: string | undefined): boolean {
+export function tokenValido(token: string | undefined): boolean {
   if (!token) return false
   const partes = token.split('.')
   if (partes.length !== 2) return false
