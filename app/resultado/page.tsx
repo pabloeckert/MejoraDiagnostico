@@ -8,6 +8,7 @@ import { PERFILES } from '@/lib/perfiles'
 import { zonaColor, areasParaMostrar } from '@/lib/areas'
 import type { Scores } from '@/lib/scoring'
 import AreaBar from '@/components/AreaBar'
+import TextoExpandible from '@/components/TextoExpandible'
 import type { PerfilKey } from '@/lib/perfiles'
 import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
 
@@ -98,10 +99,10 @@ export default function ResultadoPage() {
   const [mobileScrollEl, setMobileScrollEl] = useState<HTMLDivElement | null>(null)
   const [mostrarScrollHintMobile, setMostrarScrollHintMobile] = useState(true)
 
-  const dDesc = useInView<HTMLParagraphElement>()
+  const dDesc = useInView<HTMLDivElement>()
   const dScore = useInView<HTMLDivElement>()
   const dCierre = useInView<HTMLDivElement>()
-  const mDesc = useInView<HTMLParagraphElement>()
+  const mDesc = useInView<HTMLDivElement>()
   const mScore = useInView<HTMLDivElement>()
   const mCierre = useInView<HTMLDivElement>()
   const [dPulse, setDPulse] = useState(false)
@@ -271,13 +272,13 @@ export default function ResultadoPage() {
               </p>
 
               {/* Descripción — el gancho */}
-              <p
-                ref={mDesc.ref}
-                style={revealStyle(mDesc.inView)}
-                className="text-lg text-gray-800 leading-relaxed mb-8"
-              >
-                {p.desc}
-              </p>
+              <div ref={mDesc.ref} style={revealStyle(mDesc.inView)}>
+                <TextoExpandible
+                  texto={p.desc}
+                  className="text-lg text-gray-800 leading-relaxed mb-8"
+                  colorFade="#ffffff"
+                />
+              </div>
 
               <div ref={mScore.ref} style={revealStyle(mScore.inView)}>
                 {/* Puntaje — integrado, no grotesco */}
@@ -307,9 +308,13 @@ export default function ResultadoPage() {
                     )}
                   </span>
                 </h2>
-                <p style={revealStyle(mCierre.inView, parrafoDelayMs)} className="text-base text-gray-700 leading-relaxed mb-8">
-                  {p.cierreTxt}
-                </p>
+                <div style={revealStyle(mCierre.inView, parrafoDelayMs)}>
+                  <TextoExpandible
+                    texto={p.cierreTxt}
+                    className="text-base text-gray-700 leading-relaxed mb-8"
+                    colorFade="#ffffff"
+                  />
+                </div>
               </div>
 
               {/* CTA — aparece como la respuesta, no como un bloque más */}
@@ -354,13 +359,13 @@ export default function ResultadoPage() {
         {/* Contenido — columna de lectura centrada */}
         <div className="max-w-4xl mx-auto px-10 py-14">
 
-          <p
-            ref={dDesc.ref}
-            style={revealStyle(dDesc.inView)}
-            className="text-lg text-mc-gris leading-relaxed mb-10 max-w-2xl"
-          >
-            {p.desc}
-          </p>
+          <div ref={dDesc.ref} style={revealStyle(dDesc.inView)}>
+            <TextoExpandible
+              texto={p.desc}
+              className="text-lg text-mc-gris leading-relaxed mb-10 max-w-2xl"
+              colorFade="#ffffff"
+            />
+          </div>
 
           <div ref={dScore.ref} style={revealStyle(dScore.inView)}>
             <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-gray-100">
@@ -388,9 +393,13 @@ export default function ResultadoPage() {
                 )}
               </span>
             </h2>
-            <p style={revealStyle(dCierre.inView, parrafoDelayMs)} className="text-base text-mc-negro leading-relaxed mb-8 max-w-xl mx-auto">
-              {p.cierreTxt}
-            </p>
+            <div style={revealStyle(dCierre.inView, parrafoDelayMs)}>
+              <TextoExpandible
+                texto={p.cierreTxt}
+                className="text-base text-mc-negro leading-relaxed mb-8 max-w-xl mx-auto"
+                colorFade="#f4f5f9"
+              />
+            </div>
             <button
               onClick={handleCTA}
               style={solutionRevealStyle(dCierre.inView, botonDelayMs)}
