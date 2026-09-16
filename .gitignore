@@ -42,3 +42,10 @@ ds-bundle/
 
 .vercel
 .env*.local
+
+# Datos empresariales y artefactos generados — nunca subir al repo público
+Vdm-IPS-Misiones-05-2025.xlsx
+*.xlsx
+image_4d948b2e.png
+# Artefactos PNG con hash en el nombre (generados automáticamente por herramientas de diseño)
+image_*.png
