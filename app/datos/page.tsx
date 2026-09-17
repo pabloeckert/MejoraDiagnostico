@@ -32,6 +32,42 @@ const PAISES = [
 
 const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-md text-lg lg:text-base text-mc-negro bg-white focus:outline-none focus:border-mc-azul transition-colors font-spartan'
 
+interface EnviarLeadPayload {
+  email?: string
+  nombre: string
+  telefono: string
+}
+
+export async function enviarLead(
+  emailOrPayload: string | EnviarLeadPayload,
+  nombreParam?: string,
+  telefonoParam?: string
+) {
+  const email = typeof emailOrPayload === 'object' ? (emailOrPayload.email ?? '') : (emailOrPayload ?? '')
+  const nombre = typeof emailOrPayload === 'object' ? (emailOrPayload.nombre ?? '') : (nombreParam ?? '')
+  const telefono = typeof emailOrPayload === 'object' ? (emailOrPayload.telefono ?? '') : (telefonoParam ?? '')
+
+  try {
+    const url = process.env.NEXT_PUBLIC_CONTACTOS_API_URL || 'https://tzatuvxatsduuslxqdtm.supabase.co/functions/v1/contactos-api'
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CONTACTOS_API_KEY}`,
+      },
+      body: JSON.stringify({
+        source: 'mejora_diagnostico',
+        email: email,
+        nombre: nombre,
+        telefono: telefono,
+      }),
+    })
+    return res
+  } catch (error) {
+    console.error('Error enviando lead a MejoraContactos:', error)
+  }
+}
+
 export default function DatosPage() {
   const router = useRouter()
   const [nombre, setNombre] = useState('')
@@ -77,6 +113,14 @@ export default function DatosPage() {
     const total = respuestas.reduce((a, b) => a + b, 0)
 
     guardarLead({ nombre, whatsapp: `${codPais}${wa}`, perfil, total, respuestas })
+
+    const email = (session as Record<string, any>)?.email ?? ''
+    const telefono = `${codPais}${wa}`
+    try {
+      await enviarLead({ email, nombre, telefono })
+    } catch (e) {
+      console.error('Error al invocar enviarLead:', e)
+    }
 
     let funnelData: { duplicado?: boolean } = { duplicado: false }
     try {
