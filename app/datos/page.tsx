@@ -38,7 +38,7 @@ interface EnviarLeadPayload {
   telefono: string
 }
 
-export async function enviarLead(
+async function enviarLead(
   emailOrPayload: string | EnviarLeadPayload,
   nombreParam?: string,
   telefonoParam?: string
