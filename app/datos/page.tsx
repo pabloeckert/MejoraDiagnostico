@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { guardarDatos, guardarLead, cargarSession } from '@/hooks/useDiagnostico'
 import { trackFunnel, getSessionId, getVisitorId } from '@/lib/funnel'
+import { enviarDiagnosticoANucleo } from '@/lib/nucleoService'
 import DesktopLayout from '@/components/DesktopLayout'
 import LeftPanel from '@/components/LeftPanel'
 
@@ -120,6 +121,19 @@ export default function DatosPage() {
       await enviarLead({ email, nombre, telefono })
     } catch (e) {
       console.error('Error al invocar enviarLead:', e)
+    }
+
+    try {
+      await enviarDiagnosticoANucleo({
+        nombre,
+        email,
+        telefono,
+        perfilKey: perfil,
+        totalPuntos: total,
+        scores: (session as any)?.scores,
+      })
+    } catch (e) {
+      console.error('Error enviando diagnóstico a MejoraNucleo:', e)
     }
 
     let funnelData: { duplicado?: boolean } = { duplicado: false }
