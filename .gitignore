@@ -49,3 +49,10 @@ Vdm-IPS-Misiones-05-2025.xlsx
 image_4d948b2e.png
 # Artefactos PNG con hash en el nombre (generados automáticamente por herramientas de diseño)
 image_*.png
+
+# SQLite local databases
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

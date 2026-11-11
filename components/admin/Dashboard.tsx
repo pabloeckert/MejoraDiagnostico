@@ -17,6 +17,7 @@ import SessionsTable from './SessionsTable'
 import SessionDetailModal from './SessionDetailModal'
 import ExportPanel from './ExportPanel'
 import TourGuiado from './TourGuiado'
+import KanbanBoard, { type PipelineLead, type LiveSession } from './KanbanBoard'
 
 const POLL_MS = 20000
 const RANGOS: { key: RangoFecha; label: string }[] = [
@@ -24,8 +25,9 @@ const RANGOS: { key: RangoFecha; label: string }[] = [
   { key: '7dias', label: 'Últimos 7 días' },
   { key: 'todo', label: 'Todo' },
 ]
-const TABS: { key: 'general' | 'detalle' | 'exportacion'; label: string }[] = [
+const TABS: { key: 'general' | 'kanban' | 'detalle' | 'exportacion'; label: string }[] = [
   { key: 'general', label: 'General' },
+  { key: 'kanban', label: 'Tablero Kanban (SLA 48h)' },
   { key: 'detalle', label: 'Detalle' },
   { key: 'exportacion', label: 'Exportación' },
 ]
@@ -48,7 +50,9 @@ export default function Dashboard() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoSesion | 'todos'>('todos')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [detalleSessionId, setDetalleSessionId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'general' | 'detalle' | 'exportacion'>('general')
+  const [tab, setTab] = useState<'general' | 'kanban' | 'detalle' | 'exportacion'>('general')
+  const [pipelineLeads, setPipelineLeads] = useState<PipelineLead[]>([])
+  const [liveSessions, setLiveSessions] = useState<LiveSession[]>([])
   const [modoDemo, setModoDemo] = useState(false)
   const [mostrarTour, setMostrarTour] = useState(false)
   const [generandoInfografia, setGenerandoInfografia] = useState(false)
@@ -65,6 +69,8 @@ export default function Dashboard() {
       const data = await res.json()
       setSessions(data.sessions || [])
       setEventos(data.eventos || [])
+      setPipelineLeads(data.pipeline || [])
+      setLiveSessions(data.liveSessions || [])
       setError(false)
     } catch {
       setError(true)
@@ -248,6 +254,16 @@ export default function Dashboard() {
                 ]}
                 etapas={etapas}
                 perfiles={perfiles}
+              />
+            </section>
+          )}
+
+          {tab === 'kanban' && (
+            <section className="space-y-4">
+              <KanbanBoard
+                initialLeads={pipelineLeads}
+                liveSessions={liveSessions}
+                onSelectSession={setDetalleSessionId}
               />
             </section>
           )}

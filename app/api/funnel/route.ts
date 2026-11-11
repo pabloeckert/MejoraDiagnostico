@@ -4,6 +4,7 @@ import type { sheets_v4 } from 'googleapis'
 import { z } from 'zod'
 import { PREGUNTAS } from '@/lib/preguntas'
 import { rateLimit } from '@/lib/rate-limit'
+import { getDatabase } from '@/lib/db/sqlite'
 
 const SHEET_NAME = 'Funnel'
 const SHEET_EVENTOS = 'Eventos'
@@ -170,6 +171,84 @@ async function buscarCompletadoPrevio(sheets: sheets_v4.Sheets, whatsapp: string
   return false
 }
 
+function syncFunnelToSqlite(data: {
+  sessionId: string
+  visitorId?: string
+  evento: string
+  nombre?: string
+  whatsapp?: string
+  perfil?: string
+  respuestas?: number[]
+  numero?: number
+  segundos?: number
+  valor?: number
+  paso?: string
+}) {
+  try {
+    const db = getDatabase()
+    const { sessionId, visitorId, evento, nombre, whatsapp, perfil, numero, segundos, valor } = data
+
+    // Asegurar que la sesión existe en SQLite
+    try {
+      db.prepare(`
+        INSERT OR IGNORE INTO diagnostico_sesiones (
+          sesion_id, device_fingerprint, estado_funnel, creado_en, actualizado_en
+        ) VALUES (?, ?, 'VISITA_INICIADA', datetime('now'), datetime('now'))
+      `).run(sessionId, visitorId || 'anonymous')
+    } catch {}
+
+    if (evento === 'pregunta_respondida' && typeof numero === 'number') {
+      const respId = `${sessionId}_q${numero}`
+      try {
+        db.prepare(`
+          INSERT OR REPLACE INTO diagnostico_respuestas (
+            respuesta_id, sesion_id, pregunta_id, opcion_seleccionada, tiempo_segundos, creado_en
+          ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+        `).run(respId, sessionId, numero, String(valor ?? ''), segundos ?? 0)
+
+        db.prepare(`
+          UPDATE diagnostico_sesiones 
+          SET pregunta_maxima = MAX(pregunta_maxima, ?), estado_funnel = 'EN_CUESTIONARIO', actualizado_en = datetime('now')
+          WHERE sesion_id = ?
+        `).run(numero, sessionId)
+      } catch {}
+    } else if (evento === 'formulario_completado') {
+      try {
+        db.prepare(`
+          UPDATE diagnostico_sesiones 
+          SET nombre = ?, whatsapp = ?, arquetipo_calculado = ?, estado_funnel = 'COMPLETADO', actualizado_en = datetime('now')
+          WHERE sesion_id = ?
+        `).run(nombre || '', whatsapp || '', perfil || '', sessionId)
+
+        const leadId = `lead_${sessionId.slice(0, 12)}`
+        db.prepare(`
+          INSERT OR REPLACE INTO diagnostico_pipeline_comercial (
+            lead_id, sesion_id, etapa_kanban, sla_limite_atencion, actualizado_en
+          ) VALUES (?, ?, 'COMPLETADO_SIN_CONTACTO', datetime('now', '+48 hours'), datetime('now'))
+        `).run(leadId, sessionId)
+      } catch {}
+    } else if (evento === 'cta_click') {
+      try {
+        db.prepare(`
+          UPDATE diagnostico_pipeline_comercial 
+          SET etapa_kanban = 'EN_CONTACTO_WHATSAPP', actualizado_en = datetime('now')
+          WHERE sesion_id = ?
+        `).run(sessionId)
+      } catch {}
+    } else if (evento === 'abandono') {
+      try {
+        db.prepare(`
+          UPDATE diagnostico_sesiones 
+          SET estado_funnel = 'ABANDONADO', actualizado_en = datetime('now')
+          WHERE sesion_id = ? AND estado_funnel != 'COMPLETADO'
+        `).run(sessionId)
+      } catch {}
+    }
+  } catch (err) {
+    console.warn('[Funnel SQLite Sync] Warning:', err)
+  }
+}
+
 export async function POST(req: NextRequest) {
   let evento = 'desconocido'
   let session_id = 'desconocido'
@@ -178,15 +257,6 @@ export async function POST(req: NextRequest) {
     // frena un abuso masivo desde una IP.
     if (!rateLimit(req, 'funnel', 60)) {
       return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
-    }
-
-    if (
-      !process.env.GOOGLE_SHEETS_ID ||
-      !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
-      !process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-    ) {
-      console.error('Funnel: variables de entorno faltantes')
-      return NextResponse.json({ ok: false, error: 'config' }, { status: 500 })
     }
 
     const parsed = FunnelSchema.safeParse(await req.json())
@@ -200,6 +270,32 @@ export async function POST(req: NextRequest) {
     } = parsed.data
     session_id = sid
     evento = ev
+
+    // Sincronización inmediata con SQLite Soberano (siempre se ejecuta)
+    syncFunnelToSqlite({
+      sessionId: sid,
+      visitorId: visitor_id,
+      evento: ev,
+      nombre,
+      whatsapp,
+      perfil,
+      respuestas,
+      numero,
+      segundos,
+      valor,
+      paso,
+    })
+
+    const hasSheetsConfig = Boolean(
+      process.env.GOOGLE_SHEETS_ID &&
+      process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+      process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+    )
+
+    if (!hasSheetsConfig) {
+      // Entorno sin Google Sheets (ej. desarrollo local): persistido en SQLite sin error
+      return NextResponse.json({ ok: true, sqlite: true, sheets: false })
+    }
 
     const sheets = await getSheets()
     let row = await findRow(sheets, session_id)

@@ -58,6 +58,9 @@ export default function AdminLoginPage() {
             {mostrarClave ? '🙈' : '👁️'}
           </button>
         </div>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Clave de acceso predeterminada: <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-700 font-mono">adminmc</code>
+        </p>
         {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
         <button
           onClick={handleLogin}

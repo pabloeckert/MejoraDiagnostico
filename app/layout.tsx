@@ -10,8 +10,31 @@ const leagueSpartan = League_Spartan({
 })
 
 export const metadata: Metadata = {
-  title: 'Diagnóstico Empresarial · Mejora Continua',
-  description: 'Descubrí en menos de 1 minuto el perfil de tu negocio y qué necesitás para crecer.',
+  metadataBase: new URL('https://diagnostico.mejoraok.com'),
+  title: '¿Cuál es el verdadero cuello de botella de tu empresa? (Diagnóstico 4D en 2 minutos)',
+  description: 'Evaluación estratégica para líderes y fundadores. Identificá en 4 dimensiones el obstáculo exacto de tu negocio.',
+  openGraph: {
+    title: '¿Cuál es el verdadero cuello de botella de tu empresa? (Diagnóstico 4D en 2 minutos)',
+    description: 'Evaluación estratégica para líderes y fundadores. Identificá en 4 dimensiones el obstáculo exacto de tu negocio.',
+    url: 'https://diagnostico.mejoraok.com',
+    siteName: 'Mejora Continua',
+    images: [
+      {
+        url: '/logo-color.png',
+        width: 800,
+        height: 600,
+        alt: 'Isotipo Oficial Mejora Continua',
+      },
+    ],
+    locale: 'es_AR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '¿Cuál es el verdadero cuello de botella de tu empresa? (Diagnóstico 4D en 2 minutos)',
+    description: 'Evaluación estratégica para líderes y fundadores. Identificá en 4 dimensiones el obstáculo exacto de tu negocio.',
+    images: ['/logo-color.png'],
+  },
 }
 
 export const viewport: Viewport = {

@@ -6,7 +6,7 @@ import { useInView } from '@/hooks/useInView'
 import { trackFunnel } from '@/lib/funnel'
 import { PERFILES } from '@/lib/perfiles'
 import { zonaColor, areasParaMostrar } from '@/lib/areas'
-import type { Scores } from '@/lib/scoring'
+import { areasMasDebiles, type Scores } from '@/lib/scoring'
 import AreaBar from '@/components/AreaBar'
 import TextoExpandible from '@/components/TextoExpandible'
 import type { PerfilKey } from '@/lib/perfiles'
@@ -190,10 +190,17 @@ export default function ResultadoPage() {
   const globalPctMostrado = Math.min(98, globalPct)
   const { color: globalColor, zona: globalZona } = zonaColor(globalPct)
 
+  const AREA_LABEL: Record<string, string> = {
+    personal: 'Personal',
+    organizacional: 'Organizacional',
+    comercial: 'Comercial',
+    empresarial: 'Empresarial',
+  }
+
   const handleCTA = async () => {
     trackFunnel('cta_click', { perfil: perfilKey })
     try {
-      await fetch('/api/notify', {
+      fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -203,9 +210,20 @@ export default function ResultadoPage() {
           perfil: perfilKey,
           parcial: false,
         }),
-      })
+        keepalive: true,
+      }).catch(() => {})
     } catch (e) {
       console.error('Notify error:', e)
+    }
+
+    const [d1, d2] = areasMasDebiles(scoresData)
+    const debilesTxt = `${AREA_LABEL[d1] || d1} y ${AREA_LABEL[d2] || d2}`
+    const waMsg = `Hola Sindy, completé mi Diagnóstico Empresarial en Mejora Continua. Mi arquetipo es ${p.tag} y mis áreas críticas fueron ${debilesTxt}. Quiero tener la sesión de claridad para revisar el plan de acción.`
+    const waUrl = `https://wa.me/5493764358152?text=${encodeURIComponent(waMsg)}`
+
+    // Abrir WhatsApp directamente y redirigir a /gracias
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank')
     }
     router.push('/gracias')
   }

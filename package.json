@@ -9,14 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
+    "@next/env": "^14.2.35",
+    "caniuse-lite": "^1.0.30001826",
     "googleapis": "^173.0.0",
     "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.1",
-    "next": "14.2.35",
+    "jspdf": "^2.5.2",
+    "next": "^14.2.35",
+    "postcss-selector-parser": "^7.2.0",
     "react": "^18",
     "react-dom": "^18",
+    "react-redux": "^9.3.1",
     "recharts": "^3.9.2",
+    "redux": "^5.0.1",
     "resend": "^6.12.3",
+    "styled-jsx": "^5.1.7",
     "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
