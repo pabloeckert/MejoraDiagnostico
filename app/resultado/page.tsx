@@ -4,13 +4,59 @@ import { useRouter } from 'next/navigation'
 import { cargarSession } from '@/hooks/useDiagnostico'
 import { useInView } from '@/hooks/useInView'
 import { trackFunnel } from '@/lib/funnel'
-import { PERFILES } from '@/lib/perfiles'
+import { PERFILES, type PerfilKey } from '@/lib/perfiles'
 import { zonaColor, areasParaMostrar } from '@/lib/areas'
 import { areasMasDebiles, type Scores } from '@/lib/scoring'
+import { generarPlanAccion72h, type PlanAccion72h } from '@/lib/plan-accion'
 import AreaBar from '@/components/AreaBar'
 import TextoExpandible from '@/components/TextoExpandible'
-import type { PerfilKey } from '@/lib/perfiles'
+import PDFButton from '@/components/PDFButton'
 import type { DiagnosticoSession, DatosContacto } from '@/hooks/useDiagnostico'
+
+function Plan72hSection({
+  plan72h,
+  perfil,
+  nombre,
+  areas,
+  compact = false,
+}: {
+  plan72h: PlanAccion72h
+  perfil: PerfilKey
+  nombre: string
+  areas: { nombre: string; porcentaje: number }[]
+  compact?: boolean
+}) {
+  return (
+    <div className={`${compact ? 'mb-8 p-5' : 'mt-8 p-6'} rounded-md border border-gray-200 bg-gray-50/70`}>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-mc-azul">
+          Plan Accionable · Primeras 72 Horas
+        </span>
+        <PDFButton perfil={perfil} nombre={nombre} areas={areas} plan72h={plan72h} />
+      </div>
+      <p className={`${compact ? 'text-sm' : 'text-base'} text-mc-tinta leading-relaxed mb-2`}>
+        {plan72h.lecturaOrigen}
+      </p>
+      <p className={`${compact ? 'text-xs mb-4' : 'text-sm mb-5'} text-mc-gris italic border-l-2 border-mc-azul pl-3`}>
+        {plan72h.enfoqueRol}
+      </p>
+      <div className={compact ? 'space-y-3' : 'grid grid-cols-3 gap-4'}>
+        {plan72h.pasos.map((paso) => (
+          <div
+            key={paso.dia + paso.titulo}
+            className={`bg-white ${compact ? 'p-3.5' : 'p-4 shadow-sm'} rounded border border-gray-200`}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider text-mc-azul">
+              {paso.dia}
+            </span>
+            <h3 className="text-sm font-bold text-mc-negro mt-0.5">{paso.titulo}</h3>
+            <p className="text-xs text-gray-700 leading-relaxed mt-1">{paso.accion}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // Entrada progresiva al scrollear: recompensa seguir bajando (curiosity gap /
 // progressive disclosure) en vez de mostrar todo de una — misma lógica en
@@ -181,6 +227,13 @@ export default function ResultadoPage() {
   const p = PERFILES[perfilKey]
   const datos = session.datos as DatosContacto
   const scoresData = session.scores as Scores
+  const plan72h = generarPlanAccion72h({
+    perfil: perfilKey,
+    scores: scoresData,
+    pregunta0Texto: session.pregunta0?.texto,
+    pregunta0Dimension: session.pregunta0?.dimension,
+    posicion: session.posicion,
+  })
 
   const areas = areasParaMostrar(scoresData)
 
@@ -199,29 +252,15 @@ export default function ResultadoPage() {
 
   const handleCTA = async () => {
     trackFunnel('cta_click', { perfil: perfilKey })
-    try {
-      fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: session.datos?.nombre ?? '',
-          whatsapp: (session.datos?.codPais ?? '') + (session.datos?.whatsapp ?? ''),
-          codPais: session.datos?.codPais ?? '',
-          perfil: perfilKey,
-          parcial: false,
-        }),
-        keepalive: true,
-      }).catch(() => {})
-    } catch (e) {
-      console.error('Notify error:', e)
-    }
 
     const [d1, d2] = areasMasDebiles(scoresData)
     const debilesTxt = `${AREA_LABEL[d1] || d1} y ${AREA_LABEL[d2] || d2}`
-    const waMsg = `Hola Sindy, completé mi Diagnóstico Empresarial en Mejora Continua. Mi arquetipo es ${p.tag} y mis áreas críticas fueron ${debilesTxt}. Quiero tener la sesión de claridad para revisar el plan de acción.`
+    const p0Extra = session.pregunta0?.texto
+      ? ` Al iniciar declaré: "${session.pregunta0.texto}".`
+      : ''
+    const waMsg = `Hola Sindy, completé mi Diagnóstico Empresarial en Mejora Continua (${datos?.nombre || session.nombre || ''}). Mi arquetipo es ${p.tag} y mis áreas críticas fueron ${debilesTxt}.${p0Extra} Quiero tener la sesión de claridad para revisar el plan de acción.`
     const waUrl = `https://wa.me/5493764358152?text=${encodeURIComponent(waMsg)}`
 
-    // Abrir WhatsApp directamente y redirigir a /gracias
     if (typeof window !== 'undefined') {
       window.open(waUrl, '_blank')
     }
@@ -316,6 +355,15 @@ export default function ResultadoPage() {
                 </div>
               </div>
 
+              {/* Plan Accionable de Primeras 72 Horas */}
+              <Plan72hSection
+                plan72h={plan72h}
+                perfil={perfilKey}
+                nombre={datos?.nombre || session.nombre || 'Líder'}
+                areas={areas}
+                compact
+              />
+
               {/* Separador visual */}
               <div ref={mCierre.ref} className="border-t border-gray-100 pt-8 mb-6">
                 <h2 aria-label={p.cierreTitulo} className="text-2xl font-bold text-mc-negro mb-3 leading-tight">
@@ -391,11 +439,19 @@ export default function ResultadoPage() {
               <span className="text-sm text-mc-gris uppercase tracking-widest">puntaje global · {globalZona}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-12 gap-y-8 mb-6">
+            <div className="grid grid-cols-2 gap-x-12 gap-y-8 mb-10">
               {areas.map((area, i) => (
                 <AreaBar key={area.nombre} nombre={area.nombre} porcentaje={area.porcentaje} delay={i * 150} start={dScore.inView} />
               ))}
             </div>
+
+            {/* Plan Accionable de Primeras 72 Horas (Desktop) */}
+            <Plan72hSection
+              plan72h={plan72h}
+              perfil={perfilKey}
+              nombre={datos?.nombre || session.nombre || 'Líder'}
+              areas={areas}
+            />
           </div>
 
         </div>

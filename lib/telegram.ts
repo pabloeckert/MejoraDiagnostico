@@ -2,18 +2,27 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
-let ultimoEnvioMs = 0
-const MIN_ESPACIADO_MS = 120 // Espaciado mínimo para no saturar la API de Telegram
+export interface TelegramSendResult {
+  ok: boolean
+  reason?: 'missing_credentials' | 'rate_limited' | 'delivery_failed'
+  status?: number
+  error?: string
+}
 
-export async function sendTelegram(text: string) {
+let ultimoEnvioMs = 0
+const MIN_ESPACIADO_MS = 120
+
+/**
+ * Envía un mensaje vía Telegram Bot API y retorna resultado explícito (cero falsos positivos).
+ */
+export async function sendTelegram(text: string): Promise<TelegramSendResult> {
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chatId = process.env.TELEGRAM_CHAT_ID
   if (!token || !chatId) {
     console.warn('Telegram: variables de entorno faltantes (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)')
-    return
+    return { ok: false, reason: 'missing_credentials', error: 'missing_credentials' }
   }
 
-  // Rate Limiting preventivo en memoria: evitar disparos simultáneos
   const ahora = Date.now()
   const tiempoDesdeUltimo = ahora - ultimoEnvioMs
   if (tiempoDesdeUltimo < MIN_ESPACIADO_MS) {
@@ -22,6 +31,9 @@ export async function sendTelegram(text: string) {
   ultimoEnvioMs = Date.now()
 
   const intentos = 3
+  let lastStatus: number | undefined
+  let lastError = 'delivery_failed'
+
   for (let intento = 1; intento <= intentos; intento++) {
     try {
       const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -30,31 +42,41 @@ export async function sendTelegram(text: string) {
         body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
       })
 
-      if (res.ok) return
+      if (res.ok) {
+        return { ok: true, status: res.status }
+      }
 
-      const status = res.status
+      lastStatus = res.status
       const errorText = await res.text()
+      lastError = errorText.slice(0, 200)
 
-      // Si Telegram responde 429 Too Many Requests, respetar backoff
-      if (status === 429) {
+      if (res.status === 429) {
         let waitMs = 2000
         try {
-          const json = JSON.parse(errorText)
+          const json = JSON.parse(errorText) as { parameters?: { retry_after?: number } }
           if (json.parameters?.retry_after) {
             waitMs = json.parameters.retry_after * 1000
           }
-        } catch {}
-        console.warn(`[Telegram Bot] 429 Rate limit excedido. Esperando ${waitMs}ms...`)
+        } catch {
+          // fallback wait
+        }
         await sleep(waitMs)
         continue
       }
 
-      console.error(`Telegram error (intento ${intento}/${intentos}):`, status, errorText)
+      console.error(`Telegram error (intento ${intento}/${intentos}):`, res.status, lastError)
     } catch (e) {
-      console.error(`Telegram fetch error (intento ${intento}/${intentos}):`, e)
+      lastError = e instanceof Error ? e.message : String(e)
+      console.error(`Telegram fetch error (intento ${intento}/${intentos}):`, lastError)
     }
 
     if (intento < intentos) await sleep(600 * intento)
   }
-  console.error('Telegram: se agotaron los reintentos, mensaje no enviado')
+
+  return {
+    ok: false,
+    reason: lastStatus === 429 ? 'rate_limited' : 'delivery_failed',
+    status: lastStatus,
+    error: lastError,
+  }
 }

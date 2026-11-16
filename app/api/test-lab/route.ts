@@ -1,40 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDatabase } from '@/lib/db/sqlite'
-import crypto from 'crypto'
+import { sesionValida } from '@/lib/admin-auth'
+import {
+  clearAllTestLabData,
+  completeDiagnostico,
+  getAdminDashboardData,
+  getStorageHealth,
+  movePipelineLead,
+  recordProgress,
+  recordVisit,
+} from '@/lib/db/repository'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}))
+    if (!sesionValida(req)) {
+      return NextResponse.json({ ok: false, error: 'no_autorizado' }, { status: 401 })
+    }
+
+    const body = (await req.json().catch(() => ({}))) as {
+      action?: string
+      fingerprint?: string
+    }
     const { action, fingerprint } = body
-    const db = getDatabase()
 
     if (action === 'simulate_completed_72h') {
       const targetFp = fingerprint || 'fp_test_device'
-      const sessionId = 'sess_test_72h_' + Date.now()
-      const leadId = 'lead_test_' + Date.now()
+      const sessionId = `sess_test_72h_${Date.now()}`
 
-      // Insertar sesión completada hace 2 horas para este fingerprint
-      db.prepare(`
-        INSERT INTO diagnostico_sesiones (
-          sesion_id, device_fingerprint, estado_funnel, arquetipo_calculado,
-          score_personal, score_organizacional, score_comercial, score_empresarial,
-          nombre, whatsapp, creado_en, actualizado_en
-        ) VALUES (
-          ?, ?, 'COMPLETADO', 'SATURADO',
-          25, 30, 65, 40,
-          'Test Empresario 72h', '+5493764000111',
-          datetime('now', '-2 hours'), datetime('now', '-2 hours')
-        )
-      `).run(sessionId, targetFp)
+      await recordVisit({
+        sesionId: sessionId,
+        fingerprint: targetFp,
+        estado: 'VISITA_INICIADA',
+        utmSource: 'test_lab',
+        ipHash: 'test_ip',
+        userAgent: 'TestLab',
+      })
 
-      // Insertar en pipeline con SLA restante
-      db.prepare(`
-        INSERT INTO diagnostico_pipeline_comercial (
-          lead_id, sesion_id, etapa_kanban, sla_limite_atencion, actualizado_en
-        ) VALUES (?, ?, 'COMPLETADO_SIN_CONTACTO', datetime('now', '+46 hours'), datetime('now'))
-      `).run(leadId, sessionId)
+      await completeDiagnostico({
+        sessionId,
+        visitorId: targetFp,
+        nombre: 'Test Empresario 72h',
+        whatsapp: '+5493764000111',
+        perfil: 'SATURADO',
+        scores: { personal: 25, organizacional: 30, comercial: 65, empresarial: 40 },
+        pregunta0Id: 'incendios',
+        pregunta0Texto: 'Apagar incendios operativos y no tener tiempo para pensar',
+        pregunta0Dimension: 'personal',
+      })
 
       return NextResponse.json({
         ok: true,
@@ -49,124 +62,125 @@ export async function POST(req: NextRequest) {
       const sampleLeads = [
         {
           sid: `sess_vencido_${ts}`,
-          lid: `lead_vencido_${ts}`,
           nombre: 'Martín Gómez (Metalúrgica)',
           wa: '+5491155551234',
           arq: 'SATURADO',
-          scores: [20, 25, 60, 35],
-          etapa: 'COMPLETADO_SIN_CONTACTO',
-          sla: "datetime('now', '-2 hours')", // Vencido (Rojo parpadeante)
+          scores: { personal: 20, organizacional: 25, comercial: 60, empresarial: 35 },
+          etapa: 'COMPLETADO_SIN_CONTACTO' as const,
+          p0: 'Apagar incendios operativos y no tener tiempo para pensar',
         },
         {
           sid: `sess_urgente_${ts}`,
-          lid: `lead_urgente_${ts}`,
           nombre: 'Lic. Mariana Ramos (Clínica)',
           wa: '+5491144445678',
           arq: 'LIDER_QUE_NECESITA_APOYO',
-          scores: [30, 20, 50, 45],
-          etapa: 'COMPLETADO_SIN_CONTACTO',
-          sla: "datetime('now', '+6 hours')", // Urgente <8h (Rojo / Amarillo)
+          scores: { personal: 30, organizacional: 20, comercial: 50, empresarial: 45 },
+          etapa: 'COMPLETADO_SIN_CONTACTO' as const,
+          p0: 'Mi equipo no responde solo y todo termina en mi escritorio',
         },
         {
           sid: `sess_normal_${ts}`,
-          lid: `lead_normal_${ts}`,
           nombre: 'Carlos Rossi (Distribuidora)',
           wa: '+5493764889900',
           arq: 'AREA_COMERCIAL_SIN_RESULTADOS',
-          scores: [50, 60, 20, 40],
-          etapa: 'EN_CONTACTO_WHATSAPP',
-          sla: "datetime('now', '+38 hours')", // Normal (Verde)
+          scores: { personal: 50, organizacional: 60, comercial: 20, empresarial: 40 },
+          etapa: 'EN_CONTACTO_WHATSAPP' as const,
+          p0: 'Las ventas y los ingresos no reflejan el esfuerzo que metemos',
         },
         {
           sid: `sess_reunion_${ts}`,
-          lid: `lead_reunion_${ts}`,
           nombre: 'Dra. Laura Paz (Estudio Contable)',
           wa: '+5493764112233',
           arq: 'EQUIPO_DESALINEADO',
-          scores: [60, 25, 55, 45],
-          etapa: 'REUNION_AGENDADA',
-          sla: "datetime('now', '+42 hours')",
+          scores: { personal: 60, organizacional: 25, comercial: 55, empresarial: 45 },
+          etapa: 'REUNION_AGENDADA' as const,
+          p0: 'Mi equipo no responde solo y todo termina en mi escritorio',
         },
         {
           sid: `sess_cerrado_${ts}`,
-          lid: `lead_cerrado_${ts}`,
           nombre: 'Ing. Roberto Silva (Agropecuaria)',
           wa: '+5491166667788',
           arq: 'SIN_PROFESIONALIZAR_LA_EMPRESA',
-          scores: [25, 20, 30, 25],
-          etapa: 'CERRADO_GANADO',
-          sla: "datetime('now', '+10 hours')",
+          scores: { personal: 25, organizacional: 20, comercial: 30, empresarial: 25 },
+          etapa: 'CERRADO_GANADO' as const,
+          p0: 'El negocio funciona de manera artesanal y depende 100% de mí',
         },
       ]
 
       for (const item of sampleLeads) {
-        db.prepare(`
-          INSERT OR REPLACE INTO diagnostico_sesiones (
-            sesion_id, device_fingerprint, estado_funnel, arquetipo_calculado,
-            score_personal, score_organizacional, score_comercial, score_empresarial,
-            nombre, whatsapp, creado_en, actualizado_en
-          ) VALUES (?, ?, 'COMPLETADO', ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-        `).run(
-          item.sid,
-          'fp_sample_' + item.sid,
-          item.arq,
-          item.scores[0],
-          item.scores[1],
-          item.scores[2],
-          item.scores[3],
-          item.nombre,
-          item.wa
-        )
-
-        db.prepare(`
-          INSERT OR REPLACE INTO diagnostico_pipeline_comercial (
-            lead_id, sesion_id, etapa_kanban, sla_limite_atencion, actualizado_en
-          ) VALUES (?, ?, ?, ${item.sla}, datetime('now'))
-        `).run(item.lid, item.sid, item.etapa)
+        const res = await completeDiagnostico({
+          sessionId: item.sid,
+          visitorId: `fp_sample_${item.sid}`,
+          nombre: item.nombre,
+          whatsapp: item.wa,
+          perfil: item.arq,
+          scores: item.scores,
+          pregunta0Texto: item.p0,
+          utmSource: 'test_lab_seed',
+        })
+        if (item.etapa !== 'COMPLETADO_SIN_CONTACTO') {
+          await movePipelineLead({
+            leadId: res.leadId,
+            nuevaEtapa: item.etapa,
+            notas: 'Lead de prueba sembrado desde /test-lab',
+          })
+        }
       }
 
-      // Crear también 1 sesión activa para columna "EN VIVO"
-      db.prepare(`
-        INSERT OR REPLACE INTO diagnostico_sesiones (
-          sesion_id, device_fingerprint, estado_funnel, pregunta_maxima,
-          utm_source, ref_contacto, creado_en, actualizado_en
-        ) VALUES (
-          ?, 'fp_live_user', 'EN_CUESTIONARIO', 5,
-          'instagram_ad', 'wa_campana_pymes', datetime('now', '-3 minutes'), datetime('now', '-1 minute')
-        )
-      `).run(`sess_live_${ts}`)
+      const liveSid = `sess_live_${ts}`
+      await recordVisit({
+        sesionId: liveSid,
+        fingerprint: 'fp_live_user',
+        estado: 'VISITA_INICIADA',
+        utmSource: 'instagram_ad',
+        refContacto: 'wa_campana_pymes',
+        ipHash: 'test_live',
+        userAgent: 'TestLabLive',
+      })
+      await recordProgress({
+        sessionId: liveSid,
+        visitorId: 'fp_live_user',
+        evento: 'pregunta_respondida',
+        numero: 5,
+        segundos: 12,
+        valor: 2,
+      })
 
       return NextResponse.json({
         ok: true,
-        message: '5 leads en distintas etapas y 1 sesión en vivo inyectadas exitosamente.',
+        message: '5 leads de prueba en distintas etapas y 1 sesión en vivo inyectados.',
       })
     }
 
     if (action === 'clear_test_data') {
-      db.prepare("DELETE FROM diagnostico_pipeline_comercial WHERE lead_id LIKE 'lead_test_%' OR lead_id LIKE 'lead_%'").run()
-      db.prepare("DELETE FROM diagnostico_sesiones WHERE sesion_id LIKE 'sess_test_%' OR sesion_id LIKE 'sess_%'").run()
-      return NextResponse.json({ ok: true, message: 'Datos de prueba eliminados de SQLite.' })
+      await clearAllTestLabData()
+      return NextResponse.json({
+        ok: true,
+        message: 'Datos de prueba eliminados de almacenamiento persistente sin afectar registros reales.',
+      })
     }
 
     if (action === 'get_status') {
-      const totalSesiones = db.prepare('SELECT COUNT(*) as c FROM diagnostico_sesiones').get()?.c || 0
-      const totalPipeline = db.prepare('SELECT COUNT(*) as c FROM diagnostico_pipeline_comercial').get()?.c || 0
-      const ultimasSesiones = db.prepare(`
-        SELECT sesion_id, device_fingerprint, estado_funnel, arquetipo_calculado, nombre, creado_en
-        FROM diagnostico_sesiones ORDER BY creado_en DESC LIMIT 5
-      `).all()
+      const [dashboard, health] = await Promise.all([
+        getAdminDashboardData(),
+        Promise.resolve(getStorageHealth()),
+      ])
 
       return NextResponse.json({
         ok: true,
-        totalSesiones,
-        totalPipeline,
-        ultimasSesiones,
+        storageMode: health.detail,
+        persistent: health.persistent,
+        totalSesiones: dashboard.sessions.length + dashboard.liveSessions.length,
+        totalPipeline: dashboard.pipeline.length,
       })
     }
 
     return NextResponse.json({ ok: false, error: 'unknown_action' }, { status: 400 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Test Lab API] Error:', error)
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { ok: false, error: error instanceof Error ? error.message : 'server_error' },
+      { status: 500 }
+    )
   }
 }

@@ -3,30 +3,49 @@ import { getDatabase } from '../lib/db/sqlite.ts'
 const BASE_URL = 'http://localhost:3000'
 
 console.log('=================================================================')
-console.log('🚀 INICIANDO AUDITORÍA INTEGRAL DE FUNCIONAMIENTO · MEJORADIAGNOSTICO V2')
+console.log('🚀 AUDITORÍA INTEGRAL V3 · MEJORADIAGNOSTICO')
 console.log('=================================================================\n')
 
 async function run() {
   const db = getDatabase()
   let fallos = 0
 
-  // 1. Test Servidor y Landing con Pregunta Cero
+  // 1. Landing ("/") con Pregunta Cero
   try {
     const res = await fetch(`${BASE_URL}/`)
     const html = await res.text()
     if (res.ok && html.includes('En tu día a día como líder, ¿qué sentís que te frena más?')) {
-      console.log('✅ 1. Landing ("/") con Pregunta Cero: OK (HTTP 200 + Titular Visceral presente)')
+      console.log('✅ 1. Landing ("/") con Pregunta Cero: OK')
     } else {
-      console.error('❌ 1. Landing: Falló renderizado de Pregunta Cero')
+      console.error('❌ 1. Landing: Falló Pregunta Cero')
       fallos++
     }
   } catch (e) {
-    console.error('❌ 1. Landing: Servidor no responde:', e.message)
+    console.error('❌ 1. Landing error:', e.message)
     fallos++
   }
 
-  // 2. Test Telemetría Temprana (T = 0 ms)
-  const testFp = 'fp_audit_' + Date.now()
+  // 2. Blindaje de /test-lab sin sesión (debe redirigir a login / responder 401 en API)
+  try {
+    const resPage = await fetch(`${BASE_URL}/test-lab`, { redirect: 'manual' })
+    const resApi = await fetch(`${BASE_URL}/api/test-lab`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_status' }),
+    })
+    if ((resPage.status === 307 || resPage.status === 302) && resApi.status === 401) {
+      console.log('✅ 2. Blindaje /test-lab y /api/test-lab sin auth: OK (307 + 401)')
+    } else {
+      console.error('❌ 2. Blindaje /test-lab falló:', resPage.status, resApi.status)
+      fallos++
+    }
+  } catch (e) {
+    console.error('❌ 2. Test-Lab Auth error:', e.message)
+    fallos++
+  }
+
+  // 3. Telemetría Temprana (T = 0 ms) + Breaker 72h + Bypass ?force=1
+  const testFp = `fp_audit_v3_${Date.now()}`
   let sessionId = ''
   try {
     const res = await fetch(`${BASE_URL}/api/telemetry/visit`, {
@@ -34,33 +53,74 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fingerprint: testFp,
-        utms: { utm_source: 'auditoria_test', utm_campaign: 'v2_check' },
+        utms: { utm_source: 'auditoria_v3', utm_campaign: 'sprint5' },
         referrer: 'https://instagram.com',
       }),
     })
     const data = await res.json()
     if (res.status === 201 && data.sesionId && !data.blocked) {
       sessionId = data.sesionId
-      console.log('✅ 2. Telemetría Temprana (T=0): OK (Sesión creada:', sessionId.slice(0, 8) + '...)')
+      console.log('✅ 3. Telemetría T=0ms: OK')
     } else {
-      console.error('❌ 2. Telemetría: Respuesta inesperada:', data)
+      console.error('❌ 3. Telemetría falló:', data)
       fallos++
     }
   } catch (e) {
-    console.error('❌ 2. Telemetría: Error:', e.message)
+    console.error('❌ 3. Telemetría error:', e.message)
     fallos++
   }
 
-  // 3. Test Breaker Anti-Picardía (Simular completado en 72h)
+  // 4. Completar diagnóstico atómico (/api/diagnostico/complete) -> Persiste nombre, 4D, P0, ICP y Brief
   try {
-    db.prepare(`
-      UPDATE diagnostico_sesiones 
-      SET estado_funnel = 'COMPLETADO', arquetipo_calculado = 'SATURADO',
-          score_personal = 20, score_organizacional = 30, score_comercial = 65, score_empresarial = 40,
-          nombre = 'Auditor AntiPicardía', whatsapp = '+5493764999888'
-      WHERE sesion_id = ?
-    `).run(sessionId)
+    const resComplete = await fetch(`${BASE_URL}/api/diagnostico/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        visitorId: testFp,
+        nombre: 'Auditoría V3',
+        codPais: '+54',
+        whatsapp: '93764555444',
+        respuestas: [1, 2, 1, 2, 1, 2, 1, 2],
+        tiempos: [4, 6, 15, 5, 4, 8, 5, 3],
+        pregunta0: {
+          id: 'incendios',
+          texto: 'Apagar incendios operativos y no tener tiempo para pensar',
+          dimension: 'personal',
+        },
+        honeypot: '',
+        consent: true,
+      }),
+    })
+    const compData = await resComplete.json()
+    const sesRow = db
+      .prepare('SELECT * FROM diagnostico_sesiones WHERE sesion_id = ?')
+      .get(sessionId)
+    const pipeRow = db
+      .prepare('SELECT * FROM diagnostico_pipeline_comercial WHERE sesion_id = ?')
+      .get(sessionId)
 
+    if (
+      resComplete.ok &&
+      compData.ok &&
+      sesRow?.nombre === 'Auditoría V3' &&
+      sesRow?.score_personal > 0 &&
+      sesRow?.pregunta_0_id === 'incendios' &&
+      pipeRow?.prioridad_icp &&
+      pipeRow?.brief_comercial
+    ) {
+      console.log(`✅ 4. /api/diagnostico/complete -> Persistencia integral OK (${compData.perfil}, ICP: ${compData.prioridadIcp})`)
+    } else {
+      console.error('❌ 4. Complete API incompleto:', { compData, sesRow, pipeRow })
+      fallos++
+    }
+  } catch (e) {
+    console.error('❌ 4. Complete API error:', e.message)
+    fallos++
+  }
+
+  // 5. Breaker Anti-Picardía 72h y ?force=1
+  try {
     const resBloqueo = await fetch(`${BASE_URL}/api/telemetry/visit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -68,166 +128,118 @@ async function run() {
     })
     const dataBloqueo = await resBloqueo.json()
 
-    if (dataBloqueo.blocked && dataBloqueo.previousResult?.arquetipo === 'SATURADO') {
-      console.log('✅ 3. Breaker Anti-Picardía (72h): BLOQUEO CONFIRMADO (Retorna perfil previo)')
-    } else {
-      console.error('❌ 3. Breaker 72h: No bloqueó reintento:', dataBloqueo)
-      fallos++
-    }
-
-    // 4. Test Bypass con ?force=1
     const resForce = await fetch(`${BASE_URL}/api/telemetry/visit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fingerprint: testFp, force: true }),
     })
     const dataForce = await resForce.json()
-    if (!dataForce.blocked && dataForce.estado === 'INTENTO_SECUNDARIO_MUTADO') {
-      console.log('✅ 4. Bypass Forzado (?force=1): OK (Marca INTENTO_SECUNDARIO_MUTADO)')
+
+    if (dataBloqueo.blocked && dataForce.estado === 'INTENTO_SECUNDARIO_MUTADO') {
+      console.log('✅ 5. Breaker 72h + Bypass ?force=1: OK')
     } else {
-      console.error('❌ 4. Bypass Forzado: Respuesta inesperada:', dataForce)
+      console.error('❌ 5. Breaker / Bypass falló:', { dataBloqueo, dataForce })
       fallos++
     }
   } catch (e) {
-    console.error('❌ 3/4. Breaker Error:', e.message)
+    console.error('❌ 5. Breaker error:', e.message)
     fallos++
   }
 
-  // 5. Test Funnel Tracking & Persistencia SQLite
-  const auditSessionId = 'sess_audit_flow_' + Date.now()
+  // 6. Cero Falsos Positivos en /api/notify (sin credenciales debe responder 503 ok:false, nunca 200 ok:true)
   try {
-    // Pregunta respondida
-    await fetch(`${BASE_URL}/api/funnel`, {
+    const resNotify = await fetch(`${BASE_URL}/api/notify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        session_id: auditSessionId,
-        visitor_id: testFp,
-        evento: 'pregunta_respondida',
-        numero: 1,
-        segundos: 4,
-        valor: 2,
+        nombre: 'Test ZeroFP',
+        whatsapp: '93764555444',
+        codPais: '+54',
+        perfil: 'SATURADO',
       }),
     })
-
-    // Formulario completado
-    await fetch(`${BASE_URL}/api/funnel`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_id: auditSessionId,
-        visitor_id: testFp,
-        evento: 'formulario_completado',
-        nombre: 'Carlos Tester',
-        whatsapp: '+5493764123456',
-        perfil: 'LIDER_QUE_NECESITA_APOYO',
-      }),
-    })
-
-    // Verificar en SQLite
-    const sesionSql = db.prepare('SELECT * FROM diagnostico_sesiones WHERE sesion_id = ?').get(auditSessionId)
-    const pipelineSql = db.prepare('SELECT * FROM diagnostico_pipeline_comercial WHERE sesion_id = ?').get(auditSessionId)
-
-    if (sesionSql?.arquetipo_calculado === 'LIDER_QUE_NECESITA_APOYO' && pipelineSql?.etapa_kanban === 'COMPLETADO_SIN_CONTACTO') {
-      console.log('✅ 5. Funnel -> SQLite WAL: OK (Sesión + Pipeline persistidos con SLA 48h)')
+    const notifyJson = await resNotify.json()
+    if (resNotify.status === 503 && notifyJson.ok === false && notifyJson.delivered === false) {
+      console.log('✅ 6. Cero Falsos Positivos (/api/notify sin credenciales -> 503 delivered:false): OK')
+    } else if (resNotify.ok && notifyJson.delivered === true) {
+      console.log('✅ 6. /api/notify entregó mensaje real de Telegram: OK')
     } else {
-      console.error('❌ 5. Funnel SQLite: Datos no encontrados:', { sesionSql, pipelineSql })
+      console.error('❌ 6. /api/notify respuesta inesperada:', resNotify.status, notifyJson)
       fallos++
     }
   } catch (e) {
-    console.error('❌ 5. Funnel Error:', e.message)
+    console.error('❌ 6. /api/notify error:', e.message)
     fallos++
   }
 
-  // 6. Test Admin Login con contraseña flexible
+  // 7. Auth Admin + Kanban 6 etapas + Notas + /api/admin/data storageHealth
   let adminCookie = ''
   try {
     const resLogin = await fetch(`${BASE_URL}/api/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: 'adminmc' }),
+      body: JSON.stringify({ password: process.env.ADMIN_PASSWORD || 'adminmc' }),
     })
     const cookieHeader = resLogin.headers.get('set-cookie') || ''
-    if (resLogin.ok && cookieHeader.includes('mc_admin_session')) {
-      adminCookie = cookieHeader.split(';')[0]
-      console.log('✅ 6. Autenticación /admin ("adminmc"): OK (Cookie httpOnly emitida)')
-    } else {
-      console.error('❌ 6. Admin Login: Rechazó contraseña')
-      fallos++
-    }
-  } catch (e) {
-    console.error('❌ 6. Admin Login Error:', e.message)
-    fallos++
-  }
+    adminCookie = cookieHeader.split(';')[0]
 
-  // 7. Test Admin Data Endpoint (Devuelve pipeline y sesiones)
-  try {
     const resData = await fetch(`${BASE_URL}/api/admin/data`, {
       headers: { Cookie: adminCookie },
     })
     const dataAdmin = await resData.json()
-    if (resData.ok && Array.isArray(dataAdmin.pipeline) && Array.isArray(dataAdmin.liveSessions)) {
-      console.log(`✅ 7. API /api/admin/data: OK (${dataAdmin.pipeline.length} leads en Pipeline, ${dataAdmin.liveSessions.length} en vivo)`)
-    } else {
-      console.error('❌ 7. Admin Data: Respuesta inválida:', dataAdmin)
-      fallos++
-    }
-  } catch (e) {
-    console.error('❌ 7. Admin Data Error:', e.message)
-    fallos++
-  }
 
-  // 8. Test Movimiento Drag-and-Drop en Kanban (PATCH /api/admin/pipeline/move)
-  try {
     const resMove = await fetch(`${BASE_URL}/api/admin/pipeline/move`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: adminCookie,
-      },
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
       body: JSON.stringify({
-        leadId: auditSessionId,
-        nuevaEtapa: 'EN_CONTACTO_WHATSAPP',
-        notas: 'Contacto iniciado por WhatsApp el día de hoy',
+        leadId: sessionId,
+        nuevaEtapa: 'PROPUESTA_ENVIADA',
+        notas: 'Propuesta comercial V3 enviada por WhatsApp',
       }),
     })
-    const dataMove = await resMove.json()
-    if (resMove.ok && dataMove.success) {
-      console.log('✅ 8. Mutación Drag-and-Drop Kanban: OK (Etapa cambiada a EN_CONTACTO_WHATSAPP)')
+    const moveJson = await resMove.json()
+
+    const resLabAuth = await fetch(`${BASE_URL}/api/test-lab`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
+      body: JSON.stringify({ action: 'get_status' }),
+    })
+
+    if (
+      resLogin.ok &&
+      dataAdmin.storageHealth?.persistent &&
+      moveJson.success &&
+      moveJson.updatedLead?.etapa_kanban === 'PROPUESTA_ENVIADA' &&
+      resLabAuth.ok
+    ) {
+      console.log('✅ 7. Auth Admin + storageHealth + Kanban PROPUESTA_ENVIADA + /test-lab autenticado: OK')
     } else {
-      console.error('❌ 8. Kanban Drag-and-Drop: Falló mutación:', dataMove)
+      console.error('❌ 7. Admin/Kanban falló:', {
+        login: resLogin.status,
+        health: dataAdmin.storageHealth,
+        moveJson,
+        labAuth: resLabAuth.status,
+      })
       fallos++
     }
   } catch (e) {
-    console.error('❌ 8. Kanban Move Error:', e.message)
+    console.error('❌ 7. Admin/Kanban error:', e.message)
     fallos++
   }
 
-  // 9. Test Laboratorio Oculto (/test-lab)
+  // Limpieza estricta de datos de auditoría
   try {
-    const resLab = await fetch(`${BASE_URL}/test-lab`)
-    if (resLab.ok) {
-      console.log('✅ 9. Sección Oculta /test-lab: OK (Ruta accesible con interfaz de pruebas)')
-    } else {
-      console.error('❌ 9. /test-lab: No accesible')
-      fallos++
-    }
-  } catch (e) {
-    console.error('❌ 9. /test-lab Error:', e.message)
-    fallos++
-  }
-
-  // Limpieza de datos de prueba
-  try {
-    db.prepare('DELETE FROM diagnostico_pipeline_comercial WHERE sesion_id LIKE ?').run('%audit%')
-    db.prepare('DELETE FROM diagnostico_sesiones WHERE sesion_id LIKE ?').run('%audit%')
+    db.prepare('DELETE FROM diagnostico_outbox WHERE sesion_id = ?').run(sessionId)
+    db.prepare('DELETE FROM diagnostico_pipeline_comercial WHERE sesion_id = ?').run(sessionId)
+    db.prepare('DELETE FROM diagnostico_sesiones WHERE device_fingerprint = ?').run(testFp)
   } catch {}
 
   console.log('\n=================================================================')
   if (fallos === 0) {
-    console.log('🎉 AUDITORÍA 100% EXITOSA: TODOS LOS SISTEMAS OPERAN CONFORME AL PLAN V2')
+    console.log('🎉 AUDITORÍA V3 100% EXITOSA: TODOS LOS SISTEMAS VERIFICADOS')
   } else {
     console.error(`⚠️ SE ENCONTRARON ${fallos} FALLOS EN LA AUDITORÍA`)
+    process.exit(1)
   }
   console.log('=================================================================')
 }

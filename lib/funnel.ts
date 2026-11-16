@@ -4,6 +4,7 @@ import { getDeviceFingerprint } from './fingerprint'
 
 const SESSION_KEY = 'mc_session_id'
 const VISITOR_KEY = 'mc_visitor_id'
+const TELEMETRY_DONE_KEY = 'mc_telemetry_visit_done'
 
 export function getSessionId(): string {
   if (typeof window === 'undefined') return ''
@@ -22,8 +23,9 @@ export function setSessionId(id: string): void {
 
 export function getVisitorId(): string {
   if (typeof window === 'undefined') return ''
-  // Si ya tenemos el fingerprint en memoria/almacenamiento, usarlo como visitor_id soberano
-  const fp = sessionStorage.getItem('mc_device_fingerprint') || localStorage.getItem('mc_device_fingerprint')
+  const fp =
+    sessionStorage.getItem('mc_device_fingerprint') ||
+    localStorage.getItem('mc_device_fingerprint')
   if (fp) return fp
 
   let vid = localStorage.getItem(VISITOR_KEY)
@@ -66,13 +68,15 @@ export interface TelemetryVisitResult {
   }
 }
 
-export async function registrarVisitaTemprana(): Promise<TelemetryVisitResult> {
+export async function registrarVisitaTemprana(
+  forceOverride?: boolean
+): Promise<TelemetryVisitResult> {
   if (typeof window === 'undefined') return { blocked: false }
 
   try {
     const fingerprint = await getDeviceFingerprint()
     const params = new URLSearchParams(window.location.search)
-    const force = params.get('force') === '1'
+    const force = forceOverride ?? params.get('force') === '1'
 
     const payload = {
       fingerprint,
@@ -100,6 +104,7 @@ export async function registrarVisitaTemprana(): Promise<TelemetryVisitResult> {
     const data: TelemetryVisitResult = await res.json()
     if (data.sesionId) {
       setSessionId(data.sesionId)
+      sessionStorage.setItem(TELEMETRY_DONE_KEY, '1')
     }
 
     if (data.blocked && data.previousResult) {
@@ -112,6 +117,17 @@ export async function registrarVisitaTemprana(): Promise<TelemetryVisitResult> {
     console.warn('[Telemetry] Error en registro temprano:', err)
     return { blocked: false, sesionId: getSessionId() }
   }
+}
+
+/**
+ * Asegura telemetría T=0 de forma idempotente aunque el usuario entre directo a /diagnostico.
+ */
+export async function ensureTelemetrySession(): Promise<TelemetryVisitResult> {
+  if (typeof window === 'undefined') return { blocked: false }
+  if (sessionStorage.getItem(TELEMETRY_DONE_KEY) === '1' && sessionStorage.getItem(SESSION_KEY)) {
+    return { blocked: false, sesionId: getSessionId() }
+  }
+  return registrarVisitaTemprana()
 }
 
 export function trackFunnel(

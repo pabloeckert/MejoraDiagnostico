@@ -7,8 +7,6 @@ import { zonaColor } from '@/lib/areas'
 import { rateLimit } from '@/lib/rate-limit'
 import { enviarConReintento } from '@/lib/resend-retry'
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_for_build')
-
 const Schema = z.object({
   respuestas: z.array(z.number().min(1).max(4)).length(8),
 })
@@ -18,6 +16,10 @@ export async function POST(req: NextRequest) {
     if (!rateLimit(req, 'save-completion', 6)) {
       return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
     }
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json({ ok: false, error: 'resend_unconfigured' }, { status: 503 })
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const d = Schema.parse(await req.json())
     const scores = calcularScores(d.respuestas)
     const perfil = detectarPerfil(scores)

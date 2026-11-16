@@ -1,60 +1,91 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { google } from 'googleapis'
 import type { sheets_v4 } from 'googleapis'
 import { z } from 'zod'
 import { PREGUNTAS } from '@/lib/preguntas'
 import { rateLimit } from '@/lib/rate-limit'
-import { getDatabase } from '@/lib/db/sqlite'
+import { getSheetsClient } from '@/lib/sheets'
+import { hasSheetsConfig } from '@/lib/db/sheets-store'
+import {
+  completeDiagnostico,
+  movePipelineLead,
+  recordProgress,
+} from '@/lib/db/repository'
+import { calcularScores, type Scores } from '@/lib/scoring'
+
+export const runtime = 'nodejs'
 
 const SHEET_NAME = 'Funnel'
 const SHEET_EVENTOS = 'Eventos'
 
-// Permisivo a propósito: cada tipo de evento manda un subconjunto distinto de
-// campos (ver lib/funnel.ts y los `trackFunnel(...)` en app/**). Solo se
-// acotan tipo y tamaño para bloquear payloads con forma inesperada — el
-// switch de abajo ya ignora cualquier campo que no reconozca.
-const FunnelSchema = z.object({
-  session_id: z.string().min(1).max(200),
-  visitor_id: z.string().max(200).optional(),
-  evento: z.string().min(1).max(60),
-  timestamp: z.string().max(60).optional(),
-  nombre: z.string().max(200).optional(),
-  whatsapp: z.string().max(50).optional(),
-  perfil: z.string().max(60).optional(),
-  respuestas: z.array(z.number()).max(8).optional(),
-  paso: z.string().max(60).optional(),
-  referrer: z.string().max(500).optional(),
-  utm_source: z.string().max(200).optional(),
-  utm_campaign: z.string().max(200).optional(),
-  origen: z.string().max(200).optional(),
-  dispositivo: z.string().max(30).optional(),
-  numero: z.number().optional(),
-  tiempos: z.array(z.number()).max(20).optional(),
-  pasoRetomado: z.string().max(60).optional(),
-  segundos: z.number().optional(),
-  valor: z.number().optional(),
-}).passthrough()
+const FunnelSchema = z
+  .object({
+    session_id: z.string().min(1).max(200),
+    visitor_id: z.string().max(200).optional(),
+    evento: z.string().min(1).max(60),
+    timestamp: z.string().max(60).optional(),
+    nombre: z.string().max(200).optional(),
+    whatsapp: z.string().max(50).optional(),
+    perfil: z.string().max(60).optional(),
+    respuestas: z.array(z.number()).max(8).optional(),
+    scores: z
+      .object({
+        personal: z.number(),
+        organizacional: z.number(),
+        comercial: z.number(),
+        empresarial: z.number(),
+      })
+      .optional(),
+    posicion: z.string().max(40).optional(),
+    opcion_id: z.string().max(60).optional(),
+    opcion_texto: z.string().max(300).optional(),
+    dimension: z.string().max(40).optional(),
+    arquetipo: z.string().max(60).optional(),
+    paso: z.string().max(60).optional(),
+    referrer: z.string().max(500).optional(),
+    utm_source: z.string().max(200).optional(),
+    utm_campaign: z.string().max(200).optional(),
+    origen: z.string().max(200).optional(),
+    dispositivo: z.string().max(30).optional(),
+    numero: z.number().optional(),
+    tiempos: z.array(z.number()).max(20).optional(),
+    pasoRetomado: z.string().max(60).optional(),
+    segundos: z.number().optional(),
+    valor: z.number().optional(),
+  })
+  .passthrough()
 
 function textoRespuesta(preguntaIdx: number, valor: number): string {
-  const opcion = PREGUNTAS[preguntaIdx]?.opciones.find(o => o.valor === valor)
+  const opcion = PREGUNTAS[preguntaIdx]?.opciones.find((o) => o.valor === valor)
   return opcion ? `${valor} — ${opcion.texto}` : String(valor)
 }
 
-function construirDetalle(evento: string, ctx: {
-  nombre?: string
-  whatsapp?: string
-  numero?: number
-  segundos?: number
-  valor?: number
-  tiempos?: number[]
-  paso?: string
-  pasoRetomado?: string
-  dispositivo?: string
-  origen?: string
-}): string {
+function construirDetalle(
+  evento: string,
+  ctx: {
+    nombre?: string
+    whatsapp?: string
+    numero?: number
+    segundos?: number
+    valor?: number
+    tiempos?: number[]
+    paso?: string
+    pasoRetomado?: string
+    dispositivo?: string
+    origen?: string
+    opcion_id?: string
+    dimension?: string
+    arquetipo?: string
+  }
+): string {
   switch (evento) {
     case 'landing':
       return `${ctx.dispositivo || ''} · ${ctx.origen || ''}`.trim()
+    case 'landing_pregunta_0_vista':
+      return 'vio Pregunta 0'
+    case 'pregunta_0_respondida':
+      return `p0: ${ctx.opcion_id || ''} (${ctx.dimension || ''})`
+    case 'visita_bloqueada_reintento':
+      return `bloqueo 72h · arquetipo: ${ctx.arquetipo || ''}`
     case 'diagnostico_iniciado':
       return 'inició el diagnóstico'
     case 'nombre_ingresado':
@@ -80,30 +111,23 @@ function construirDetalle(evento: string, ctx: {
   }
 }
 
-async function getSheets() {
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    },
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  })
-  return google.sheets({ version: 'v4', auth })
-}
-
 async function findRow(sheets: sheets_v4.Sheets, sessionId: string): Promise<number | null> {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEETS_ID,
     range: `${SHEET_NAME}!A:A`,
   })
-  const rows: string[][] = res.data.values || []
+  const rows: string[][] = (res.data.values || []) as string[][]
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][0] === sessionId) return i + 1
   }
   return null
 }
 
-async function batchUpdateCells(sheets: sheets_v4.Sheets, row: number, updates: Record<string, string>) {
+async function batchUpdateCells(
+  sheets: sheets_v4.Sheets,
+  row: number,
+  updates: Record<string, string>
+) {
   const data = Object.entries(updates).map(([col, value]) => ({
     range: `${SHEET_NAME}!${col}${row}`,
     values: [[value]],
@@ -121,23 +145,34 @@ async function createRow(sheets: sheets_v4.Sheets, sessionId: string, fecha: str
     valueInputOption: 'RAW',
     insertDataOption: 'INSERT_ROWS',
     requestBody: {
-      values: [[
-        sessionId, fecha, '', '', '',
-        'inicio', '', '', '', '', '', '', '',
-        '', 'NO', '', fecha, 'NO',
-        '', '', '', '', '',
-      ]],
+      values: [
+        [
+          sessionId,
+          fecha,
+          '',
+          '',
+          '',
+          'inicio',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          'NO',
+          '',
+          fecha,
+          'NO',
+          '',
+          '',
+          '',
+          '',
+          '',
+        ],
+      ],
     },
-  })
-}
-
-async function appendEvento(sheets: sheets_v4.Sheets, fila: [string, string, string, string, string]) {
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-    range: `${SHEET_EVENTOS}!A1`,
-    valueInputOption: 'RAW',
-    insertDataOption: 'INSERT_ROWS',
-    requestBody: { values: [fila] },
   })
 }
 
@@ -150,111 +185,45 @@ async function registrarEvento(
   timestamp: string
 ) {
   try {
-    await appendEvento(sheets, [timestamp || '', visitorId || '', sessionId, evento, detalle])
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.GOOGLE_SHEETS_ID,
+      range: `${SHEET_EVENTOS}!A1`,
+      valueInputOption: 'RAW',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: { values: [[timestamp || '', visitorId || '', sessionId, evento, detalle]] },
+    })
   } catch (e) {
     console.error('Eventos error en evento:', evento, 'session:', sessionId, e)
   }
 }
 
-async function buscarCompletadoPrevio(sheets: sheets_v4.Sheets, whatsapp: string, sessionActual: string): Promise<boolean> {
+async function buscarCompletadoPrevio(
+  sheets: sheets_v4.Sheets,
+  whatsapp: string,
+  sessionActual: string
+): Promise<boolean> {
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEETS_ID,
     range: `${SHEET_NAME}!A:F`,
   })
-  const rows: string[][] = res.data.values || []
+  const rows: string[][] = (res.data.values || []) as string[][]
   for (let i = 1; i < rows.length; i++) {
     const [sid, , , wa, , estado] = rows[i]
-    if (sid !== sessionActual && wa === whatsapp && ['resultado', 'resultado_completo', 'whatsapp_contactado'].includes(estado)) {
+    if (
+      sid !== sessionActual &&
+      wa === whatsapp &&
+      ['resultado', 'resultado_completo', 'whatsapp_contactado'].includes(estado)
+    ) {
       return true
     }
   }
   return false
 }
 
-function syncFunnelToSqlite(data: {
-  sessionId: string
-  visitorId?: string
-  evento: string
-  nombre?: string
-  whatsapp?: string
-  perfil?: string
-  respuestas?: number[]
-  numero?: number
-  segundos?: number
-  valor?: number
-  paso?: string
-}) {
-  try {
-    const db = getDatabase()
-    const { sessionId, visitorId, evento, nombre, whatsapp, perfil, numero, segundos, valor } = data
-
-    // Asegurar que la sesión existe en SQLite
-    try {
-      db.prepare(`
-        INSERT OR IGNORE INTO diagnostico_sesiones (
-          sesion_id, device_fingerprint, estado_funnel, creado_en, actualizado_en
-        ) VALUES (?, ?, 'VISITA_INICIADA', datetime('now'), datetime('now'))
-      `).run(sessionId, visitorId || 'anonymous')
-    } catch {}
-
-    if (evento === 'pregunta_respondida' && typeof numero === 'number') {
-      const respId = `${sessionId}_q${numero}`
-      try {
-        db.prepare(`
-          INSERT OR REPLACE INTO diagnostico_respuestas (
-            respuesta_id, sesion_id, pregunta_id, opcion_seleccionada, tiempo_segundos, creado_en
-          ) VALUES (?, ?, ?, ?, ?, datetime('now'))
-        `).run(respId, sessionId, numero, String(valor ?? ''), segundos ?? 0)
-
-        db.prepare(`
-          UPDATE diagnostico_sesiones 
-          SET pregunta_maxima = MAX(pregunta_maxima, ?), estado_funnel = 'EN_CUESTIONARIO', actualizado_en = datetime('now')
-          WHERE sesion_id = ?
-        `).run(numero, sessionId)
-      } catch {}
-    } else if (evento === 'formulario_completado') {
-      try {
-        db.prepare(`
-          UPDATE diagnostico_sesiones 
-          SET nombre = ?, whatsapp = ?, arquetipo_calculado = ?, estado_funnel = 'COMPLETADO', actualizado_en = datetime('now')
-          WHERE sesion_id = ?
-        `).run(nombre || '', whatsapp || '', perfil || '', sessionId)
-
-        const leadId = `lead_${sessionId.slice(0, 12)}`
-        db.prepare(`
-          INSERT OR REPLACE INTO diagnostico_pipeline_comercial (
-            lead_id, sesion_id, etapa_kanban, sla_limite_atencion, actualizado_en
-          ) VALUES (?, ?, 'COMPLETADO_SIN_CONTACTO', datetime('now', '+48 hours'), datetime('now'))
-        `).run(leadId, sessionId)
-      } catch {}
-    } else if (evento === 'cta_click') {
-      try {
-        db.prepare(`
-          UPDATE diagnostico_pipeline_comercial 
-          SET etapa_kanban = 'EN_CONTACTO_WHATSAPP', actualizado_en = datetime('now')
-          WHERE sesion_id = ?
-        `).run(sessionId)
-      } catch {}
-    } else if (evento === 'abandono') {
-      try {
-        db.prepare(`
-          UPDATE diagnostico_sesiones 
-          SET estado_funnel = 'ABANDONADO', actualizado_en = datetime('now')
-          WHERE sesion_id = ? AND estado_funnel != 'COMPLETADO'
-        `).run(sessionId)
-      } catch {}
-    }
-  } catch (err) {
-    console.warn('[Funnel SQLite Sync] Warning:', err)
-  }
-}
-
 export async function POST(req: NextRequest) {
   let evento = 'desconocido'
   let session_id = 'desconocido'
   try {
-    // Límite generoso: una sesión legítima dispara ~13 eventos; esto solo
-    // frena un abuso masivo desde una IP.
     if (!rateLimit(req, 'funnel', 60)) {
       return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
     }
@@ -264,40 +233,81 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'payload_invalido' }, { status: 400 })
     }
     const {
-      session_id: sid, evento: ev, timestamp, nombre, whatsapp, perfil, respuestas, paso,
-      visitor_id, referrer, utm_source, dispositivo, numero, tiempos, pasoRetomado,
-      segundos, valor,
-    } = parsed.data
-    session_id = sid
-    evento = ev
-
-    // Sincronización inmediata con SQLite Soberano (siempre se ejecuta)
-    syncFunnelToSqlite({
-      sessionId: sid,
-      visitorId: visitor_id,
+      session_id: sid,
       evento: ev,
+      timestamp,
       nombre,
       whatsapp,
       perfil,
       respuestas,
+      scores: payloadScores,
+      posicion,
+      opcion_id,
+      opcion_texto,
+      dimension,
+      arquetipo,
+      paso,
+      visitor_id,
+      referrer,
+      utm_source,
+      dispositivo,
       numero,
+      tiempos,
+      pasoRetomado,
       segundos,
       valor,
-      paso,
-    })
+    } = parsed.data
+    session_id = sid
+    evento = ev
 
-    const hasSheetsConfig = Boolean(
-      process.env.GOOGLE_SHEETS_ID &&
-      process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
-      process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-    )
+    if (ev === 'formulario_completado') {
+      const scoresCalculados: Scores =
+        payloadScores ||
+        (Array.isArray(respuestas) && respuestas.length === 8
+          ? calcularScores(respuestas)
+          : { personal: 0, organizacional: 0, comercial: 0, empresarial: 0 })
 
-    if (!hasSheetsConfig) {
-      // Entorno sin Google Sheets (ej. desarrollo local): persistido en SQLite sin error
+      await completeDiagnostico({
+        sessionId: sid,
+        visitorId: visitor_id,
+        nombre: nombre || '',
+        whatsapp: whatsapp || '',
+        perfil: perfil || 'SATURADO',
+        scores: scoresCalculados,
+        respuestas,
+        tiempos,
+        posicion,
+        pregunta0Id: opcion_id,
+        pregunta0Texto: opcion_texto,
+        pregunta0Dimension: dimension,
+        utmSource: utm_source,
+      })
+    } else if (ev === 'cta_click') {
+      await movePipelineLead({
+        leadId: sid,
+        nuevaEtapa: 'EN_CONTACTO_WHATSAPP',
+      })
+    } else {
+      await recordProgress({
+        sessionId: sid,
+        visitorId: visitor_id,
+        evento: ev,
+        numero,
+        segundos,
+        valor,
+        nombre,
+        pregunta0Id: opcion_id,
+        pregunta0Texto: opcion_texto,
+        pregunta0Dimension: dimension,
+        utmSource: utm_source,
+      })
+    }
+
+    if (!hasSheetsConfig()) {
       return NextResponse.json({ ok: true, sqlite: true, sheets: false })
     }
 
-    const sheets = await getSheets()
+    const sheets = await getSheetsClient()
     let row = await findRow(sheets, session_id)
 
     if (!row) {
@@ -315,11 +325,21 @@ export async function POST(req: NextRequest) {
         updates.T = origen
         updates.U = dispositivo || ''
         break
+      case 'landing_pregunta_0_vista':
+        updates.S = visitor_id || ''
+        break
+      case 'pregunta_0_respondida':
+        updates.F = `pregunta_0_${opcion_id || ''}`
+        if (visitor_id) updates.S = visitor_id
+        break
+      case 'visita_bloqueada_reintento':
+        updates.F = 'bloqueado_72h'
+        break
       case 'diagnostico_iniciado':
         updates.F = 'preguntas'
         break
       case 'nombre_ingresado':
-        updates.C = nombre || ''
+        if (nombre) updates.C = nombre
         updates.F = 'preguntas'
         break
       case 'pregunta_respondida':
@@ -338,6 +358,7 @@ export async function POST(req: NextRequest) {
         updates.F = 'formulario'
         break
       case 'formulario_completado':
+        if (nombre) updates.C = nombre
         updates.D = whatsapp || ''
         updates.E = perfil || ''
         updates.F = 'resultado'
@@ -363,7 +384,14 @@ export async function POST(req: NextRequest) {
       const yaCompletado = await buscarCompletadoPrevio(sheets, whatsapp, session_id)
       if (yaCompletado) {
         await batchUpdateCells(sheets, row, { F: 'duplicado_bloqueado', Q: timestamp ?? '' })
-        registrarEvento(sheets, session_id, visitor_id ?? '', evento, 'duplicado_bloqueado', timestamp ?? '')
+        registrarEvento(
+          sheets,
+          session_id,
+          visitor_id ?? '',
+          evento,
+          'duplicado_bloqueado',
+          timestamp ?? ''
+        )
         return NextResponse.json({ ok: true, duplicado: true })
       }
     }
@@ -371,11 +399,22 @@ export async function POST(req: NextRequest) {
     await batchUpdateCells(sheets, row, updates)
 
     const detalle = construirDetalle(evento, {
-      nombre, whatsapp, numero, segundos, valor, tiempos, paso, pasoRetomado, dispositivo, origen,
+      nombre,
+      whatsapp,
+      numero,
+      segundos,
+      valor,
+      tiempos,
+      paso,
+      pasoRetomado,
+      dispositivo,
+      origen,
+      opcion_id,
+      dimension,
+      arquetipo,
     })
     registrarEvento(sheets, session_id, visitor_id ?? '', evento, detalle, timestamp ?? '')
 
-    console.log('Funnel OK:', evento, session_id)
     return NextResponse.json({ ok: true, duplicado: false })
   } catch (e) {
     console.error('Funnel error en evento:', evento, 'session:', session_id, e)

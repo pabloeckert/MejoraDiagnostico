@@ -10,31 +10,47 @@ const Schema = z.object({
   whatsapp: z.string().min(6),
   codPais: z.string().min(1),
   perfil: z.string().min(1),
+  pregunta0: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
   try {
     if (!rateLimit(req, 'notify', 6)) {
-      return NextResponse.json({ ok: false, error: 'rate_limit' }, { status: 429 })
+      return NextResponse.json({ ok: false, delivered: false, error: 'rate_limit' }, { status: 429 })
     }
-    const data = Schema.parse(await req.json())
+    const parsed = Schema.safeParse(await req.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, delivered: false, error: 'invalid_payload' }, { status: 400 })
+    }
+    const data = parsed.data
     const perfil = PERFILES[data.perfil as keyof typeof PERFILES]
 
-    const mensaje = `
-🔔 <b>Nuevo diagnóstico completado</b>
+    const mensaje = [
+      `🔔 <b>Nuevo diagnóstico completado</b>`,
+      ``,
+      `👤 <b>Nombre:</b> ${escapeHtml(data.nombre)}`,
+      `📱 <b>WhatsApp:</b> ${escapeHtml(data.codPais)}${escapeHtml(data.whatsapp)}`,
+      `🎯 <b>Perfil:</b> ${escapeHtml(perfil?.tag ?? data.perfil)}`,
+      data.pregunta0 ? `⚡ <b>Freno P0:</b> ${escapeHtml(data.pregunta0)}` : '',
+      `💬 <b>Ref:</b> ${escapeHtml(perfil?.ref ?? '')}`,
+      ``,
+      `<i>El usuario completó su diagnóstico y recibió el Plan de 72h.</i>`,
+    ]
+      .filter(Boolean)
+      .join('\n')
 
-👤 <b>Nombre:</b> ${escapeHtml(data.nombre)}
-📱 <b>WhatsApp:</b> ${escapeHtml(data.codPais)}${escapeHtml(data.whatsapp)}
-🎯 <b>Perfil:</b> ${escapeHtml(perfil?.tag ?? data.perfil)}
-💬 <b>Ref:</b> ${escapeHtml(perfil?.ref ?? '')}
+    const result = await sendTelegram(mensaje)
+    if (!result.ok) {
+      const status = result.reason === 'missing_credentials' ? 503 : 502
+      return NextResponse.json(
+        { ok: false, delivered: false, reason: result.reason, error: result.error },
+        { status }
+      )
+    }
 
-<i>El usuario está esperando tu contacto.</i>
-    `.trim()
-
-    await sendTelegram(mensaje)
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, delivered: true })
   } catch (e) {
     console.error('Notify error:', e)
-    return NextResponse.json({ ok: false }, { status: 400 })
+    return NextResponse.json({ ok: false, delivered: false, error: 'server_error' }, { status: 500 })
   }
 }

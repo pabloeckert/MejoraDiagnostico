@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://diagnostico.mejoraok.com'),
   title: '¿Cuál es el verdadero cuello de botella de tu empresa? (Diagnóstico 4D en 2 minutos)',
   description: 'Evaluación estratégica para líderes y fundadores. Identificá en 4 dimensiones el obstáculo exacto de tu negocio.',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     title: '¿Cuál es el verdadero cuello de botella de tu empresa? (Diagnóstico 4D en 2 minutos)',
     description: 'Evaluación estratégica para líderes y fundadores. Identificá en 4 dimensiones el obstáculo exacto de tu negocio.',
@@ -20,10 +24,10 @@ export const metadata: Metadata = {
     siteName: 'Mejora Continua',
     images: [
       {
-        url: '/logo-color.png',
-        width: 800,
-        height: 600,
-        alt: 'Isotipo Oficial Mejora Continua',
+        url: '/og-diagnostico.png',
+        width: 1200,
+        height: 630,
+        alt: 'Mejora Continua — Diagnóstico Empresarial 4D',
       },
     ],
     locale: 'es_AR',
@@ -33,7 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '¿Cuál es el verdadero cuello de botella de tu empresa? (Diagnóstico 4D en 2 minutos)',
     description: 'Evaluación estratégica para líderes y fundadores. Identificá en 4 dimensiones el obstáculo exacto de tu negocio.',
-    images: ['/logo-color.png'],
+    images: ['/og-diagnostico.png'],
   },
 }
 

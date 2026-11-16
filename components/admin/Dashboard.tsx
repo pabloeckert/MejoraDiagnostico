@@ -19,15 +19,21 @@ import ExportPanel from './ExportPanel'
 import TourGuiado from './TourGuiado'
 import KanbanBoard, { type PipelineLead, type LiveSession } from './KanbanBoard'
 
+interface StorageHealthInfo {
+  mode: string
+  persistent: boolean
+  detail: string
+}
+
 const POLL_MS = 20000
 const RANGOS: { key: RangoFecha; label: string }[] = [
   { key: 'hoy', label: 'Hoy' },
   { key: '7dias', label: 'Últimos 7 días' },
   { key: 'todo', label: 'Todo' },
 ]
-const TABS: { key: 'general' | 'kanban' | 'detalle' | 'exportacion'; label: string }[] = [
-  { key: 'general', label: 'General' },
+const TABS: { key: 'kanban' | 'general' | 'detalle' | 'exportacion'; label: string }[] = [
   { key: 'kanban', label: 'Tablero Kanban (SLA 48h)' },
+  { key: 'general', label: 'General' },
   { key: 'detalle', label: 'Detalle' },
   { key: 'exportacion', label: 'Exportación' },
 ]
@@ -50,9 +56,10 @@ export default function Dashboard() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoSesion | 'todos'>('todos')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [detalleSessionId, setDetalleSessionId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'general' | 'kanban' | 'detalle' | 'exportacion'>('general')
+  const [tab, setTab] = useState<'kanban' | 'general' | 'detalle' | 'exportacion'>('kanban')
   const [pipelineLeads, setPipelineLeads] = useState<PipelineLead[]>([])
   const [liveSessions, setLiveSessions] = useState<LiveSession[]>([])
+  const [storageHealth, setStorageHealth] = useState<StorageHealthInfo | null>(null)
   const [modoDemo, setModoDemo] = useState(false)
   const [mostrarTour, setMostrarTour] = useState(false)
   const [generandoInfografia, setGenerandoInfografia] = useState(false)
@@ -71,6 +78,7 @@ export default function Dashboard() {
       setEventos(data.eventos || [])
       setPipelineLeads(data.pipeline || [])
       setLiveSessions(data.liveSessions || [])
+      if (data.storageHealth) setStorageHealth(data.storageHealth)
       setError(false)
     } catch {
       setError(true)
@@ -164,27 +172,56 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-mc-gris-claro">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-6">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-color.png" alt="Mejora Continua" className="h-8 object-contain" />
           <h1 className="text-xl font-bold text-mc-negro">Monitor MejoraDiagnostico</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {storageHealth && (
+            <span
+              className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border inline-flex items-center gap-1.5 ${
+                error
+                  ? 'bg-[#E1061E] text-white border-[#E1061E]'
+                  : storageHealth.persistent
+                    ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                    : 'bg-[#F7CC13] text-[#2B2B2B] border-amber-500'
+              }`}
+            >
+              <span>{error ? '🔴' : storageHealth.persistent ? '🟢' : '🟡'}</span>
+              {error ? 'Sin conexión con servidor' : storageHealth.detail}
+            </span>
+          )}
+          <a
+            href="/test-lab"
+            className="min-h-[44px] inline-flex items-center text-xs font-semibold px-3 py-2 rounded bg-mc-gris-claro text-mc-azul hover:bg-gray-200"
+          >
+            🧪 Lab
+          </a>
           <button
             onClick={() => setModoDemo((v) => !v)}
-            className="text-xs font-semibold px-3 py-2 rounded bg-mc-gris-claro text-mc-gris"
+            className="min-h-[44px] text-xs font-semibold px-3 py-2 rounded bg-mc-gris-claro text-mc-tinta hover:bg-gray-200 cursor-pointer"
           >
             {modoDemo ? 'Ver datos reales' : 'Ver datos de ejemplo'}
           </button>
           <button
             onClick={() => setMostrarTour(true)}
             aria-label="Ver recorrido de ayuda"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-mc-gris-claro text-mc-gris font-bold text-sm"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-mc-gris-claro text-mc-tinta font-bold text-sm hover:bg-gray-200 cursor-pointer"
           >
             ?
           </button>
         </div>
       </header>
+      <div
+        aria-hidden="true"
+        className="h-1 w-full"
+        style={{
+          background:
+            'linear-gradient(90deg, #1A3D84 0%, #1A3D84 60%, #E1061E 60%, #E1061E 80%, #F7CC13 80%, #F7CC13 100%)',
+        }}
+      />
 
       {modoDemo && (
         <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 text-sm font-semibold text-center py-2 px-4">
@@ -264,6 +301,7 @@ export default function Dashboard() {
                 initialLeads={pipelineLeads}
                 liveSessions={liveSessions}
                 onSelectSession={setDetalleSessionId}
+                onLeadMutated={cargarDatos}
               />
             </section>
           )}

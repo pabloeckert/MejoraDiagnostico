@@ -37,11 +37,18 @@ function igualSeguro(a: string, b: string): boolean {
 
 export function passwordCorrecta(intento: string): boolean {
   if (typeof intento !== 'string') return false
-  const p = password()
   const limpio = intento.trim()
+  if (!limpio) return false
+
+  const envPass = process.env.ADMIN_PASSWORD?.trim()
+  if (envPass) {
+    // Si ADMIN_PASSWORD está definida en entorno, validar estrictamente contra ella
+    return igualSeguro(limpio, envPass)
+  }
+
+  // Fallback solo si no hay ADMIN_PASSWORD configurada
   return (
-    igualSeguro(limpio, p) ||
-    igualSeguro(limpio.toLowerCase(), p.toLowerCase()) ||
+    igualSeguro(limpio, 'AdminMC') ||
     igualSeguro(limpio.toLowerCase(), 'adminmc')
   )
 }
